@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{NoteStyle, WindowGeometry};
+use crate::{NoteStyle, RichDocument, WindowGeometry};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
@@ -57,6 +57,8 @@ pub enum NoteState {
 pub struct Note {
     pub id: NoteId,
     pub content: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rich_content: Option<RichDocument>,
     pub style: NoteStyle,
     pub geometry: WindowGeometry,
     pub always_on_top: bool,
@@ -72,6 +74,7 @@ impl Note {
         Self {
             id: NoteId::new(),
             content: String::new(),
+            rich_content: None,
             style: NoteStyle::default(),
             geometry: WindowGeometry::default(),
             always_on_top: false,
