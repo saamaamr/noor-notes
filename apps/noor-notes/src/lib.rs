@@ -1,3 +1,4 @@
+pub mod account;
 pub mod actions;
 pub mod app;
 pub mod autosave;
@@ -7,3 +8,5 @@ pub mod managed_app;
 pub mod note_toolbar;
 pub mod note_window;
 pub mod search;
+pub mod sync_status;
+pub mod vault_setup;

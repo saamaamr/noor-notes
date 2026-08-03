@@ -18,6 +18,7 @@ noor-sync = { path = "../../crates/sync" }
 noor-windowing = { path = "../../crates/windowing" }
 noor-xpad-import = { path = "../../crates/xpad-import" }
 tokio.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 chrono.workspace = true
