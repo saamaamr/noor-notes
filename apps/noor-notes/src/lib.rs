@@ -1,4 +1,9 @@
+pub mod actions;
 pub mod app;
 pub mod autosave;
+pub mod import_dialog;
+pub mod main_window;
+pub mod managed_app;
 pub mod note_toolbar;
 pub mod note_window;
+pub mod search;

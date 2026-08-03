@@ -1,0 +1,181 @@
+use std::sync::Arc;
+
+use adw::prelude::*;
+use noor_domain::{Note, NoteState};
+use noor_storage::SqliteNoteRepository;
+use noor_windowing::WindowController;
+
+use crate::autosave::AutosaveQueue;
+use crate::note_window::NoteWindow;
+
+#[derive(Clone)]
+pub struct MainWindow {
+    pub window: adw::ApplicationWindow,
+    search: gtk::SearchEntry,
+    active: gtk::ListBox,
+    archived: gtk::ListBox,
+    trash: gtk::ListBox,
+    status: gtk::Label,
+    repository: SqliteNoteRepository,
+    autosave: AutosaveQueue,
+    controller: Arc<dyn WindowController>,
+    app: adw::Application,
+}
+
+impl MainWindow {
+    pub fn new(
+        app: &adw::Application,
+        repository: SqliteNoteRepository,
+        autosave: AutosaveQueue,
+        controller: Arc<dyn WindowController>,
+    ) -> Self {
+        let window = adw::ApplicationWindow::builder()
+            .application(app)
+            .title("Noor Notes")
+            .default_width(780)
+            .default_height(560)
+            .build();
+        window.add_css_class("main-window");
+
+        let toolbar = adw::ToolbarView::new();
+        let header = adw::HeaderBar::new();
+        let title = adw::WindowTitle::new("Noor Notes", "Private notes, available offline");
+        header.set_title_widget(Some(&title));
+        let new_button = gtk::Button::builder()
+            .icon_name("list-add-symbolic")
+            .tooltip_text("New note")
+            .build();
+        new_button.set_action_name(Some("app.new-note"));
+        header.pack_start(&new_button);
+        let import_button = gtk::Button::builder()
+            .icon_name("document-open-symbolic")
+            .tooltip_text("Import Xpad notes")
+            .build();
+        import_button.set_action_name(Some("app.import-xpad"));
+        header.pack_end(&import_button);
+        toolbar.add_top_bar(&header);
+
+        let page = gtk::Box::new(gtk::Orientation::Vertical, 12);
+        page.set_margin_top(12);
+        page.set_margin_bottom(12);
+        page.set_margin_start(18);
+        page.set_margin_end(18);
+        let search = gtk::SearchEntry::builder()
+            .placeholder_text("Search notes…")
+            .hexpand(true)
+            .build();
+        page.append(&search);
+
+        let stack = adw::ViewStack::new();
+        let active = note_list();
+        let archived = note_list();
+        let trash = note_list();
+        stack.add_titled_with_icon(&active, Some("active"), "Notes", "note-symbolic");
+        stack.add_titled_with_icon(&archived, Some("archived"), "Archived", "folder-symbolic");
+        stack.add_titled_with_icon(&trash, Some("trash"), "Trash", "user-trash-symbolic");
+        let switcher = adw::ViewSwitcher::builder()
+            .stack(&stack)
+            .policy(adw::ViewSwitcherPolicy::Wide)
+            .build();
+        page.append(&switcher);
+        page.append(&stack);
+        let status = gtk::Label::new(Some("Local only · All changes saved offline"));
+        status.add_css_class("dim-label");
+        status.set_halign(gtk::Align::Start);
+        page.append(&status);
+        toolbar.set_content(Some(&page));
+        window.set_content(Some(&toolbar));
+
+        let this = Self {
+            window,
+            search,
+            active,
+            archived,
+            trash,
+            status,
+            repository,
+            autosave,
+            controller,
+            app: app.clone(),
+        };
+        {
+            let this = this.clone();
+            this.search.clone().connect_search_changed(move |_| {
+                this.refresh();
+            });
+        }
+        this.refresh();
+        this
+    }
+
+    pub fn present(&self) {
+        self.window.present();
+    }
+
+    pub fn focus_search(&self) {
+        self.search.grab_focus();
+    }
+
+    pub fn set_status(&self, message: &str) {
+        self.status.set_text(message);
+    }
+
+    pub fn refresh(&self) {
+        let query = self.search.text().to_string();
+        let repository = self.repository.clone();
+        let this = self.clone();
+        gtk::glib::MainContext::default().spawn_local(async move {
+            match repository.search_notes(&query).await {
+                Ok(notes) => this.render(notes),
+                Err(error) => this.set_status(&format!("Could not load notes: {error}")),
+            }
+        });
+    }
+
+    fn render(&self, notes: Vec<Note>) {
+        clear_list(&self.active);
+        clear_list(&self.archived);
+        clear_list(&self.trash);
+        for note in notes {
+            let target = match note.state {
+                NoteState::Active => &self.active,
+                NoteState::Archived => &self.archived,
+                NoteState::Trashed { .. } => &self.trash,
+            };
+            let row = adw::ActionRow::builder()
+                .title(note_title(&note))
+                .subtitle(note.updated_at.format("%d %b %Y · %I:%M %p").to_string())
+                .activatable(true)
+                .build();
+            let app = self.app.clone();
+            let autosave = self.autosave.clone();
+            let controller = self.controller.clone();
+            row.connect_activated(move |_| {
+                NoteWindow::new(&app, note.clone(), autosave.clone(), controller.clone()).present();
+            });
+            target.append(&row);
+        }
+        self.set_status("Local only · All changes saved offline");
+    }
+}
+
+fn note_list() -> gtk::ListBox {
+    let list = gtk::ListBox::new();
+    list.add_css_class("boxed-list");
+    list.set_selection_mode(gtk::SelectionMode::None);
+    list
+}
+
+fn clear_list(list: &gtk::ListBox) {
+    while let Some(child) = list.first_child() {
+        list.remove(&child);
+    }
+}
+
+fn note_title(note: &Note) -> String {
+    note.content
+        .lines()
+        .find(|line| !line.trim().is_empty())
+        .map(|line| line.chars().take(72).collect())
+        .unwrap_or_else(|| "Untitled note".into())
+}
