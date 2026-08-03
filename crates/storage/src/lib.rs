@@ -2,6 +2,7 @@
 
 mod backup;
 mod error;
+mod import_receipts;
 mod journal;
 mod lifecycle;
 mod repository;

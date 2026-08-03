@@ -1,0 +1,10 @@
+width 360
+height 320
+x 100
+y 120
+sticky 0
+hidden 0
+back rgb(238,238,236)
+text rgb(0,0,0)
+fontname Noto Sans Bengali 12
+content content-UNICODE1

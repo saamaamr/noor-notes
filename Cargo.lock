@@ -1141,8 +1141,13 @@ dependencies = [
 name = "noor-xpad-import"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "noor-domain",
  "noor-storage",
+ "sha2",
+ "tempfile",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]

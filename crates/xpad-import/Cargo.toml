@@ -8,3 +8,10 @@ rust-version.workspace = true
 [dependencies]
 noor-domain = { path = "../domain" }
 noor-storage = { path = "../storage" }
+chrono.workspace = true
+sha2.workspace = true
+tokio.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
