@@ -21,6 +21,7 @@ tempfile = "3"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time"] }
 uuid = { version = "1", features = ["v4", "serde"] }
+x11rb = "0.13"
 
 [profile.release]
 lto = "thin"
