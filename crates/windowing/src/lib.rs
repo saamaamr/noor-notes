@@ -3,9 +3,11 @@
 mod controller;
 mod detect;
 mod fallback;
+mod gnome;
 mod x11;
 
 pub use controller::{NativeWindowId, WindowCapabilities, WindowController, WindowError};
 pub use detect::{BackendKind, Environment, detect_backend};
 pub use fallback::FallbackWindowController;
+pub use gnome::GnomeWindowController;
 pub use x11::X11WindowController;

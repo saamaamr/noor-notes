@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use adw::prelude::*;
 use noor_domain::Note;
-use noor_windowing::{NativeWindowId, WindowController};
+use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
 use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::note_toolbar::NoteToolbar;
@@ -22,9 +22,10 @@ impl NoteWindow {
     ) -> Self {
         let note = Rc::new(RefCell::new(note));
         let current = note.borrow().clone();
+        let window_title = GnomeWindowController::window_title(&current.id.value().to_string());
         let window = adw::ApplicationWindow::builder()
             .application(app)
-            .title("Noor Note")
+            .title(&window_title)
             .default_width(current.geometry.width)
             .default_height(current.geometry.height)
             .build();
@@ -162,8 +163,10 @@ impl NoteWindow {
 
 fn native_window_id(window: &adw::ApplicationWindow) -> Option<NativeWindowId> {
     let surface = window.surface()?;
-    surface
-        .downcast::<gdk4_x11::X11Surface>()
-        .ok()
-        .map(|surface| NativeWindowId::X11(surface.xid() as u32))
+    if let Ok(surface) = surface.downcast::<gdk4_x11::X11Surface>() {
+        return Some(NativeWindowId::X11(surface.xid() as u32));
+    }
+    window
+        .title()
+        .map(|title| NativeWindowId::Wayland(title.to_string()))
 }

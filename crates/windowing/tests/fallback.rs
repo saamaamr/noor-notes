@@ -9,7 +9,12 @@ async fn fallback_reports_unsupported_capabilities_and_operations() {
     assert!(!capabilities.opacity);
 
     let window = NativeWindowId::X11(42);
-    assert!(controller.set_above(window, true).await.is_err());
-    assert!(controller.set_all_workspaces(window, true).await.is_err());
+    assert!(controller.set_above(window.clone(), true).await.is_err());
+    assert!(
+        controller
+            .set_all_workspaces(window.clone(), true)
+            .await
+            .is_err()
+    );
     assert!(controller.set_opacity(window, 0.8).await.is_err());
 }

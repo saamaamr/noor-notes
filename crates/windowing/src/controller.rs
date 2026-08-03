@@ -1,7 +1,7 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NativeWindowId {
     X11(u32),
-    Wayland(u64),
+    Wayland(String),
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

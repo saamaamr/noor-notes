@@ -1,0 +1,12 @@
+<node>
+  <interface name="io.github.saamaamr.NoorNotes.Window1">
+    <method name="SetAbove">
+      <arg type="s" name="window_id" direction="in"/>
+      <arg type="b" name="enabled" direction="in"/>
+    </method>
+    <method name="SetAllWorkspaces">
+      <arg type="s" name="window_id" direction="in"/>
+      <arg type="b" name="enabled" direction="in"/>
+    </method>
+  </interface>
+</node>

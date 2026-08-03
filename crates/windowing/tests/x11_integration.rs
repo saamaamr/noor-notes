@@ -36,9 +36,12 @@ async fn x11_controller_sets_above_workspace_and_opacity_properties() {
     let controller = X11WindowController::connect().unwrap();
     let native = NativeWindowId::X11(window);
 
-    controller.set_above(native, true).await.unwrap();
-    controller.set_all_workspaces(native, true).await.unwrap();
-    controller.set_opacity(native, 0.75).await.unwrap();
+    controller.set_above(native.clone(), true).await.unwrap();
+    controller
+        .set_all_workspaces(native.clone(), true)
+        .await
+        .unwrap();
+    controller.set_opacity(native.clone(), 0.75).await.unwrap();
 
     let state = connection
         .get_property(
@@ -84,7 +87,7 @@ async fn x11_controller_sets_above_workspace_and_opacity_properties() {
         Some((0.75 * f64::from(u32::MAX)).round() as u32)
     );
 
-    controller.set_above(native, false).await.unwrap();
+    controller.set_above(native.clone(), false).await.unwrap();
     let state = connection
         .get_property(
             false,

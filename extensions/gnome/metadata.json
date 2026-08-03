@@ -1,0 +1,8 @@
+{
+  "uuid": "noor-notes-windowing@saamaamr.github.io",
+  "name": "Noor Notes Window Controls",
+  "description": "Provides narrowly scoped Always on Top and workspace controls for Noor Notes.",
+  "shell-version": ["50"],
+  "url": "https://github.com/saamaamr/noor-notes",
+  "version": 1
+}
