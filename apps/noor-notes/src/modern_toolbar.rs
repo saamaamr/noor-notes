@@ -179,3 +179,8 @@ fn text_toggle(label: &str, tooltip: &str, class: &str) -> gtk::ToggleButton {
     button.add_css_class(class);
     button
 }
+impl Default for ModernToolbar {
+    fn default() -> Self {
+        Self::new()
+    }
+}
