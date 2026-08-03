@@ -11,6 +11,10 @@ pub struct ModernToolbar {
     pub strikethrough: gtk::ToggleButton,
     pub bullets: gtk::ToggleButton,
     pub numbered: gtk::ToggleButton,
+    pub font_size: gtk::DropDown,
+    pub alignment_buttons: Vec<gtk::ToggleButton>,
+    pub foreground_buttons: Vec<gtk::Button>,
+    pub highlight_buttons: Vec<gtk::Button>,
     pub emoji_buttons: Vec<gtk::Button>,
     pub all_workspaces: gtk::ToggleButton,
     pub opacity: gtk::Scale,
@@ -55,6 +59,20 @@ impl ModernToolbar {
         font_size.set_selected(2);
         font_size.set_tooltip_text(Some("Font size"));
         format_grid.attach(&font_size, 2, 1, 2, 1);
+        let alignment_buttons = [
+            ("format-justify-left-symbolic", "Align left"),
+            ("format-justify-center-symbolic", "Align center"),
+            ("format-justify-right-symbolic", "Align right"),
+            ("format-justify-fill-symbolic", "Justify"),
+        ]
+        .iter()
+        .map(|(icon, tooltip)| icon_toggle(icon, tooltip))
+        .collect::<Vec<_>>();
+        for (index, button) in alignment_buttons.iter().enumerate() {
+            format_grid.attach(button, index as i32, 2, 1, 1);
+        }
+        let foreground_buttons = color_buttons(&format_grid, 3, "Text", "text-color");
+        let highlight_buttons = color_buttons(&format_grid, 4, "Highlight", "highlight-color");
         let format_popover = gtk::Popover::builder().child(&format_grid).build();
         let format = gtk::MenuButton::builder()
             .icon_name("format-text-rich-symbolic")
@@ -133,6 +151,10 @@ impl ModernToolbar {
             strikethrough,
             bullets,
             numbered,
+            font_size,
+            alignment_buttons,
+            foreground_buttons,
+            highlight_buttons,
             emoji_buttons,
             all_workspaces,
             opacity,
@@ -140,6 +162,25 @@ impl ModernToolbar {
             trash,
         }
     }
+}
+
+fn color_buttons(grid: &gtk::Grid, row: i32, label: &str, class: &str) -> Vec<gtk::Button> {
+    let title = gtk::Label::new(Some(label));
+    title.set_xalign(0.0);
+    grid.attach(&title, 0, row, 1, 1);
+    ["charcoal", "blue", "green", "red"]
+        .iter()
+        .enumerate()
+        .map(|(index, color)| {
+            let button = gtk::Button::new();
+            button.set_tooltip_text(Some(&format!("{label}: {color}")));
+            button.add_css_class("color-choice");
+            button.add_css_class(class);
+            button.add_css_class(color);
+            grid.attach(&button, index as i32, row, 1, 1);
+            button
+        })
+        .collect()
 }
 
 fn group() -> gtk::Box {

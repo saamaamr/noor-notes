@@ -1,11 +1,30 @@
 use adw::prelude::*;
-use noor_domain::{RichBlock, RichDocument, RichSpan, TextMarks};
+use noor_domain::{Alignment, RichBlock, RichDocument, RichSpan, TextMarks};
 
 const BOLD: &str = "noor-bold";
 const ITALIC: &str = "noor-italic";
 const UNDERLINE: &str = "noor-underline";
 const STRIKE: &str = "noor-strike";
 const LINK: &str = "noor-link";
+const SIZE_TAGS: [(&str, u16); 5] = [
+    ("noor-size-12", 12),
+    ("noor-size-14", 14),
+    ("noor-size-16", 16),
+    ("noor-size-18", 18),
+    ("noor-size-24", 24),
+];
+const FG_TAGS: [(&str, &str); 4] = [
+    ("noor-fg-charcoal", "#29251f"),
+    ("noor-fg-blue", "#174a7e"),
+    ("noor-fg-green", "#276749"),
+    ("noor-fg-red", "#a12c2c"),
+];
+const BG_TAGS: [(&str, &str); 4] = [
+    ("noor-bg-charcoal", "#d8c99b"),
+    ("noor-bg-blue", "#b9d9ee"),
+    ("noor-bg-green", "#bfe3c0"),
+    ("noor-bg-red", "#efb9bd"),
+];
 
 pub struct RichBuffer;
 
@@ -45,6 +64,41 @@ impl RichBuffer {
                 .underline(gtk::pango::Underline::Single)
                 .build(),
         );
+        for (name, size) in SIZE_TAGS {
+            add_tag(
+                &table,
+                gtk::TextTag::builder()
+                    .name(name)
+                    .size_points(size as f64)
+                    .build(),
+            );
+        }
+        for (name, color) in FG_TAGS {
+            add_tag(
+                &table,
+                gtk::TextTag::builder().name(name).foreground(color).build(),
+            );
+        }
+        for (name, color) in BG_TAGS {
+            add_tag(
+                &table,
+                gtk::TextTag::builder().name(name).background(color).build(),
+            );
+        }
+        for (name, justification) in [
+            ("noor-align-start", gtk::Justification::Left),
+            ("noor-align-center", gtk::Justification::Center),
+            ("noor-align-end", gtk::Justification::Right),
+            ("noor-align-justify", gtk::Justification::Fill),
+        ] {
+            add_tag(
+                &table,
+                gtk::TextTag::builder()
+                    .name(name)
+                    .justification(justification)
+                    .build(),
+            );
+        }
     }
 
     pub fn load(buffer: &gtk::TextBuffer, content: &str, document: Option<&RichDocument>) {
@@ -60,11 +114,17 @@ impl RichBuffer {
             if block_index > 0 {
                 buffer.insert(&mut cursor, "\n");
             }
+            let block_start = cursor.offset();
             for span in &block.spans {
-                let start = cursor;
+                let start_offset = cursor.offset();
                 buffer.insert(&mut cursor, &span.text);
-                apply_marks(buffer, &start, &cursor, &span.marks);
+                let start = buffer.iter_at_offset(start_offset);
+                let end = buffer.iter_at_offset(cursor.offset());
+                apply_marks(buffer, &start, &end, &span.marks);
             }
+            let start = buffer.iter_at_offset(block_start);
+            let end = buffer.iter_at_offset(cursor.offset());
+            buffer.apply_tag_by_name(alignment_tag(block.alignment), &start, &end);
         }
         Self::tag_urls(buffer);
     }
@@ -81,6 +141,12 @@ impl RichBuffer {
                 blocks.push(RichBlock::default());
                 iter.forward_char();
                 continue;
+            }
+            if iter.starts_line() {
+                blocks
+                    .last_mut()
+                    .expect("document always has a block")
+                    .alignment = alignment_at(&iter);
             }
             let marks = marks_at(&iter);
             let block = blocks.last_mut().expect("document always has a block");
@@ -127,6 +193,34 @@ impl RichBuffer {
 
     pub fn strikethrough(buffer: &gtk::TextBuffer) {
         Self::toggle_selection(buffer, STRIKE);
+    }
+
+    pub fn font_size(buffer: &gtk::TextBuffer, size: u16) {
+        replace_selection_tag(buffer, "noor-size-", &format!("noor-size-{size}"));
+    }
+
+    pub fn foreground(buffer: &gtk::TextBuffer, color: &str) {
+        replace_selection_tag(buffer, "noor-fg-", &format!("noor-fg-{color}"));
+    }
+
+    pub fn align(buffer: &gtk::TextBuffer, alignment: Alignment) {
+        let mut start = buffer.iter_at_mark(&buffer.get_insert());
+        start.set_line_offset(0);
+        let mut end = start;
+        end.forward_to_line_end();
+        for tag in [
+            "noor-align-start",
+            "noor-align-center",
+            "noor-align-end",
+            "noor-align-justify",
+        ] {
+            buffer.remove_tag_by_name(tag, &start, &end);
+        }
+        buffer.apply_tag_by_name(alignment_tag(alignment), &start, &end);
+    }
+
+    pub fn highlight(buffer: &gtk::TextBuffer, color: &str) {
+        replace_selection_tag(buffer, "noor-bg-", &format!("noor-bg-{color}"));
     }
 
     pub fn insert_list_prefix(buffer: &gtk::TextBuffer, prefix: &str) {
@@ -182,6 +276,72 @@ fn apply_marks(
             buffer.apply_tag_by_name(tag, start, end);
         }
     }
+    if let Some(size) = marks.font_size {
+        buffer.apply_tag_by_name(&format!("noor-size-{size}"), start, end);
+    }
+    if let Some(color) = &marks.foreground {
+        buffer.apply_tag_by_name(&format!("noor-fg-{color}"), start, end);
+    }
+    if let Some(color) = &marks.highlight {
+        buffer.apply_tag_by_name(&format!("noor-bg-{color}"), start, end);
+    }
+}
+fn replace_selection_tag(buffer: &gtk::TextBuffer, prefix: &str, tag: &str) {
+    let Some((start, end)) = buffer.selection_bounds() else {
+        return;
+    };
+    for name in [
+        "noor-size-12",
+        "noor-size-14",
+        "noor-size-16",
+        "noor-size-18",
+        "noor-size-24",
+        "noor-fg-charcoal",
+        "noor-fg-blue",
+        "noor-fg-green",
+        "noor-fg-red",
+        "noor-bg-charcoal",
+        "noor-bg-blue",
+        "noor-bg-green",
+        "noor-bg-red",
+    ] {
+        if name.starts_with(prefix) {
+            buffer.remove_tag_by_name(name, &start, &end);
+        }
+    }
+    buffer.apply_tag_by_name(tag, &start, &end);
+}
+
+fn tag_suffix(names: &[String], prefix: &str) -> Option<String> {
+    names
+        .iter()
+        .find_map(|name| name.strip_prefix(prefix).map(str::to_string))
+}
+
+fn alignment_tag(alignment: Alignment) -> &'static str {
+    match alignment {
+        Alignment::Start => "noor-align-start",
+        Alignment::Center => "noor-align-center",
+        Alignment::End => "noor-align-end",
+        Alignment::Justify => "noor-align-justify",
+    }
+}
+
+fn alignment_at(iter: &gtk::TextIter) -> Alignment {
+    let names = iter
+        .tags()
+        .into_iter()
+        .filter_map(|tag| tag.name().map(|name| name.to_string()))
+        .collect::<Vec<_>>();
+    if names.iter().any(|name| name == "noor-align-center") {
+        Alignment::Center
+    } else if names.iter().any(|name| name == "noor-align-end") {
+        Alignment::End
+    } else if names.iter().any(|name| name == "noor-align-justify") {
+        Alignment::Justify
+    } else {
+        Alignment::Start
+    }
 }
 
 fn marks_at(iter: &gtk::TextIter) -> TextMarks {
@@ -195,6 +355,8 @@ fn marks_at(iter: &gtk::TextIter) -> TextMarks {
         italic: names.iter().any(|name| name == ITALIC),
         underline: names.iter().any(|name| name == UNDERLINE),
         strikethrough: names.iter().any(|name| name == STRIKE),
-        ..TextMarks::default()
+        font_size: tag_suffix(&names, "noor-size-").and_then(|value| value.parse().ok()),
+        foreground: tag_suffix(&names, "noor-fg-"),
+        highlight: tag_suffix(&names, "noor-bg-"),
     }
 }

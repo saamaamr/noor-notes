@@ -81,3 +81,14 @@ popover contents {
   border-radius: 14px;
   box-shadow: 0 12px 32px rgba(36, 27, 6, 0.18);
 }
+
+.color-choice { min-width: 32px; min-height: 32px; margin: 3px; border-radius: 16px; border: 2px solid rgba(255,255,255,.85); box-shadow: 0 1px 4px rgba(40,30,8,.22); }
+.color-choice:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(40,30,8,.28); }
+.color-choice.charcoal { background: #29251f; }
+.color-choice.blue { background: #174a7e; }
+.color-choice.green { background: #276749; }
+.color-choice.red { background: #a12c2c; }
+.highlight-color.charcoal { background: #d8c99b; }
+.highlight-color.blue { background: #b9d9ee; }
+.highlight-color.green { background: #bfe3c0; }
+.highlight-color.red { background: #efb9bd; }
