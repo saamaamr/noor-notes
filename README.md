@@ -4,7 +4,17 @@ Noor Notes is a native GTK4 sticky-note application for Linux. It works offline,
 
 ## Install on Ubuntu
 
-Build prerequisites are GTK4, Libadwaita, SQLite, OpenSSL, X11 development headers, Rust stable, `pkg-config`, `libsecret-tools`, and `xvfb` for tests.
+Recommended installation:
+
+```bash
+git clone https://github.com/saamaamr/noor-notes.git
+cd noor-notes
+./scripts/install-ubuntu.sh
+```
+
+The installer adds the required Ubuntu packages, installs Rust only when it is missing, builds Noor Notes, and installs the application for your current user under `~/.local`. It will ask for your administrator password only when installing system packages.
+
+If you already have GTK4, Libadwaita, SQLite, OpenSSL, X11 development headers, Rust stable, `pkg-config`, and `libsecret-tools`, install directly from an existing checkout:
 
 ```bash
 ./scripts/install-local.sh
