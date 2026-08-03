@@ -168,7 +168,10 @@ fn data_path() -> std::path::PathBuf {
 
 fn load_css() {
     let provider = gtk::CssProvider::new();
-    provider.load_from_string(include_str!("../resources/style.css"));
+    provider.load_from_string(concat!(
+        include_str!("../resources/style.css"),
+        include_str!("../resources/modern.css")
+    ));
     if let Some(display) = gtk::gdk::Display::default() {
         gtk::style_context_add_provider_for_display(
             &display,

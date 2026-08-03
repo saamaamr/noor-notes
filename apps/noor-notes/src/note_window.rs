@@ -7,7 +7,8 @@ use noor_domain::Note;
 use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
 use crate::autosave::{AutosaveQueue, NoteDraft};
-use crate::note_toolbar::NoteToolbar;
+use crate::modern_toolbar::ModernToolbar;
+use crate::rich_buffer::RichBuffer;
 
 pub struct NoteWindow {
     pub window: adw::ApplicationWindow,
@@ -35,12 +36,12 @@ impl NoteWindow {
         let layout = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let header = adw::HeaderBar::new();
         header.add_css_class("flat");
-        let toolbar = NoteToolbar::new();
+        let toolbar = ModernToolbar::new();
         header.pack_end(&toolbar.widget);
         layout.append(&header);
 
         let buffer = gtk::TextBuffer::new(None);
-        buffer.set_text(&current.content);
+        RichBuffer::load(&buffer, &current.content, current.rich_content.as_ref());
         let editor = gtk::TextView::builder()
             .buffer(&buffer)
             .wrap_mode(gtk::WrapMode::WordChar)
@@ -58,6 +59,7 @@ impl NoteWindow {
             .build();
         layout.append(&scroller);
         window.set_content(Some(&layout));
+        crate::editor_actions::connect(&toolbar, &buffer, &editor);
 
         toolbar.pin.set_active(current.always_on_top);
         toolbar.all_workspaces.set_active(current.all_workspaces);
@@ -78,9 +80,9 @@ impl NoteWindow {
             let autosave = autosave.clone();
             buffer.connect_changed(move |buffer| {
                 let mut note = note.borrow_mut();
-                note.content = buffer
-                    .text(&buffer.start_iter(), &buffer.end_iter(), true)
-                    .to_string();
+                let (content, rich_content) = RichBuffer::snapshot(buffer);
+                note.content = content;
+                note.rich_content = Some(rich_content);
                 autosave.schedule(NoteDraft::from(note.clone()));
             });
         }

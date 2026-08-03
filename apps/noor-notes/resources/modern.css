@@ -1,0 +1,83 @@
+.noor-note {
+  background: #f8df86;
+  color: #252118;
+}
+
+.noor-note headerbar {
+  min-height: 52px;
+  padding: 4px 8px;
+  background: #fff3c4;
+  color: #252118;
+  border: 1px solid rgba(72, 58, 18, 0.16);
+  border-bottom-color: rgba(72, 58, 18, 0.22);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 8px 24px rgba(63, 45, 7, 0.14);
+}
+
+.modern-toolbar,
+.toolbar-group {
+  background: transparent;
+}
+
+.toolbar-group {
+  padding: 2px;
+  border-radius: 12px;
+}
+
+.toolbar-button,
+.format-choice,
+.emoji-choice {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  color: #27251f;
+  background: transparent;
+  border: 0;
+  border-radius: 11px;
+  box-shadow: none;
+}
+
+.toolbar-button:hover,
+.format-choice:hover,
+.emoji-choice:hover {
+  color: #17150f;
+  background: rgba(122, 95, 24, 0.11);
+}
+
+.toolbar-button:checked,
+.format-choice:checked {
+  color: #17150f;
+  background: rgba(122, 95, 24, 0.19);
+}
+
+.destructive-hover:hover {
+  color: #b42318;
+  background: rgba(180, 35, 24, 0.10);
+}
+
+.format-bold { font-weight: 800; }
+.format-italic { font-style: italic; }
+.format-underline { text-decoration: underline; }
+.format-strike { text-decoration: line-through; }
+
+.note-editor {
+  padding: 6px;
+  background: #f8df86;
+  color: #282318;
+  font-family: Inter, "Segoe UI", Cantarell, sans-serif;
+  font-size: 13pt;
+  caret-color: #5f4a12;
+}
+
+.note-editor text {
+  background: transparent;
+}
+
+popover contents {
+  padding: 4px;
+  color: #252118;
+  background: #fffaf0;
+  border: 1px solid rgba(72, 58, 18, 0.14);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(36, 27, 6, 0.18);
+}
