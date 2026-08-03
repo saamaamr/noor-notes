@@ -7,3 +7,12 @@ rust-version.workspace = true
 
 [dependencies]
 noor-domain = { path = "../domain" }
+chrono.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

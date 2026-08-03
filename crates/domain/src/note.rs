@@ -9,6 +9,10 @@ use crate::{NoteStyle, WindowGeometry};
 pub struct NoteId(Uuid);
 
 impl NoteId {
+    pub const fn from_uuid(value: Uuid) -> Self {
+        Self(value)
+    }
+
     pub fn new() -> Self {
         Self(Uuid::new_v4())
     }
@@ -29,6 +33,10 @@ impl Default for NoteId {
 pub struct Revision(u64);
 
 impl Revision {
+    pub const fn from_value(value: u64) -> Self {
+        Self(value)
+    }
+
     pub const fn value(self) -> u64 {
         self.0
     }
