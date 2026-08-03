@@ -1493,12 +1493,15 @@ dependencies = [
 name = "noor-sync"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "chrono",
  "noor-crypto",
  "noor-domain",
  "noor-storage",
  "reqwest",
  "serde",
+ "serde_json",
+ "tempfile",
  "thiserror",
  "tokio",
  "uuid",

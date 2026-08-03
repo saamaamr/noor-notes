@@ -5,6 +5,7 @@ mod error;
 mod import_receipts;
 mod journal;
 mod lifecycle;
+mod remote;
 mod repository;
 
 pub use error::StorageError;
