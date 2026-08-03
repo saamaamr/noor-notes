@@ -1,0 +1,24 @@
+app-id: io.github.saamaamr.NoorNotes
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: noor-notes
+finish-args:
+  - --share=ipc
+  - --share=network
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --talk-name=org.freedesktop.secrets
+  - --talk-name=org.freedesktop.Notifications
+modules:
+  - name: noor-notes
+    buildsystem: simple
+    build-commands:
+      - cargo build --release --offline -p noor-notes
+      - install -Dm755 target/release/noor-notes /app/bin/noor-notes
+      - install -Dm644 data/io.github.saamaamr.NoorNotes.desktop /app/share/applications/io.github.saamaamr.NoorNotes.desktop
+      - install -Dm644 data/io.github.saamaamr.NoorNotes.metainfo.xml /app/share/metainfo/io.github.saamaamr.NoorNotes.metainfo.xml
+      - install -Dm644 data/io.github.saamaamr.NoorNotes.svg /app/share/icons/hicolor/scalable/apps/io.github.saamaamr.NoorNotes.svg
+    sources:
+      - type: dir
+        path: ../..

@@ -1,0 +1,4 @@
+target/release/noor-notes usr/bin/
+data/io.github.saamaamr.NoorNotes.desktop usr/share/applications/
+data/io.github.saamaamr.NoorNotes.metainfo.xml usr/share/metainfo/
+data/io.github.saamaamr.NoorNotes.svg usr/share/icons/hicolor/scalable/apps/
