@@ -7,10 +7,18 @@ rust-version.workspace = true
 
 [dependencies]
 gtk.workspace = true
+gdk4-x11.workspace = true
 adw.workspace = true
+anyhow.workspace = true
+chrono.workspace = true
 noor-crypto = { path = "../../crates/crypto" }
 noor-domain = { path = "../../crates/domain" }
 noor-storage = { path = "../../crates/storage" }
 noor-sync = { path = "../../crates/sync" }
 noor-windowing = { path = "../../crates/windowing" }
 noor-xpad-import = { path = "../../crates/xpad-import" }
+tokio.workspace = true
+
+[dev-dependencies]
+chrono.workspace = true
+tempfile.workspace = true

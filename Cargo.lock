@@ -496,6 +496,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "gdk4-x11"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd10920274b392ff87d5b51932bebe24e428f9a2c0e1540b9d9be92a497f265a"
+dependencies = [
+ "gdk4",
+ "gdk4-x11-sys",
+ "gio",
+ "glib",
+ "libc",
+]
+
+[[package]]
+name = "gdk4-x11-sys"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8885d7dbeb194e6be61f0c62403200ad0c2f1da6930f816214eaf7124e0287bd"
+dependencies = [
+ "gdk4-sys",
+ "glib-sys",
+ "libc",
+ "system-deps",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1105,6 +1130,9 @@ dependencies = [
 name = "noor-notes"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "chrono",
+ "gdk4-x11",
  "gtk4",
  "libadwaita",
  "noor-crypto",
@@ -1113,6 +1141,8 @@ dependencies = [
  "noor-sync",
  "noor-windowing",
  "noor-xpad-import",
+ "tempfile",
+ "tokio",
 ]
 
 [[package]]
