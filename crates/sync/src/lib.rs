@@ -1,0 +1,1 @@
+//! Encrypted offline-first synchronization.
