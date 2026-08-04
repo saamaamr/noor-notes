@@ -1,0 +1,33 @@
+name: Build Flatpak
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      options: --privileged
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Verify Flatpak contracts
+        run: |
+          tests/flatpak_manifest.sh
+          tests/flatpak_workflow.sh
+
+      - name: Build Flatpak bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: noor-notes.flatpak
+          manifest-path: packaging/flatpak/io.github.saamaamr.NoorNotes.yml
+          cache-key: flatpak-builder-${{ github.sha }}
+          upload-artifact: true
