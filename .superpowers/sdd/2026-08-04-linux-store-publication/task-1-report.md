@@ -32,7 +32,7 @@ The completed contract validates the AppStream ID and launchable desktop ID, dev
 
 ## Commit
 
-Pending at report creation; updated after commit.
+- `2c1e3863139f1df0b97e9579e42901cf6ed1096b` — store metadata, desktop entry, screenshots, validation contract, and this report.
 
 ## Concerns
 
