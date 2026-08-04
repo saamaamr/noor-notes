@@ -37,6 +37,30 @@ The bundled GNOME Shell extension is not installed by the Snap. Consequently,
 on GNOME Wayland the Always on Top control can remain unavailable unless the
 extension is installed separately outside the Snap.
 
+## Build and install the Flatpak package locally
+
+Install Flatpak and its builder, then add Flathub as the runtime remote:
+
+```bash
+sudo apt install flatpak flatpak-builder
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install flathub org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.rust-stable//25.08
+```
+
+From the repository root, build and install the user-scoped test package:
+
+```bash
+flatpak-builder --user --install --force-clean --install-deps-from=flathub \
+  flatpak-build packaging/flatpak/io.github.saamaamr.NoorNotes.yml
+flatpak run io.github.saamaamr.NoorNotes
+```
+
+The Flatpak manifest pins the released source commit and declares every Cargo
+crate with a checksum, so Cargo builds offline inside the Flatpak sandbox. The
+package requests only display integration, optional sync networking, and the
+desktop Secret Service; it has no filesystem-wide access and does not bundle
+the GNOME Shell extension.
+
 ## Window behavior
 
 X11 uses native EWMH properties. The native checkout can use the included,

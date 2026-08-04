@@ -85,13 +85,13 @@ require_equal("parts.rust-deps.plugin", rust_deps.get("plugin"), "nil")
 require_equal(
     "parts.rust-deps.source",
     rust_deps.get("source"),
-    "https://static.rust-lang.org/dist/rust-1.85.0-x86_64-unknown-linux-gnu.tar.xz",
+    "https://static.rust-lang.org/dist/rust-1.87.0-x86_64-unknown-linux-gnu.tar.xz",
 )
 require_equal("parts.rust-deps.source-type", rust_deps.get("source-type"), "tar")
 require_equal(
     "parts.rust-deps.source-checksum",
     rust_deps.get("source-checksum"),
-    "sha256/6f8b323ed2a34ccf0031631b85d79e1133da662094566bc910432da9bd3a5b42",
+    "sha256/9720bf4ffdd5e6112f8fc93a645d50bfdc64f95cb76d41561be196e1721b4b69",
 )
 require_equal("parts.rust-deps.prime", rust_deps.get("prime"), ["-*"])
 if "./install.sh --prefix=\"$CRAFT_PART_INSTALL/usr\" --disable-ldconfig" not in rust_deps.get("override-build", ""):
