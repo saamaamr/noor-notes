@@ -71,6 +71,7 @@ for command in (
     'flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo',
     'flatpak --user remote-add --if-not-exists --no-gpg-verify noor-notes-test "file://$GITHUB_WORKSPACE/flatpak-repo"',
     'flatpak --user install --noninteractive noor-notes-test io.github.saamaamr.NoorNotes//master',
+    "flatpak --user run --command=sh io.github.saamaamr.NoorNotes -c 'test -f /app/share/licenses/io.github.saamaamr.NoorNotes/noor-notes/GPL-3.0-or-later.txt && test -x /usr/bin/secret-tool'",
     'flatpak --user run --command=noor-notes io.github.saamaamr.NoorNotes --help',
 ):
     if command not in smoke_run:
