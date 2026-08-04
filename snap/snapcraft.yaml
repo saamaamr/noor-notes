@@ -12,10 +12,17 @@ confinement: strict
 platforms:
   amd64:
 
+slots:
+  noor-notes-dbus:
+    interface: dbus
+    bus: session
+    name: io.github.saamaamr.NoorNotes
+
 apps:
   noor-notes:
     command: usr/bin/noor-notes
     desktop: usr/share/applications/io.github.saamaamr.NoorNotes.desktop
+    common-id: io.github.saamaamr.NoorNotes
     extensions: [gnome]
     plugs:
       - desktop
@@ -23,6 +30,8 @@ apps:
       - x11
       - network
       - password-manager-service
+    slots:
+      - noor-notes-dbus
 
 parts:
   noor-notes:
