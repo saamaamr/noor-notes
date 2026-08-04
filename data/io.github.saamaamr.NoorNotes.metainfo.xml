@@ -5,9 +5,33 @@
   <summary>Private, offline-first sticky notes for Linux</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
+  <developer id="io.github.saamaamr">
+    <name>Abdullah Al Mamun</name>
+  </developer>
   <description>
-    <p>Noor Notes provides modern native sticky notes, Xpad migration, optional window pinning, and encrypted synchronization.</p>
+    <p>Noor Notes is a native Linux application for private, offline-first sticky notes.</p>
+    <p>Create richly formatted notes, organize them in a searchable library, and recover notes from Trash when needed. Noor Notes can import existing Xpad notes without changing the original files, and optional encrypted synchronization is available when configured.</p>
   </description>
   <launchable type="desktop-id">io.github.saamaamr.NoorNotes.desktop</launchable>
+  <url type="homepage">https://github.com/saamaamr/noor-notes</url>
+  <url type="bugtracker">https://github.com/saamaamr/noor-notes/issues</url>
+  <url type="vcs-browser">https://github.com/saamaamr/noor-notes</url>
   <content_rating type="oars-1.1"/>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Create and format a private sticky note.</caption>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-editor.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Browse notes and restore items from Trash.</caption>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-library.png</image>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="0.1.0" date="2026-08-04" type="stable">
+      <description>
+        <p>Initial store release with offline notes, rich text editing, Xpad import, Trash recovery, and optional encrypted synchronization.</p>
+      </description>
+    </release>
+  </releases>
 </component>
