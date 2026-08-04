@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Verify package version matches tag
         run: |
@@ -26,7 +26,7 @@ jobs:
 
       - name: Build Snap
         id: build-snap
-        uses: canonical/action-build@v1
+        uses: canonical/action-build@3bdaa03e1ba6bf59a65f84a751d943d549a54e79 # v1
 
       - name: Lint built Snap
         run: sudo -u "$(id -un)" -E /snap/bin/snapcraft lint "${{ steps.build-snap.outputs.snap }}"
@@ -37,7 +37,7 @@ jobs:
           snap run noor-notes --help
 
       - name: Upload Snap artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: noor-notes-snap
           path: ${{ steps.build-snap.outputs.snap }}
@@ -46,11 +46,11 @@ jobs:
   flatpak:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      image: ghcr.io/flathub-infra/flatpak-github-actions@sha256:ab91c589e30298efc3bca549141aa1672a250fefa57d50e11300276f2dfc558f # gnome-50
       options: --privileged
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Verify package version matches tag
         run: |
@@ -64,7 +64,7 @@ jobs:
           tests/flatpak_workflow.sh
 
       - name: Build Flatpak bundle
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        uses: flatpak/flatpak-github-actions/flatpak-builder@401fe28a8384095fc1531b9d320b292f0ee45adb # v6.7
         with:
           bundle: noor-notes.flatpak
           manifest-path: packaging/flatpak/io.github.saamaamr.NoorNotes.yml
@@ -83,7 +83,7 @@ jobs:
           flatpak --user run --command=noor-notes io.github.saamaamr.NoorNotes --help
 
       - name: Upload Flatpak artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: noor-notes-flatpak
           path: noor-notes.flatpak
@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Download release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: release-assets
           merge-multiple: true
@@ -108,7 +108,7 @@ jobs:
           sha256sum *.snap *.flatpak > SHA256SUMS.txt
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           generate_release_notes: true
           files: |
