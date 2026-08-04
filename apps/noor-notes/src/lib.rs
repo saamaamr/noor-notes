@@ -7,6 +7,7 @@ pub mod import_dialog;
 pub mod main_window;
 pub mod managed_app;
 pub mod modern_toolbar;
+pub mod note_actions;
 pub mod note_toolbar;
 pub mod note_window;
 pub mod rich_buffer;
