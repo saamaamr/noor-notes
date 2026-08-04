@@ -134,6 +134,19 @@ impl SqliteNoteRepository {
             .map_err(StorageError::from)
     }
 
+    pub async fn delete_permanently(&self, id: NoteId) -> Result<(), StorageError> {
+        let mut tx = self.pool.begin().await?;
+        let result = sqlx::query("DELETE FROM notes WHERE id = ?")
+            .bind(id.value().to_string())
+            .execute(&mut *tx)
+            .await?;
+        if result.rows_affected() == 0 {
+            return Err(StorageError::NoteNotFound(id));
+        }
+        tx.commit().await?;
+        Ok(())
+    }
+
     pub async fn pending_changes(&self, limit: u32) -> Result<Vec<PendingChange>, StorageError> {
         let rows = sqlx::query(
             "SELECT id, note_id, revision, operation, payload_json

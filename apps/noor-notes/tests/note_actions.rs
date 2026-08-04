@@ -1,6 +1,6 @@
 use chrono::{TimeZone, Utc};
 use noor_domain::{Note, NoteState, Revision};
-use noor_notes::note_actions::{archive, trash};
+use noor_notes::note_actions::{archive, restore, trash};
 
 #[test]
 fn archive_preserves_content_and_advances_note_metadata() {
@@ -33,6 +33,22 @@ fn trash_records_deletion_time_and_advances_note_metadata() {
         }
     );
     assert_eq!(note.content, "Do not erase content");
+    assert_eq!(note.revision, Revision::from_value(1));
+    assert_eq!(note.updated_at, changed);
+}
+
+#[test]
+fn restore_preserves_content_and_advances_note_metadata() {
+    let created = Utc.with_ymd_and_hms(2026, 8, 4, 10, 0, 0).unwrap();
+    let changed = Utc.with_ymd_and_hms(2026, 8, 4, 12, 0, 0).unwrap();
+    let mut note = Note::new(created);
+    note.content = "Recover me".into();
+    note.state = NoteState::Trashed {
+        deleted_at: created,
+    };
+    restore(&mut note, changed);
+    assert_eq!(note.state, NoteState::Active);
+    assert_eq!(note.content, "Recover me");
     assert_eq!(note.revision, Revision::from_value(1));
     assert_eq!(note.updated_at, changed);
 }

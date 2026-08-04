@@ -71,3 +71,29 @@ async fn acknowledged_change_is_removed_from_pending_results() {
 
     assert!(repo.pending_changes(10).await.unwrap().is_empty());
 }
+
+#[tokio::test]
+async fn permanent_delete_removes_only_the_selected_note_and_its_changes() {
+    let dir = tempfile::tempdir().unwrap();
+    let repo = SqliteNoteRepository::open(&dir.path().join("notes.db"))
+        .await
+        .unwrap();
+    let now = Utc.with_ymd_and_hms(2026, 8, 4, 12, 0, 0).unwrap();
+    let deleted = Note::new(now);
+    let survivor = Note::new(now);
+    repo.save_note(&deleted).await.unwrap();
+    repo.save_note(&survivor).await.unwrap();
+    repo.delete_permanently(deleted.id).await.unwrap();
+    assert!(repo.get_note(deleted.id).await.unwrap().is_none());
+    assert_eq!(
+        repo.get_note(survivor.id).await.unwrap().unwrap().id,
+        survivor.id
+    );
+    assert!(
+        repo.pending_changes(20)
+            .await
+            .unwrap()
+            .iter()
+            .all(|change| change.note_id != deleted.id)
+    );
+}

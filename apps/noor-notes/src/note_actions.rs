@@ -5,6 +5,10 @@ pub fn archive(note: &mut Note, now: DateTime<Utc>) {
     transition(note, NoteState::Archived, now);
 }
 
+pub fn restore(note: &mut Note, now: DateTime<Utc>) {
+    transition(note, NoteState::Active, now);
+}
+
 pub fn trash(note: &mut Note, now: DateTime<Utc>) {
     transition(note, NoteState::Trashed { deleted_at: now }, now);
 }
