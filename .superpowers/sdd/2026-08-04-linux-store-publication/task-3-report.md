@@ -20,10 +20,26 @@ Status: DONE_WITH_CONCERNS
   static runtime permissions are IPC, optional sync networking, Wayland/X11
   display, and Secret Service access. No filesystem-wide access or GNOME Shell
   extension is included.
-- Added a tag/manual GitHub Actions build using the Flathub GNOME 50 builder
-  image and `flatpak-builder@v6`, which uploads `noor-notes.flatpak` as an
-  artifact without credentials or publication actions.
+- Added a manual GitHub Actions build using the Flathub GNOME 50 builder image
+  and `flatpak-builder@v6`, which uploads `noor-notes.flatpak` as an artifact
+  without credentials or publication actions. Task 4's release workflow is the
+  sole tag-build path.
 - Documented user-scoped local installation in `README.md`.
+
+## Fix round 1
+
+- Added the canonical GPL-3.0 license text as `LICENSE` and explicitly installs
+  it to `/app/share/licenses/io.github.saamaamr.NoorNotes/noor-notes/`
+  `GPL-3.0-or-later.txt`.
+- Extended the manifest contract to require GNOME 50, the Rust SDK extension,
+  the Rust extension path, `CARGO_HOME`, frozen offline Cargo, the canonical
+  license source/install command, and exact Cargo source reconciliation.
+  The test now compares every registry package and checksum in `Cargo.lock`
+  with its generated archive and `.cargo-checksum.json` entry; it rejects
+  missing, extra, duplicate, or mismatched entries.
+- Extended the hosted workflow to export the bundle repository, install it in
+  an isolated user Flatpak installation, verify the installed GPL path and
+  `/usr/bin/secret-tool`, run `noor-notes --help`, and upload the bundle.
 
 ## TDD evidence
 
@@ -54,27 +70,48 @@ identical to the committed `cargo-sources.json`. `git diff` also confirmed that
 
 The official Ubuntu Flatpak 1.16.6 and flatpak-builder 1.4.8 packages were
 downloaded and extracted only into `/tmp` (no system package installation).
-`flatpak-builder --show-manifest` parsed and expanded this manifest to 670
+`flatpak-builder --show-manifest` parsed and expanded this manifest to 671
 module sources, with the expected app ID, pinned commit, and exact permission
 set.
 
-## Concerns / external boundary
+## Hosted build, installation, and smoke evidence
 
-- A full local Flatpak build, user-repository install, and smoke test could
-  not run on this host. The isolated GNOME SDK installed successfully, but the
-  required `org.freedesktop.Sdk.Extension.rust-stable//25.08` download failed:
-  `Delta requires 1.7 GB free space, but only 1.7 GB available`. The CI
-  workflow is therefore the next environment to perform the complete package
-  build and smoke test.
-- The inspected GNOME 50 SDK does not contain the `secret-tool` executable.
-  Noor Notes currently invokes that executable for its optional credential
-  store, so the packaged sync credential path needs runtime smoke testing (or
-  a later application-level Secret Service implementation) before store
-  submission.
-- The repository currently has no `LICENSE` or `COPYING` file even though the
-  Cargo metadata declares GPL-3.0-or-later. Current Flathub requirements call
-  for installed license files; add the authoritative license text before a
-  submission.
+GitHub Actions run `30906111940` completed successfully in 4m47s:
+
+- Flatpak contracts passed.
+- The GNOME 50 container installed the Rust 25.08 SDK extension, fetched all
+  declared sources, ran `cargo build --frozen --offline --release --package
+  noor-notes`, created the bundle, and uploaded it.
+- The workflow added the generated repository to a separate user Flatpak
+  installation, installed `io.github.saamaamr.NoorNotes//master`, and ran
+  `flatpak --user run --command=noor-notes io.github.saamaamr.NoorNotes
+  --help` successfully.
+- Uploaded artifact: `8891219265`, `noor-notes-x86_64.flatpak`, 2,130,732
+  bytes, available from the successful run and not expired at validation time.
+
+Follow-up GitHub Actions run `30906525804` also completed successfully. Its
+strengthened installed-package smoke asserted the deployed GPL file at
+`/app/share/licenses/io.github.saamaamr.NoorNotes/noor-notes/`
+`GPL-3.0-or-later.txt` and `/usr/bin/secret-tool` before running the packaged
+`noor-notes --help` command.
+
+The workflow was temporarily enabled for the package branch only because
+GitHub does not offer workflow dispatch for a file absent from the default
+branch. It was restored to its intended manual-only trigger after the run;
+Task 4's release workflow owns tag builds. No release tag, GitHub release,
+store upload, or Flathub submission was created during Task 3.
+
+## Remaining boundaries
+
+- The local host still lacks disk space for the Rust SDK extension, but the
+  complete hosted build/install/smoke gate above succeeded.
+- The prior `secret-tool` concern was incorrect. The GNOME 50 runtime contains
+  `/usr/bin/secret-tool`; the installed-package workflow now asserts that path.
+  The app's actual Secret Service write remains an integration behavior for a
+  desktop session with a configured keyring, rather than a safe CI smoke test.
+- Flathub's current generative-AI policy is an external eligibility blocker for
+  this agentic workstream. See `task-3-flathub-policy-blocker.md`; no agent may
+  generate or open a Flathub submission PR from this work.
 - The manifest intentionally pins the existing release-candidate commit. Task
   4 must update and revalidate it once the final `v0.1.0` release commit is
   created.

@@ -61,6 +61,34 @@ package requests only display integration, optional sync networking, and the
 desktop Secret Service; it has no filesystem-wide access and does not bundle
 the GNOME Shell extension.
 
+## Release artifacts and store status
+
+Pushing a version tag builds the Snap and Flatpak in GitHub Actions. The final
+`v0.1.0` tag additionally creates a GitHub release with both package files and
+a `SHA256SUMS.txt` checksum file. The workflow uses GitHub's ephemeral release
+token only; no store credential, signing key, or token is committed.
+
+The Flatpak manifest uses a full immutable _payload commit_, rather than the
+tag currently being built. Keeping the manifest in the same repository makes a
+self-reference impossible: a commit cannot safely name itself before it exists.
+For a final release, create the payload commit first, pin that commit in the
+following release-orchestration commit, then verify that exact orchestration
+commit with an RC tag. Only after both package builds pass may the final tag
+point to that same tested orchestration commit. This preserves an immutable,
+tested Flatpak source without a mutable or circular tag reference.
+
+Flathub submission is not automated. Flathub's current generative-AI policy
+prohibits AI-assisted application content and AI-generated submission pull
+requests, so an agent must not create or open the submission PR. The owner must
+first establish that the application's provenance satisfies the policy, then
+make any eligible human-led submission.
+
+Snap Store upload also remains manual at the Ubuntu One/Snapcraft login
+boundary. After the owner creates or signs in to the required account, accepts
+the store terms, and authorizes the `noor-notes` name, they can upload the
+verified `.snap` to the `edge` channel and request stable promotion after
+Canonical's review.
+
 ## Window behavior
 
 X11 uses native EWMH properties. The native checkout can use the included,

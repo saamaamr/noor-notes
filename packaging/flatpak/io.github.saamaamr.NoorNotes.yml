@@ -28,7 +28,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/saamaamr/noor-notes.git
-        commit: 39868d1a12ba4d2be9df8e7b67ef98a7599deba8
+        commit: 37c1ddd55867e8c520b0596b9c9c09fb7250b12b
       - type: file
         path: ../../LICENSE
         dest-filename: LICENSE
