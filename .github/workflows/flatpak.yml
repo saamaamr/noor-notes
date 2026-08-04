@@ -4,8 +4,6 @@ on:
   push:
     tags:
       - "v*"
-    branches:
-      - feature/store-publication
   workflow_dispatch:
 
 permissions:
