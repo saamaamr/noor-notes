@@ -3,11 +3,13 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use adw::prelude::*;
+use chrono::Utc;
 use noor_domain::Note;
 use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
 use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::modern_toolbar::ModernToolbar;
+use crate::note_actions;
 use crate::rich_buffer::RichBuffer;
 
 pub struct NoteWindow {
@@ -60,6 +62,12 @@ impl NoteWindow {
         layout.append(&scroller);
         window.set_content(Some(&layout));
         crate::editor_actions::connect(&toolbar, &buffer, &editor);
+        {
+            let app = app.clone();
+            toolbar
+                .new_note
+                .connect_clicked(move |_| app.activate_action("new-note", None));
+        }
 
         toolbar.pin.set_active(current.always_on_top);
         toolbar.all_workspaces.set_active(current.all_workspaces);
@@ -141,6 +149,77 @@ impl NoteWindow {
         {
             let note = note.clone();
             let autosave = autosave.clone();
+            let window = window.clone();
+            toolbar.archive.connect_clicked(move |button| {
+                let button = button.clone();
+                let previous = note.borrow().clone();
+                note_actions::archive(&mut note.borrow_mut(), Utc::now());
+                let changed = note.borrow().clone();
+                let id = changed.id;
+                autosave.schedule(NoteDraft::from(changed));
+                let note = note.clone();
+                let autosave = autosave.clone();
+                let window = window.clone();
+                button.set_sensitive(false);
+                gtk::glib::MainContext::default().spawn_local(async move {
+                    if autosave.flush(id).await.is_ok() {
+                        if let Some(application) = window.application() {
+                            application.activate_action("refresh-notes", None);
+                        }
+                        window.close();
+                    } else {
+                        note.replace(previous);
+                        button.set_sensitive(true);
+                        show_save_error(&window);
+                    }
+                });
+            });
+        }
+        {
+            let note = note.clone();
+            let autosave = autosave.clone();
+            let window = window.clone();
+            toolbar.trash.connect_clicked(move |button| {
+                let button = button.clone();
+                let note = note.clone();
+                let autosave = autosave.clone();
+                let window = window.clone();
+                button.set_sensitive(false);
+                gtk::glib::MainContext::default().spawn_local(async move {
+                    let dialog = adw::AlertDialog::new(
+                        Some("Move this note to Trash?"),
+                        Some("The note will remain recoverable from the Trash section."),
+                    );
+                    dialog.add_response("cancel", "Cancel");
+                    dialog.add_response("trash", "Move to Trash");
+                    dialog.set_default_response(Some("cancel"));
+                    dialog.set_close_response("cancel");
+                    dialog.set_response_appearance("trash", adw::ResponseAppearance::Destructive);
+                    if dialog.choose_future(Some(&window)).await != "trash" {
+                        button.set_sensitive(true);
+                        return;
+                    }
+                    let previous = note.borrow().clone();
+                    note_actions::trash(&mut note.borrow_mut(), Utc::now());
+                    let changed = note.borrow().clone();
+                    let id = changed.id;
+                    autosave.schedule(NoteDraft::from(changed));
+                    if autosave.flush(id).await.is_ok() {
+                        if let Some(application) = window.application() {
+                            application.activate_action("refresh-notes", None);
+                        }
+                        window.close();
+                    } else {
+                        note.replace(previous);
+                        button.set_sensitive(true);
+                        show_save_error(&window);
+                    }
+                });
+            });
+        }
+        {
+            let note = note.clone();
+            let autosave = autosave.clone();
             window.connect_notify_local(Some("width"), move |window, _| {
                 note.borrow_mut().geometry.width = window.width();
                 autosave.schedule(NoteDraft::from(note.borrow().clone()));
@@ -161,6 +240,15 @@ impl NoteWindow {
     pub fn present(&self) {
         self.window.present();
     }
+}
+
+fn show_save_error(window: &adw::ApplicationWindow) {
+    let dialog = adw::AlertDialog::new(
+        Some("Could not save note"),
+        Some("Noor Notes kept this window open. Please try again."),
+    );
+    dialog.add_response("ok", "OK");
+    dialog.present(Some(window));
 }
 
 fn native_window_id(window: &adw::ApplicationWindow) -> Option<NativeWindowId> {

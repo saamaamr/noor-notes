@@ -52,6 +52,14 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     }
     {
         let main_window = main_window.clone();
+        add_action(&app, "refresh-notes", move |_, _| {
+            if let Some(window) = main_window.borrow().as_ref() {
+                window.refresh();
+            }
+        });
+    }
+    {
+        let main_window = main_window.clone();
         add_action(&app, "search", move |_, _| {
             if let Some(window) = main_window.borrow().as_ref() {
                 window.present();
