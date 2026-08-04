@@ -69,7 +69,7 @@ identical to the committed `cargo-sources.json`. `git diff` also confirmed that
 
 The official Ubuntu Flatpak 1.16.6 and flatpak-builder 1.4.8 packages were
 downloaded and extracted only into `/tmp` (no system package installation).
-`flatpak-builder --show-manifest` parsed and expanded this manifest to 670
+`flatpak-builder --show-manifest` parsed and expanded this manifest to 671
 module sources, with the expected app ID, pinned commit, and exact permission
 set.
 
