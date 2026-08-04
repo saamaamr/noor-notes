@@ -22,9 +22,29 @@ If you already have GTK4, Libadwaita, SQLite, OpenSSL, X11 development headers, 
 
 Launch **Noor Notes** from the application grid or run `~/.local/bin/noor-notes`. Xpad remains installed and its files under `~/.config/xpad` remain untouched. Use the import button in the Noor Notes library to preview and confirm migration.
 
+## Install the Snap package
+
+After downloading a local Snap build, install it with:
+
+```bash
+sudo snap install --dangerous ./noor-notes_0.1.0_amd64.snap
+```
+
+The package is strictly confined and keeps its mutable data in Snap-managed user
+directories. It requests desktop/display integration, optional network sync, and
+the desktop password-manager service; it does not have filesystem-wide access.
+The bundled GNOME Shell extension is not installed by the Snap. Consequently,
+on GNOME Wayland the Always on Top control can remain unavailable unless the
+extension is installed separately outside the Snap.
+
 ## Window behavior
 
-X11 uses native EWMH properties. GNOME Wayland uses the included, narrowly scoped Shell extension. If GNOME does not activate the extension immediately, log out and back in once. Unknown Wayland compositors keep note editing available but disable unsupported window toggles. KDE Wayland support is planned after the first release.
+X11 uses native EWMH properties. The native checkout can use the included,
+narrowly scoped GNOME Shell extension. If GNOME does not activate that separately
+installed extension immediately, log out and back in once. Store-sandboxed
+packages never install it automatically. Unknown Wayland compositors keep note
+editing available but disable unsupported window toggles. KDE Wayland support is
+planned after the first release.
 
 ## Encrypted sync
 

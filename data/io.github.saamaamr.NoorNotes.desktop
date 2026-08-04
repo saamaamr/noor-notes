@@ -1,10 +1,12 @@
 [Desktop Entry]
 Name=Noor Notes
-Comment=Private, offline-first sticky notes
+GenericName=Sticky Notes
+Comment=Private, offline-first sticky notes for Linux
 Exec=noor-notes
 Icon=io.github.saamaamr.NoorNotes
 Terminal=false
 Type=Application
 Categories=Utility;Office;
-Keywords=notes;sticky;xpad;
+Keywords=notes;sticky;offline;private;xpad;
 StartupNotify=true
+StartupWMClass=io.github.saamaamr.NoorNotes

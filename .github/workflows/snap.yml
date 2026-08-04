@@ -1,0 +1,39 @@
+name: Build Snap
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Verify Snap manifest contract
+        run: tests/snap_manifest.sh
+
+      - name: Build Snap
+        id: build-snap
+        uses: canonical/action-build@v1
+
+      - name: Lint built Snap
+        run: sudo -u "$(id -un)" -E /snap/bin/snapcraft lint "${{ steps.build-snap.outputs.snap }}"
+
+      - name: Install and smoke-test built Snap
+        run: |
+          sudo snap install --dangerous "${{ steps.build-snap.outputs.snap }}"
+          snap run noor-notes --help
+
+      - name: Upload Snap artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: noor-notes_0.1.0_amd64.snap
+          path: ${{ steps.build-snap.outputs.snap }}
+          if-no-files-found: error

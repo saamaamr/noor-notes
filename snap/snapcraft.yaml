@@ -1,0 +1,71 @@
+name: noor-notes
+version: "0.1.0"
+summary: Private, offline-first sticky notes for Linux
+description: |
+  Noor Notes is a native GTK4 sticky-note application for Linux.
+  It works offline, imports Xpad without modifying it, and supports optional
+  end-to-end encrypted synchronization.
+base: core24
+grade: stable
+confinement: strict
+
+platforms:
+  amd64:
+
+slots:
+  noor-notes-dbus:
+    interface: dbus
+    bus: session
+    name: io.github.saamaamr.NoorNotes
+
+apps:
+  noor-notes:
+    command: usr/bin/noor-notes
+    desktop: usr/share/applications/io.github.saamaamr.NoorNotes.desktop
+    common-id: io.github.saamaamr.NoorNotes
+    extensions: [gnome]
+    plugs:
+      - desktop
+      - wayland
+      - x11
+      - network
+      - password-manager-service
+    slots:
+      - noor-notes-dbus
+
+parts:
+  rust-deps:
+    plugin: nil
+    source: https://static.rust-lang.org/dist/rust-1.85.0-x86_64-unknown-linux-gnu.tar.xz
+    source-type: tar
+    source-checksum: sha256/6f8b323ed2a34ccf0031631b85d79e1133da662094566bc910432da9bd3a5b42
+    override-build: |
+      ./install.sh --prefix="$CRAFT_PART_INSTALL/usr" --disable-ldconfig
+    prime:
+      - "-*"
+
+  noor-notes:
+    after:
+      - rust-deps
+    plugin: rust
+    source: .
+    rust-channel: none
+    build-environment:
+      - PATH: $CRAFT_STAGE/usr/bin:${PATH}
+    build-packages:
+      - build-essential
+      - libadwaita-1-dev
+      - libgtk-4-dev
+      - libx11-dev
+      - pkg-config
+    stage-packages:
+      - libsecret-tools
+    override-build: |
+      cargo build --locked --release --package noor-notes
+      install -Dm755 target/release/noor-notes "$CRAFT_PART_INSTALL/usr/bin/noor-notes"
+      install -Dm644 data/io.github.saamaamr.NoorNotes.desktop \
+        "$CRAFT_PART_INSTALL/usr/share/applications/io.github.saamaamr.NoorNotes.desktop"
+      install -Dm644 data/io.github.saamaamr.NoorNotes.metainfo.xml \
+        "$CRAFT_PART_INSTALL/usr/share/metainfo/io.github.saamaamr.NoorNotes.metainfo.xml"
+      install -Dm644 data/io.github.saamaamr.NoorNotes.svg \
+        "$CRAFT_PART_INSTALL/usr/share/icons/hicolor/scalable/apps/io.github.saamaamr.NoorNotes.svg"
