@@ -56,6 +56,23 @@ if builder.get("manifest-path") != "packaging/flatpak/io.github.saamaamr.NoorNot
     raise SystemExit("Flatpak builder must build the release manifest")
 if builder.get("bundle") != "noor-notes.flatpak":
     raise SystemExit("Flatpak builder must produce the Noor Notes bundle")
+if builder.get("repo-dir") != "flatpak-repo":
+    raise SystemExit("Flatpak builder must export a dedicated test repository")
 if builder.get("upload-artifact") != "true":
     raise SystemExit("Flatpak builder must upload the built bundle as an artifact")
+
+steps_by_name = {step.get("name"): step for step in steps if isinstance(step, dict)}
+smoke = steps_by_name.get("Install and smoke-test Flatpak bundle")
+if not isinstance(smoke, dict):
+    raise SystemExit("Flatpak workflow must install and smoke-test the built bundle")
+
+smoke_run = smoke.get("run", "")
+for command in (
+    'flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo',
+    'flatpak --user remote-add --if-not-exists --no-gpg-verify noor-notes-test "file://$GITHUB_WORKSPACE/flatpak-repo"',
+    'flatpak --user install --noninteractive noor-notes-test io.github.saamaamr.NoorNotes//master',
+    'flatpak --user run --command=noor-notes io.github.saamaamr.NoorNotes --help',
+):
+    if command not in smoke_run:
+        raise SystemExit(f"Flatpak smoke test must run: {command}")
 PY

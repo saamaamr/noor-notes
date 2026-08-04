@@ -24,8 +24,12 @@ modules:
       - install -Dm644 data/io.github.saamaamr.NoorNotes.desktop /app/share/applications/io.github.saamaamr.NoorNotes.desktop
       - install -Dm644 data/io.github.saamaamr.NoorNotes.metainfo.xml /app/share/metainfo/io.github.saamaamr.NoorNotes.metainfo.xml
       - install -Dm644 data/io.github.saamaamr.NoorNotes.svg /app/share/icons/hicolor/scalable/apps/io.github.saamaamr.NoorNotes.svg
+      - install -Dm644 LICENSE /app/share/licenses/io.github.saamaamr.NoorNotes/noor-notes/GPL-3.0-or-later.txt
     sources:
       - type: git
         url: https://github.com/saamaamr/noor-notes.git
         commit: 39868d1a12ba4d2be9df8e7b67ef98a7599deba8
+      - type: file
+        path: ../../LICENSE
+        dest-filename: LICENSE
       - cargo-sources.json

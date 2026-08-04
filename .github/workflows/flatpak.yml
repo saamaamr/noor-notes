@@ -29,5 +29,15 @@ jobs:
         with:
           bundle: noor-notes.flatpak
           manifest-path: packaging/flatpak/io.github.saamaamr.NoorNotes.yml
+          repo-dir: flatpak-repo
           cache-key: flatpak-builder-${{ github.sha }}
           upload-artifact: true
+
+      - name: Install and smoke-test Flatpak bundle
+        run: |
+          export XDG_DATA_HOME="$(mktemp -d)"
+          export XDG_CACHE_HOME="$(mktemp -d)"
+          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user remote-add --if-not-exists --no-gpg-verify noor-notes-test "file://$GITHUB_WORKSPACE/flatpak-repo"
+          flatpak --user install --noninteractive noor-notes-test io.github.saamaamr.NoorNotes//master
+          flatpak --user run --command=noor-notes io.github.saamaamr.NoorNotes --help
