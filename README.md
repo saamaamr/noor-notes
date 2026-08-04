@@ -1,10 +1,35 @@
 # Noor Notes
 
-Noor Notes is a native GTK4 sticky-note application for Linux. It works offline, imports Xpad without modifying it, supports optional per-note Always on Top, and provides end-to-end encrypted synchronization through a user-configured hosted Supabase project.
+Noor Notes is a private, offline-first GTK4 sticky-note application for Linux. [Version 0.1.0](https://github.com/saamaamr/noor-notes/releases/tag/v0.1.0) is available as a locally installable Snap and Flatpak bundle.
 
-## Install on Ubuntu
+## Features
 
-Recommended installation:
+- **Rich text**: bold, italic, underline, strikethrough, lists, font sizes, alignment, text and highlight colours, and emoji.
+- A searchable library with active, archived, and **Trash** notes.
+- Xpad import that previews the migration and leaves the source files unchanged.
+- Optional window controls, including Always on Top, all-workspaces, and opacity where the desktop supports them.
+- Optional end-to-end encrypted synchronization with a user-configured Supabase project.
+
+## Installation
+
+### Release packages
+
+Download `noor-notes_0.1.0_amd64.snap` or `noor-notes.flatpak` from the [v0.1.0 release](https://github.com/saamaamr/noor-notes/releases/tag/v0.1.0), verify it as described below, then install one package.
+
+```bash
+sudo snap install --dangerous ./noor-notes_0.1.0_amd64.snap
+```
+
+```bash
+flatpak install --user ./noor-notes.flatpak
+flatpak run io.github.saamaamr.NoorNotes
+```
+
+The release Snap is strictly confined. The Flatpak exposes display integration, optional networking for sync, and the desktop Secret Service; neither package has filesystem-wide access.
+
+### Build from source on Ubuntu
+
+For Ubuntu and other APT-based systems, clone the repository and run the installer:
 
 ```bash
 git clone https://github.com/saamaamr/noor-notes.git
@@ -12,101 +37,62 @@ cd noor-notes
 ./scripts/install-ubuntu.sh
 ```
 
-The installer adds the required Ubuntu packages, installs Rust only when it is missing, builds Noor Notes, and installs the application for your current user under `~/.local`. It will ask for your administrator password only when installing system packages.
+It installs the required system packages, installs Rust only if it is missing, builds the app, and installs it for the current user. From an existing checkout with the dependencies already available, use `./scripts/install-local.sh`. Launch Noor Notes from the application grid or run `~/.local/bin/noor-notes` (or the equivalent `XDG_BIN_HOME` location).
 
-If you already have GTK4, Libadwaita, SQLite, OpenSSL, X11 development headers, Rust stable, `pkg-config`, and `libsecret-tools`, install directly from an existing checkout:
+## Verify release artifacts
 
-```bash
-./scripts/install-local.sh
-```
-
-Launch **Noor Notes** from the application grid or run `~/.local/bin/noor-notes`. Xpad remains installed and its files under `~/.config/xpad` remain untouched. Use the import button in the Noor Notes library to preview and confirm migration.
-
-## Install the Snap package
-
-After downloading a local Snap build, install it with:
+Keep the chosen package and `SHA256SUMS.txt` in the same directory. To download all published assets from a terminal:
 
 ```bash
-sudo snap install --dangerous ./noor-notes_0.1.0_amd64.snap
+release=https://github.com/saamaamr/noor-notes/releases/download/v0.1.0
+curl -LO "$release/noor-notes_0.1.0_amd64.snap"
+curl -LO "$release/noor-notes.flatpak"
+curl -LO "$release/SHA256SUMS.txt"
+sha256sum -c SHA256SUMS.txt
 ```
 
-The package is strictly confined and keeps its mutable data in Snap-managed user
-directories. It requests desktop/display integration, optional network sync, and
-the desktop password-manager service; it does not have filesystem-wide access.
-The bundled GNOME Shell extension is not installed by the Snap. Consequently,
-on GNOME Wayland the Always on Top control can remain unavailable unless the
-extension is installed separately outside the Snap.
+Install only an artifact whose verification reports `OK`.
 
-## Build and install the Flatpak package locally
+## First use and Xpad import
 
-Install Flatpak and its builder, then add Flathub as the runtime remote:
+Create a note from the library. To bring over existing Xpad notes, choose the Xpad import control in the library, review the preview, and confirm the import. Noor Notes does not modify Xpad or its files under `~/.config/xpad`.
 
-```bash
-sudo apt install flatpak flatpak-builder
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install flathub org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.rust-stable//25.08
-```
+## Rich text and Trash
 
-From the repository root, build and install the user-scoped test package:
+Use the formatting toolbar to style selected text or insert an emoji. Formatting is saved with the note; if a stored rich-text format is unsupported, Noor Notes safely displays its plain text instead.
 
-```bash
-flatpak-builder --user --install --force-clean --install-deps-from=flathub \
-  flatpak-build packaging/flatpak/io.github.saamaamr.NoorNotes.yml
-flatpak run io.github.saamaamr.NoorNotes
-```
+Archive notes to hide them from the active list, or move them to Trash. In Trash, restore a note to the active list or choose **Permanently Delete** and confirm the destructive action. Permanent deletion removes the note from the local database.
 
-The Flatpak manifest pins the released source commit and declares every Cargo
-crate with a checksum, so Cargo builds offline inside the Flatpak sandbox. The
-package requests only display integration, optional sync networking, and the
-desktop Secret Service; it has no filesystem-wide access and does not bundle
-the GNOME Shell extension.
+## Window and sandbox limitations
 
-## Release artifacts and store status
-
-Pushing a version tag builds the Snap and Flatpak in GitHub Actions. The final
-`v0.1.0` tag additionally creates a GitHub release with both package files and
-a `SHA256SUMS.txt` checksum file. The workflow uses GitHub's ephemeral release
-token only; no store credential, signing key, or token is committed.
-
-The Flatpak manifest uses a full immutable _payload commit_, rather than the
-tag currently being built. Keeping the manifest in the same repository makes a
-self-reference impossible: a commit cannot safely name itself before it exists.
-For a final release, create the payload commit first, pin that commit in the
-following release-orchestration commit, then verify that exact orchestration
-commit with an RC tag. Only after both package builds pass may the final tag
-point to that same tested orchestration commit. This preserves an immutable,
-tested Flatpak source without a mutable or circular tag reference.
-
-Flathub submission is not automated. Flathub's current generative-AI policy
-prohibits AI-assisted application content and AI-generated submission pull
-requests, so an agent must not create or open the submission PR. The owner must
-first establish that the application's provenance satisfies the policy, then
-make any eligible human-led submission.
-
-Snap Store upload also remains manual at the Ubuntu One/Snapcraft login
-boundary. After the owner creates or signs in to the required account, accepts
-the store terms, and authorizes the `noor-notes` name, they can upload the
-verified `.snap` to the `edge` channel and request stable promotion after
-Canonical's review.
-
-## Window behavior
-
-X11 uses native EWMH properties. The native checkout can use the included,
-narrowly scoped GNOME Shell extension. If GNOME does not activate that separately
-installed extension immediately, log out and back in once. Store-sandboxed
-packages never install it automatically. Unknown Wayland compositors keep note
-editing available but disable unsupported window toggles. KDE Wayland support is
-planned after the first release.
+On X11, Noor Notes uses native window-manager support. A source checkout can also install the included, narrowly scoped GNOME Shell extension. Sandboxed Snap and Flatpak packages do not install that extension. On GNOME Wayland, Always on Top can therefore remain unavailable unless it is installed separately outside the sandbox. Unsupported Wayland compositors keep note editing available while disabling unsupported window controls.
 
 ## Encrypted sync
 
-Apply `supabase/migrations/202608040001_encrypted_notes.sql` to a hosted Supabase project, then enter its project URL and anonymous key in Noor Notes. Confirm and store the displayed recovery key before sync can activate. Supabase receives ciphertext only. Credentials are stored in GNOME Keyring.
+Sync is optional. Apply `supabase/migrations/202608040001_encrypted_notes.sql` to your hosted Supabase project, then enter its project URL and anonymous key in Noor Notes. Confirm and keep the displayed recovery key before enabling sync. Supabase receives encrypted note payloads, while the configured credentials are stored through the desktop Secret Service.
 
 ## Data and recovery
 
-Local data is stored at `${XDG_DATA_HOME:-~/.local/share}/noor-notes/notes.db`. Back up that file while Noor Notes is closed. Keep the recovery key offline; losing both it and every unlocked device makes encrypted cloud notes unrecoverable. See [docs/security.md](docs/security.md) for the complete security model.
+Local notes are stored in `${XDG_DATA_HOME:-~/.local/share}/noor-notes/notes.db`. Back up that file while Noor Notes is closed. If database corruption is detected, Noor Notes preserves a timestamped `.corrupt-*.bak` copy beside the database.
 
-## Development verification
+Keep the recovery key offline. Losing it and every unlocked device makes encrypted cloud notes unrecoverable. See [the security notes](docs/security.md) for the security model.
+
+## Troubleshooting
+
+- If a release package will not install, re-download the package and `SHA256SUMS.txt`, then run `sha256sum -c SHA256SUMS.txt` again.
+- If Always on Top is disabled on GNOME Wayland, use a source installation with the separately installed GNOME Shell extension, or use a supported window environment.
+- If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
+- If an Xpad note is skipped, inspect the import preview; it identifies entries that cannot be parsed before any import is committed.
+
+## Development and build verification
+
+Build a release binary with:
+
+```bash
+cargo build --release --package noor-notes
+```
+
+Before contributing a change, run:
 
 ```bash
 cargo fmt --all -- --check
@@ -116,3 +102,17 @@ xvfb-run -a cargo test -p noor-windowing
 gjs -m extensions/gnome/tests/test-policy.js
 bash tests/e2e/two_device_sync.sh
 ```
+
+## Release automation and Store status
+
+Version tags build Snap and Flatpak artifacts in GitHub Actions. The final `v0.1.0` tag creates the GitHub release with `noor-notes_0.1.0_amd64.snap`, `noor-notes.flatpak`, and `SHA256SUMS.txt`.
+
+Store publication is not automated: Snap Store upload remains a manual owner action, and a Flathub submission is not created by this project’s workflow. Use the published release artifacts above rather than assuming Snap Store or Flathub availability.
+
+## Contributing
+
+Contributions and bug reports are welcome. Open an [issue](https://github.com/saamaamr/noor-notes/issues) with reproduction details, and include relevant formatting, package, or workspace checks with a pull request.
+
+## License
+
+Noor Notes is licensed under [GPL-3.0-or-later](LICENSE).
