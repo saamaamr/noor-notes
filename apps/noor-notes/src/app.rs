@@ -15,7 +15,7 @@ use crate::note_window::NoteWindow;
 
 pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let repository = SqliteNoteRepository::open(&data_path()).await?;
-    let autosave = AutosaveQueue::new(repository, Duration::from_millis(400));
+    let autosave = AutosaveQueue::new(repository.clone(), Duration::from_millis(400));
     let controller: Arc<dyn WindowController> = match detect_backend(&Environment::current()) {
         BackendKind::X11 => X11WindowController::connect()
             .map(|controller| Arc::new(controller) as Arc<dyn WindowController>)
@@ -28,7 +28,13 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     app.connect_startup(|_| load_css());
     app.connect_activate(move |app| {
         let note = Note::new(Utc::now());
-        let window = NoteWindow::new(app, note, autosave.clone(), controller.clone());
+        let window = NoteWindow::new(
+            app,
+            note,
+            autosave.clone(),
+            repository.clone(),
+            controller.clone(),
+        );
         window.present();
     });
     Ok(app.run())

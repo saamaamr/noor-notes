@@ -20,6 +20,8 @@ pub struct ModernToolbar {
     pub opacity: gtk::Scale,
     pub archive: gtk::Button,
     pub trash: gtk::Button,
+    pub restore: gtk::Button,
+    pub permanent_delete: gtk::Button,
 }
 
 impl ModernToolbar {
@@ -133,9 +135,14 @@ impl ModernToolbar {
         let archive = icon_button("folder-symbolic", "Archive");
         let trash = icon_button("user-trash-symbolic", "Move to Trash");
         trash.add_css_class("destructive-hover");
+        let restore = icon_button("edit-undo-symbolic", "Restore");
+        let permanent_delete = icon_button("edit-delete-symbolic", "Permanently Delete");
+        permanent_delete.add_css_class("destructive-hover");
         let right = group();
         right.append(&archive);
         right.append(&trash);
+        right.append(&restore);
+        right.append(&permanent_delete);
         right.append(&settings);
 
         widget.append(&left);
@@ -160,6 +167,8 @@ impl ModernToolbar {
             opacity,
             archive,
             trash,
+            restore,
+            permanent_delete,
         }
     }
 }

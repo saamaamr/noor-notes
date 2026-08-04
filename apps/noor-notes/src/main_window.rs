@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use adw::prelude::*;
-use noor_domain::{Note, NoteState};
+use chrono::Utc;
+use noor_domain::{Note, NoteId, NoteState};
 use noor_storage::SqliteNoteRepository;
 use noor_windowing::WindowController;
 
@@ -132,6 +133,88 @@ impl MainWindow {
         });
     }
 
+    fn connect_restore(&self, button: &gtk::Button, id: NoteId) {
+        let this = self.clone();
+        button.connect_clicked(move |button| {
+            button.set_sensitive(false);
+            let button = button.clone();
+            let this = this.clone();
+            let repository = this.repository.clone();
+            gtk::glib::MainContext::default().spawn_local(async move {
+                match repository.restore(id, Utc::now()).await {
+                    Ok(()) => this.refresh(),
+                    Err(error) => {
+                        button.set_sensitive(true);
+                        this.set_status(&format!("Could not restore note: {error}"));
+                    }
+                }
+            });
+        });
+    }
+
+    fn connect_permanent_delete(&self, button: &gtk::Button, id: NoteId) {
+        let this = self.clone();
+        button.connect_clicked(move |button| {
+            button.set_sensitive(false);
+            let button = button.clone();
+            let this = this.clone();
+            gtk::glib::MainContext::default().spawn_local(async move {
+                let dialog = adw::AlertDialog::new(
+                    Some("Permanently delete this note?"),
+                    Some("This cannot be undone. The note and its local history will be removed."),
+                );
+                dialog.add_response("cancel", "Cancel");
+                dialog.add_response("delete", "Permanently Delete");
+                dialog.set_default_response(Some("cancel"));
+                dialog.set_close_response("cancel");
+                dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
+                if dialog.choose_future(Some(&this.window)).await != "delete" {
+                    button.set_sensitive(true);
+                    return;
+                }
+                match this.repository.delete_permanently(id).await {
+                    Ok(()) => this.refresh(),
+                    Err(error) => {
+                        button.set_sensitive(true);
+                        this.set_status(&format!("Could not permanently delete note: {error}"));
+                    }
+                }
+            });
+        });
+    }
+
+    fn attach_trash_actions(&self, row: &adw::ActionRow, id: NoteId) {
+        let actions = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+        let restore = gtk::Button::with_label("Restore");
+        restore.add_css_class("suggested-action");
+        let delete = gtk::Button::with_label("Permanently Delete");
+        delete.add_css_class("destructive-action");
+        self.connect_restore(&restore, id);
+        self.connect_permanent_delete(&delete, id);
+        actions.append(&restore);
+        actions.append(&delete);
+        row.add_suffix(&actions);
+
+        let menu_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
+        menu_box.set_margin_top(6);
+        menu_box.set_margin_bottom(6);
+        menu_box.set_margin_start(6);
+        menu_box.set_margin_end(6);
+        let menu_restore = gtk::Button::with_label("Restore");
+        let menu_delete = gtk::Button::with_label("Permanently Delete");
+        menu_delete.add_css_class("destructive-action");
+        self.connect_restore(&menu_restore, id);
+        self.connect_permanent_delete(&menu_delete, id);
+        menu_box.append(&menu_restore);
+        menu_box.append(&menu_delete);
+        let popover = gtk::Popover::builder().child(&menu_box).build();
+        popover.set_parent(row);
+        let gesture = gtk::GestureClick::new();
+        gesture.set_button(3);
+        gesture.connect_pressed(move |_, _, _, _| popover.popup());
+        row.add_controller(gesture);
+    }
+
     fn render(&self, notes: Vec<Note>) {
         clear_list(&self.active);
         clear_list(&self.archived);
@@ -147,11 +230,22 @@ impl MainWindow {
                 .subtitle(note.updated_at.format("%d %b %Y · %I:%M %p").to_string())
                 .activatable(true)
                 .build();
+            if matches!(note.state, NoteState::Trashed { .. }) {
+                self.attach_trash_actions(&row, note.id);
+            }
             let app = self.app.clone();
             let autosave = self.autosave.clone();
             let controller = self.controller.clone();
+            let repository = self.repository.clone();
             row.connect_activated(move |_| {
-                NoteWindow::new(&app, note.clone(), autosave.clone(), controller.clone()).present();
+                NoteWindow::new(
+                    &app,
+                    note.clone(),
+                    autosave.clone(),
+                    repository.clone(),
+                    controller.clone(),
+                )
+                .present();
             });
             target.append(&row);
         }

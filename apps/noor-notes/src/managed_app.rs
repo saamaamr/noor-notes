@@ -31,12 +31,14 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     {
         let app = app.clone();
         let autosave = autosave.clone();
+        let repository = repository.clone();
         let controller = controller.clone();
         add_action(&app.clone(), "new-note", move |_, _| {
             NoteWindow::new(
                 &app,
                 Note::new(Utc::now()),
                 autosave.clone(),
+                repository.clone(),
                 controller.clone(),
             )
             .present();

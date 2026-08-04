@@ -4,7 +4,8 @@ use std::sync::Arc;
 
 use adw::prelude::*;
 use chrono::Utc;
-use noor_domain::Note;
+use noor_domain::{Note, NoteState};
+use noor_storage::SqliteNoteRepository;
 use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
 use crate::autosave::{AutosaveQueue, NoteDraft};
@@ -21,6 +22,7 @@ impl NoteWindow {
         app: &adw::Application,
         note: Note,
         autosave: AutosaveQueue,
+        repository: SqliteNoteRepository,
         controller: Arc<dyn WindowController>,
     ) -> Self {
         let note = Rc::new(RefCell::new(note));
@@ -39,6 +41,11 @@ impl NoteWindow {
         let header = adw::HeaderBar::new();
         header.add_css_class("flat");
         let toolbar = ModernToolbar::new();
+        let is_trashed = matches!(current.state, NoteState::Trashed { .. });
+        toolbar.archive.set_visible(!is_trashed);
+        toolbar.trash.set_visible(!is_trashed);
+        toolbar.restore.set_visible(is_trashed);
+        toolbar.permanent_delete.set_visible(is_trashed);
         header.pack_end(&toolbar.widget);
         layout.append(&header);
 
@@ -54,6 +61,7 @@ impl NoteWindow {
             .accepts_tab(true)
             .build();
         editor.add_css_class("note-editor");
+        editor.set_editable(!is_trashed);
         let scroller = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never)
             .vexpand(true)
@@ -144,6 +152,52 @@ impl NoteWindow {
                         let _ = controller.set_opacity(id, value).await;
                     });
                 }
+            });
+        }
+        {
+            let repository = repository.clone();
+            let window = window.clone();
+            let id = current.id;
+            toolbar.restore.connect_clicked(move |button| {
+                button.set_sensitive(false);
+                let button = button.clone();
+                let repository = repository.clone();
+                let window = window.clone();
+                gtk::glib::MainContext::default().spawn_local(async move {
+                    if repository.restore(id, Utc::now()).await.is_ok() {
+                        if let Some(application) = window.application() {
+                            application.activate_action("refresh-notes", None);
+                        }
+                        window.close();
+                    } else {
+                        button.set_sensitive(true);
+                        show_save_error(&window);
+                    }
+                });
+            });
+        }
+        {
+            let repository = repository.clone();
+            let window = window.clone();
+            let id = current.id;
+            toolbar.permanent_delete.connect_clicked(move |button| {
+                button.set_sensitive(false);
+                let button = button.clone();
+                let repository = repository.clone();
+                let window = window.clone();
+                gtk::glib::MainContext::default().spawn_local(async move {
+                    let dialog = adw::AlertDialog::new(Some("Permanently delete this note?"), Some("This cannot be undone. The note and its local history will be removed."));
+                    dialog.add_response("cancel", "Cancel");
+                    dialog.add_response("delete", "Permanently Delete");
+                    dialog.set_default_response(Some("cancel"));
+                    dialog.set_close_response("cancel");
+                    dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
+                    if dialog.choose_future(Some(&window)).await != "delete" { button.set_sensitive(true); return; }
+                    if repository.delete_permanently(id).await.is_ok() {
+                        if let Some(application) = window.application() { application.activate_action("refresh-notes", None); }
+                        window.close();
+                    } else { button.set_sensitive(true); show_save_error(&window); }
+                });
             });
         }
         {
