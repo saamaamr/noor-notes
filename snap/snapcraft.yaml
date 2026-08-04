@@ -34,11 +34,24 @@ apps:
       - noor-notes-dbus
 
 parts:
+  rust-deps:
+    plugin: nil
+    source: https://static.rust-lang.org/dist/rust-1.85.0-x86_64-unknown-linux-gnu.tar.xz
+    source-type: tar
+    source-checksum: sha256/6f8b323ed2a34ccf0031631b85d79e1133da662094566bc910432da9bd3a5b42
+    override-build: |
+      ./install.sh --prefix="$CRAFT_PART_INSTALL/usr" --disable-ldconfig
+    prime:
+      - "-*"
+
   noor-notes:
+    after:
+      - rust-deps
     plugin: rust
     source: .
-    rust-channel: "1.85.0"
-    rust-ignore-toolchain-file: true
+    rust-channel: none
+    build-environment:
+      - PATH: $CRAFT_STAGE/usr/bin:${PATH}
     build-packages:
       - build-essential
       - libadwaita-1-dev
