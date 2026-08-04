@@ -13,6 +13,9 @@ import yaml
 
 
 workflow = yaml.load(Path(sys.argv[1]).read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+on = workflow.get("on", {})
+if on.get("workflow_dispatch") != "" or "push" in on:
+    raise SystemExit("Standalone Snap workflow must be manual-only; release.yml owns tag builds")
 steps = workflow.get("jobs", {}).get("build", {}).get("steps", [])
 if not isinstance(steps, list):
     raise SystemExit("Snap workflow must define jobs.build.steps")

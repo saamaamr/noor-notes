@@ -20,9 +20,10 @@ Status: DONE_WITH_CONCERNS
   static runtime permissions are IPC, optional sync networking, Wayland/X11
   display, and Secret Service access. No filesystem-wide access or GNOME Shell
   extension is included.
-- Added a tag/manual GitHub Actions build using the Flathub GNOME 50 builder
-  image and `flatpak-builder@v6`, which uploads `noor-notes.flatpak` as an
-  artifact without credentials or publication actions.
+- Added a manual GitHub Actions build using the Flathub GNOME 50 builder image
+  and `flatpak-builder@v6`, which uploads `noor-notes.flatpak` as an artifact
+  without credentials or publication actions. Task 4's release workflow is the
+  sole tag-build path.
 - Documented user-scoped local installation in `README.md`.
 
 ## Fix round 1
@@ -96,9 +97,9 @@ strengthened installed-package smoke asserted the deployed GPL file at
 
 The workflow was temporarily enabled for the package branch only because
 GitHub does not offer workflow dispatch for a file absent from the default
-branch. It was restored to its intended tag/manual-only trigger immediately
-after the run; no release tag, GitHub release, store upload, or Flathub
-submission was created.
+branch. It was restored to its intended manual-only trigger after the run;
+Task 4's release workflow owns tag builds. No release tag, GitHub release,
+store upload, or Flathub submission was created during Task 3.
 
 ## Remaining boundaries
 

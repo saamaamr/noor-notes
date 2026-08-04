@@ -25,8 +25,8 @@ if not isinstance(workflow, dict):
 on = workflow.get("on", {})
 if on.get("workflow_dispatch") != "":
     raise SystemExit("Flatpak workflow must support manual dispatch")
-if on.get("push", {}).get("tags") != ["v*"]:
-    raise SystemExit("Flatpak workflow must build version tags")
+if "push" in on:
+    raise SystemExit("Standalone Flatpak workflow must be manual-only; release.yml owns tag builds")
 
 job = workflow.get("jobs", {}).get("build")
 if not isinstance(job, dict):

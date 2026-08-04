@@ -42,6 +42,11 @@ if not any(
     for step in snap_steps
 ):
     raise SystemExit("Release workflow must preserve the Snap artifact")
+if not any(
+    isinstance(step, dict) and step.get("name") == "Verify package version matches tag"
+    for step in snap_steps
+):
+    raise SystemExit("Release workflow must reject a Snap version that differs from the tag")
 
 flatpak_steps = jobs["flatpak"].get("steps", [])
 if not any(
@@ -50,6 +55,11 @@ if not any(
     for step in flatpak_steps
 ):
     raise SystemExit("Release workflow must build a Flatpak with the official builder action")
+if not any(
+    isinstance(step, dict) and step.get("name") == "Verify package version matches tag"
+    for step in flatpak_steps
+):
+    raise SystemExit("Release workflow must reject a Flatpak version that differs from the tag")
 
 release = jobs["release"]
 if release.get("needs") != ["snap", "flatpak"]:
@@ -74,6 +84,8 @@ if not any(
     raise SystemExit("Release workflow must attach artifacts to the GitHub release")
 
 permissions = workflow.get("permissions", {})
-if permissions.get("contents") != "write":
-    raise SystemExit("Release workflow needs contents: write to create the GitHub release")
+if permissions.get("contents") != "read":
+    raise SystemExit("Release workflow build jobs must use contents: read")
+if release.get("permissions", {}).get("contents") != "write":
+    raise SystemExit("Only the release job needs contents: write")
 PY
