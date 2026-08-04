@@ -27,6 +27,7 @@ require '<url type="vcs-browser">https://github.com/saamaamr/noor-notes</url>' "
 require '<release version="0.1.0" date="2026-08-04" type="stable">' "$metadata"
 require '<image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-editor.png</image>' "$metadata"
 require '<image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-library.png</image>' "$metadata"
+require '<caption>Browse notes in the library.</caption>' "$metadata"
 
 require 'Exec=noor-notes' "$desktop"
 require 'Icon=io.github.saamaamr.NoorNotes' "$desktop"
