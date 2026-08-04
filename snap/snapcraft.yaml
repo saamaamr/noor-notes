@@ -1,0 +1,49 @@
+name: noor-notes
+version: "0.1.0"
+summary: Private, offline-first sticky notes for Linux
+description: |
+  Noor Notes is a native GTK4 sticky-note application for Linux.
+  It works offline, imports Xpad without modifying it, and supports optional
+  end-to-end encrypted synchronization.
+base: core24
+grade: stable
+confinement: strict
+
+platforms:
+  amd64:
+
+apps:
+  noor-notes:
+    command: usr/bin/noor-notes
+    desktop: usr/share/applications/io.github.saamaamr.NoorNotes.desktop
+    extensions: [gnome]
+    plugs:
+      - desktop
+      - wayland
+      - x11
+      - network
+      - password-manager-service
+
+parts:
+  noor-notes:
+    plugin: rust
+    source: .
+    rust-channel: "1.85.0"
+    rust-ignore-toolchain-file: true
+    build-packages:
+      - build-essential
+      - libadwaita-1-dev
+      - libgtk-4-dev
+      - libx11-dev
+      - pkg-config
+    stage-packages:
+      - libsecret-tools
+    override-build: |
+      cargo build --locked --release --package noor-notes
+      install -Dm755 target/release/noor-notes "$CRAFT_PART_INSTALL/usr/bin/noor-notes"
+      install -Dm644 data/io.github.saamaamr.NoorNotes.desktop \
+        "$CRAFT_PART_INSTALL/usr/share/applications/io.github.saamaamr.NoorNotes.desktop"
+      install -Dm644 data/io.github.saamaamr.NoorNotes.metainfo.xml \
+        "$CRAFT_PART_INSTALL/usr/share/metainfo/io.github.saamaamr.NoorNotes.metainfo.xml"
+      install -Dm644 data/io.github.saamaamr.NoorNotes.svg \
+        "$CRAFT_PART_INSTALL/usr/share/icons/hicolor/scalable/apps/io.github.saamaamr.NoorNotes.svg"
