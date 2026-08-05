@@ -6,6 +6,13 @@ pub enum StorageError {
     InvalidDatabaseKey,
     #[error("database path is not a regular file: {0}")]
     UnsafeDatabasePath(PathBuf),
+    #[error("database migration file operation failed for {path}: {source}")]
+    MigrationIo {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+    #[error("encrypted database migration verification failed")]
+    MigrationVerification,
     #[error("cannot back up corrupt database {path} to {backup}: {source}")]
     BackupCorruptDatabase {
         path: PathBuf,
