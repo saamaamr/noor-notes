@@ -2,6 +2,10 @@ use std::path::PathBuf;
 
 #[derive(Debug, thiserror::Error)]
 pub enum StorageError {
+    #[error("database encryption key is invalid")]
+    InvalidDatabaseKey,
+    #[error("database path is not a regular file: {0}")]
+    UnsafeDatabasePath(PathBuf),
     #[error("cannot back up corrupt database {path} to {backup}: {source}")]
     BackupCorruptDatabase {
         path: PathBuf,

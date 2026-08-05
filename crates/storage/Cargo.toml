@@ -13,6 +13,9 @@ sqlx.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 uuid.workspace = true
+libsqlite3-sys.workspace = true
+rand.workspace = true
+zeroize.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

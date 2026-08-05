@@ -7,7 +7,11 @@ use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions};
 use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
-use crate::{PendingChange, StorageError, backup::preserve_corrupt_database};
+use crate::{
+    DatabaseKey, PendingChange, StorageError,
+    backup::preserve_corrupt_database,
+    permissions::{prepare_database_path, secure_data_tree},
+};
 
 #[derive(Clone)]
 pub struct SqliteNoteRepository {
@@ -16,12 +20,7 @@ pub struct SqliteNoteRepository {
 
 impl SqliteNoteRepository {
     pub async fn open(path: &Path) -> Result<Self, StorageError> {
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).map_err(|source| StorageError::PrepareDirectory {
-                path: parent.to_path_buf(),
-                source,
-            })?;
-        }
+        prepare_database_path(path)?;
 
         let options = SqliteConnectOptions::from_str(&format!("sqlite://{}", path.display()))?
             .create_if_missing(true)
@@ -38,6 +37,25 @@ impl SqliteNoteRepository {
                 return Err(error.into());
             }
         };
+        Self::initialize(pool, path).await
+    }
+
+    pub async fn open_encrypted(path: &Path, key: &DatabaseKey) -> Result<Self, StorageError> {
+        prepare_database_path(path)?;
+        let options = SqliteConnectOptions::from_str(&format!("sqlite://{}", path.display()))?
+            .create_if_missing(true)
+            .pragma("key", format!("\"x'{}'\"", key.hex()))
+            .pragma("cipher_memory_security", "ON")
+            .foreign_keys(true)
+            .journal_mode(SqliteJournalMode::Wal);
+        let pool = SqlitePoolOptions::new()
+            .max_connections(4)
+            .connect_with(options)
+            .await?;
+        Self::initialize(pool, path).await
+    }
+
+    async fn initialize(pool: SqlitePool, path: &Path) -> Result<Self, StorageError> {
         if let Err(error) = sqlx::raw_sql(include_str!("../migrations/0001_initial.sql"))
             .execute(&pool)
             .await
@@ -83,8 +101,12 @@ impl SqliteNoteRepository {
                 .execute(&pool)
                 .await?;
         }
-        secure_database_file(path)?;
+        secure_data_tree(path)?;
         Ok(Self { pool })
+    }
+
+    pub async fn close(&self) {
+        self.pool.close().await;
     }
 
     pub async fn save_note(&self, note: &Note) -> Result<(), StorageError> {
@@ -221,21 +243,4 @@ impl SqliteNoteRepository {
             .await?;
         Ok(())
     }
-}
-
-#[cfg(unix)]
-fn secure_database_file(path: &Path) -> Result<(), StorageError> {
-    use std::os::unix::fs::PermissionsExt;
-
-    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600)).map_err(|source| {
-        StorageError::SecureFile {
-            path: path.to_path_buf(),
-            source,
-        }
-    })
-}
-
-#[cfg(not(unix))]
-fn secure_database_file(_path: &Path) -> Result<(), StorageError> {
-    Ok(())
 }
