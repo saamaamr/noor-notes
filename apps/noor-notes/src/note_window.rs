@@ -16,6 +16,7 @@ use crate::modern_toolbar::ModernToolbar;
 use crate::note_actions;
 use crate::note_find::FindResults;
 use crate::rich_buffer::RichBuffer;
+use crate::safe_export::{ExportExtension, sanitize_export_name, set_owner_only};
 use crate::save_status::SaveStatusIndicator;
 
 pub struct NoteWindow {
@@ -600,10 +601,14 @@ fn connect_export(
         let note = note.borrow().clone();
 
         gtk::glib::MainContext::default().spawn_local(async move {
-            let extension = if markdown { "md" } else { "txt" };
+            let extension = if markdown {
+                ExportExtension::Markdown
+            } else {
+                ExportExtension::PlainText
+            };
             let dialog = gtk::FileDialog::builder()
-                .title("Export note")
-                .initial_name(format!("{}.{}", note.display_title(), extension))
+                .title("Export unencrypted note")
+                .initial_name(sanitize_export_name(note.display_title(), extension))
                 .build();
 
             if let Ok(file) = dialog.save_future(Some(&window)).await {
@@ -623,6 +628,8 @@ fn connect_export(
                     .is_err()
                 {
                     show_save_error(&window);
+                } else if let Some(path) = file.path() {
+                    let _ = set_owner_only(&path);
                 }
             }
         });

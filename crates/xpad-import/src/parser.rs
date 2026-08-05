@@ -8,7 +8,13 @@ use sha2::{Digest, Sha256};
 
 use crate::{ImportError, ImportIssue, ImportPreview, ImportableNote};
 
+const MAX_INFO_FILES: usize = 10_000;
+const MAX_INFO_BYTES: u64 = 64 * 1024;
+const MAX_CONTENT_BYTES: u64 = 16 * 1024 * 1024;
+const MAX_TOTAL_BYTES: u64 = 64 * 1024 * 1024;
+
 pub fn scan_xpad(path: &Path) -> Result<ImportPreview, ImportError> {
+    let root = path.canonicalize()?;
     let mut info_files: Vec<PathBuf> = fs::read_dir(path)?
         .filter_map(Result::ok)
         .map(|entry| entry.path())
@@ -18,11 +24,15 @@ pub fn scan_xpad(path: &Path) -> Result<ImportPreview, ImportError> {
                 .is_some_and(|name| name.to_string_lossy().starts_with("info-"))
         })
         .collect();
+    if info_files.len() > MAX_INFO_FILES {
+        return Err(ImportError::LimitExceeded("too many note files"));
+    }
     info_files.sort();
 
     let mut preview = ImportPreview::default();
+    let mut total_bytes = 0_u64;
     for info_path in info_files {
-        match parse_note(path, &info_path) {
+        match parse_note(&root, &info_path, &mut total_bytes) {
             Ok(note) => preview.importable.push(note),
             Err(error) => preview.skipped.push(ImportIssue {
                 path: info_path,
@@ -33,7 +43,22 @@ pub fn scan_xpad(path: &Path) -> Result<ImportPreview, ImportError> {
     Ok(preview)
 }
 
-fn parse_note(root: &Path, info_path: &Path) -> Result<ImportableNote, ImportError> {
+fn parse_note(
+    root: &Path,
+    info_path: &Path,
+    total_bytes: &mut u64,
+) -> Result<ImportableNote, ImportError> {
+    let info_metadata = fs::symlink_metadata(info_path)?;
+    if !info_metadata.file_type().is_file() || info_metadata.file_type().is_symlink() {
+        return Err(ImportError::UnsafeFileType(info_path.to_path_buf()));
+    }
+    if info_metadata.len() > MAX_INFO_BYTES {
+        return Err(ImportError::LimitExceeded("note metadata is too large"));
+    }
+    let canonical_info = info_path.canonicalize()?;
+    if !canonical_info.starts_with(root) {
+        return Err(ImportError::UnsafeInfoPath(info_path.to_path_buf()));
+    }
     let info_bytes = fs::read(info_path)?;
     let info = String::from_utf8(info_bytes.clone())?;
     let values: HashMap<&str, &str> = info
@@ -50,6 +75,23 @@ fn parse_note(root: &Path, info_path: &Path) -> Result<ImportableNote, ImportErr
         return Err(ImportError::UnsafeContentPath(content_name.into()));
     }
     let content_path = root.join(content_name);
+    let content_metadata = fs::symlink_metadata(&content_path)?;
+    if !content_metadata.file_type().is_file() || content_metadata.file_type().is_symlink() {
+        return Err(ImportError::UnsafeFileType(content_path));
+    }
+    if content_metadata.len() > MAX_CONTENT_BYTES {
+        return Err(ImportError::LimitExceeded("note content is too large"));
+    }
+    let canonical_content = content_path.canonicalize()?;
+    if !canonical_content.starts_with(root) {
+        return Err(ImportError::UnsafeContentPath(content_name.into()));
+    }
+    *total_bytes = total_bytes
+        .checked_add(info_metadata.len() + content_metadata.len())
+        .ok_or(ImportError::LimitExceeded("import size overflow"))?;
+    if *total_bytes > MAX_TOTAL_BYTES {
+        return Err(ImportError::LimitExceeded("total import is too large"));
+    }
     let content_bytes = fs::read(&content_path)?;
     let content = String::from_utf8(content_bytes.clone())?;
     let modified = fs::metadata(info_path)
@@ -63,6 +105,19 @@ fn parse_note(root: &Path, info_path: &Path) -> Result<ImportableNote, ImportErr
     note.geometry.height = parse_i32(&values, "height")?;
     note.geometry.x = optional_i32(&values, "x")?;
     note.geometry.y = optional_i32(&values, "y")?;
+    if !(100..=8192).contains(&note.geometry.width)
+        || !(100..=8192).contains(&note.geometry.height)
+        || note
+            .geometry
+            .x
+            .is_some_and(|value| !(-32768..=32767).contains(&value))
+        || note
+            .geometry
+            .y
+            .is_some_and(|value| !(-32768..=32767).contains(&value))
+    {
+        return Err(ImportError::InvalidGeometry);
+    }
     note.always_on_top = values.get("sticky").is_some_and(|value| *value == "1");
     if let Some(background) = values.get("back") {
         note.style.background = (*background).into();

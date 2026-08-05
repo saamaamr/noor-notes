@@ -16,6 +16,7 @@ pub mod note_find;
 pub mod note_toolbar;
 pub mod note_window;
 pub mod rich_buffer;
+pub mod safe_export;
 pub mod save_status;
 pub mod search;
 pub mod security_bootstrap;

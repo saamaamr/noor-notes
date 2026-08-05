@@ -12,6 +12,12 @@ pub enum ImportError {
     InvalidInteger(String),
     #[error("unsafe Xpad content path: {0}")]
     UnsafeContentPath(String),
+    #[error("Xpad input exceeds the safe import limit: {0}")]
+    LimitExceeded(&'static str),
+    #[error("unsafe Xpad file type: {0}")]
+    UnsafeFileType(std::path::PathBuf),
+    #[error("Xpad geometry is outside the safe range")]
+    InvalidGeometry,
     #[error("cannot store imported note: {0}")]
     Storage(#[from] noor_storage::StorageError),
 }
