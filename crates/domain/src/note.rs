@@ -53,9 +53,10 @@ pub enum NoteState {
     Trashed { deleted_at: DateTime<Utc> },
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Note {
     pub id: NoteId,
+    pub title: String,
     pub content: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rich_content: Option<RichDocument>,
@@ -69,10 +70,70 @@ pub struct Note {
     pub updated_at: DateTime<Utc>,
 }
 
+#[derive(Deserialize)]
+struct NoteWire {
+    id: NoteId,
+    #[serde(default)]
+    title: Option<String>,
+    content: String,
+    #[serde(default)]
+    rich_content: Option<RichDocument>,
+    style: NoteStyle,
+    geometry: WindowGeometry,
+    always_on_top: bool,
+    all_workspaces: bool,
+    state: NoteState,
+    revision: Revision,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
+}
+
+impl<'de> Deserialize<'de> for Note {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let wire = NoteWire::deserialize(deserializer)?;
+        let title = wire
+            .title
+            .filter(|title| !title.trim().is_empty())
+            .unwrap_or_else(|| Note::derive_title(&wire.content));
+        Ok(Self {
+            id: wire.id,
+            title,
+            content: wire.content,
+            rich_content: wire.rich_content,
+            style: wire.style,
+            geometry: wire.geometry,
+            always_on_top: wire.always_on_top,
+            all_workspaces: wire.all_workspaces,
+            state: wire.state,
+            revision: wire.revision,
+            created_at: wire.created_at,
+            updated_at: wire.updated_at,
+        })
+    }
+}
+
 impl Note {
+    pub fn derive_title(content: &str) -> String {
+        content
+            .lines()
+            .map(str::trim)
+            .find(|line| !line.is_empty())
+            .map(|line| line.chars().take(80).collect())
+            .unwrap_or_else(|| "Untitled note".into())
+    }
+
+    pub fn display_title(&self) -> &str {
+        if self.title.trim().is_empty() {
+            "Untitled note"
+        } else {
+            self.title.trim()
+        }
+    }
+
     pub fn new(now: DateTime<Utc>) -> Self {
         Self {
             id: NoteId::new(),
+            title: "Untitled note".into(),
             content: String::new(),
             rich_content: None,
             style: NoteStyle::default(),

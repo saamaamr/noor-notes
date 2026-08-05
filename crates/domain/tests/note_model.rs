@@ -7,6 +7,7 @@ fn new_note_has_safe_defaults() {
 
     let note = Note::new(now);
 
+    assert_eq!(note.title, "Untitled note");
     assert!(note.content.is_empty());
     assert_eq!(note.style.opacity, 1.0);
     assert!(!note.always_on_top);
@@ -16,6 +17,28 @@ fn new_note_has_safe_defaults() {
     assert_eq!(note.created_at, now);
     assert_eq!(note.updated_at, now);
     assert_eq!(note.revision.value(), 0);
+}
+
+#[test]
+fn legacy_note_json_derives_title_without_changing_content() {
+    let now = Utc.with_ymd_and_hms(2026, 8, 4, 12, 0, 0).unwrap();
+    let mut note = Note::new(now);
+    note.content = "\n  First useful line  \nBody stays here".into();
+    let mut value = serde_json::to_value(&note).unwrap();
+    value.as_object_mut().unwrap().remove("title");
+
+    let restored: Note = serde_json::from_value(value).unwrap();
+
+    assert_eq!(restored.title, "First useful line");
+    assert_eq!(restored.content, note.content);
+    assert_eq!(restored.display_title(), "First useful line");
+}
+
+#[test]
+fn blank_titles_display_as_untitled_and_derivation_is_unicode_safe() {
+    assert_eq!(Note::derive_title(" \n\t"), "Untitled note");
+    let long = "আ".repeat(90);
+    assert_eq!(Note::derive_title(&long).chars().count(), 80);
 }
 
 #[test]

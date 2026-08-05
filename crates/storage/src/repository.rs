@@ -46,6 +46,31 @@ impl SqliteNoteRepository {
             preserve_corrupt_database(path)?;
             return Err(error.into());
         }
+        let has_title: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM pragma_table_info('notes') WHERE name = 'title'",
+        )
+        .fetch_one(&pool)
+        .await?;
+        if has_title == 0 {
+            sqlx::raw_sql(include_str!("../migrations/0002_note_titles.sql"))
+                .execute(&pool)
+                .await?;
+        }
+        let legacy_rows = sqlx::query("SELECT id, payload_json FROM notes")
+            .fetch_all(&pool)
+            .await?;
+        for row in legacy_rows {
+            let id: String = row.try_get("id")?;
+            let payload: String = row.try_get("payload_json")?;
+            let note: Note = serde_json::from_str(&payload)?;
+            let normalized = serde_json::to_string(&note)?;
+            sqlx::query("UPDATE notes SET title = ?, payload_json = ? WHERE id = ?")
+                .bind(note.display_title())
+                .bind(normalized)
+                .bind(id)
+                .execute(&pool)
+                .await?;
+        }
         secure_database_file(path)?;
         Ok(Self { pool })
     }
@@ -57,13 +82,14 @@ impl SqliteNoteRepository {
         let state = serde_json::to_string(&note.state)?;
 
         sqlx::query(
-            "INSERT INTO notes (id, payload_json, content, state_json, revision, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?)
-             ON CONFLICT(id) DO UPDATE SET payload_json=excluded.payload_json,
+            "INSERT INTO notes (id, title, payload_json, content, state_json, revision, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+             ON CONFLICT(id) DO UPDATE SET title=excluded.title, payload_json=excluded.payload_json,
              content=excluded.content, state_json=excluded.state_json,
              revision=excluded.revision, updated_at=excluded.updated_at",
         )
         .bind(&id)
+        .bind(note.display_title())
         .bind(&payload)
         .bind(&note.content)
         .bind(state)

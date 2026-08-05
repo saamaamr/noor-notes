@@ -57,6 +57,7 @@ fn parse_note(root: &Path, info_path: &Path) -> Result<ImportableNote, ImportErr
         .map(DateTime::<Utc>::from)
         .unwrap_or_else(|_| Utc::now());
     let mut note = Note::new(modified);
+    note.title = Note::derive_title(&content);
     note.content = content;
     note.geometry.width = parse_i32(&values, "width")?;
     note.geometry.height = parse_i32(&values, "height")?;
