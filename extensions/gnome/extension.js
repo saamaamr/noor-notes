@@ -2,7 +2,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import {NOOR_APP_ID, authorizeWindow} from './policy.js';
+import {authorizeRequest} from './policy.js';
 
 const BUS_NAME = 'io.github.saamaamr.NoorNotes.Windowing';
 const APP_BUS_NAME = 'io.github.saamaamr.NoorNotes';
@@ -27,7 +27,7 @@ class WindowService {
     }
 
     SetAboveAsync([windowId, enabled], invocation) {
-        this._apply(windowId, invocation, window => {
+        this._apply('SetAbove', windowId, enabled, invocation, window => {
             if (enabled)
                 window.make_above();
             else
@@ -36,7 +36,7 @@ class WindowService {
     }
 
     SetAllWorkspacesAsync([windowId, enabled], invocation) {
-        this._apply(windowId, invocation, window => {
+        this._apply('SetAllWorkspaces', windowId, enabled, invocation, window => {
             if (enabled)
                 window.stick();
             else
@@ -54,12 +54,12 @@ class WindowService {
         this._changed.clear();
     }
 
-    _apply(windowId, invocation, operation) {
+    _apply(method, windowId, enabled, invocation, operation) {
         const sender = invocation.get_sender();
         const owner = this._appBusOwner();
         const window = this._findWindow(windowId);
         const appId = window?.get_gtk_application_id?.() ?? '';
-        if (!window || !authorizeWindow({appId, sender, owner, stale: !window.get_compositor_private()})) {
+        if (!window || !authorizeRequest({method, windowId, enabled, appId, sender, owner, stale: !window.get_compositor_private()})) {
             invocation.return_dbus_error(
                 'io.github.saamaamr.NoorNotes.Window1.NotAuthorized',
                 'The request is not authorized for this window');

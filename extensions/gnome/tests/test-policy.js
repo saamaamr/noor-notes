@@ -1,4 +1,4 @@
-import {authorizeWindow} from '../policy.js';
+import {authorizeRequest, authorizeWindow} from '../policy.js';
 
 function assertFalse(value, message) {
     if (value)
@@ -21,3 +21,7 @@ assertTrue(authorizeWindow(valid), 'Noor Notes owner should be authorized');
 assertFalse(authorizeWindow({...valid, appId: 'org.example.Other'}), 'other apps must fail');
 assertFalse(authorizeWindow({...valid, sender: ':1.99'}), 'other bus names must fail');
 assertFalse(authorizeWindow({...valid, stale: true}), 'stale windows must fail');
+assertTrue(authorizeRequest({...valid, method: 'SetAbove', windowId: 'Noor Note::018f2f91-8d87-7c4a-a9ee-9b90518f4123', enabled: true}), 'valid request should pass');
+assertFalse(authorizeRequest({...valid, method: 'Delete', windowId: 'Noor Note::018f2f91-8d87-7c4a-a9ee-9b90518f4123', enabled: true}), 'unexpected methods must fail');
+assertFalse(authorizeRequest({...valid, method: 'SetAbove', windowId: 'spoofed title', enabled: true}), 'spoofed titles must fail');
+assertFalse(authorizeRequest({...valid, method: 'SetAbove', windowId: 'Noor Note::018f2f91-8d87-7c4a-a9ee-9b90518f4123', enabled: 'true'}), 'non-boolean values must fail');
