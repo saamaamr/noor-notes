@@ -1,5 +1,6 @@
 name: noor-notes
 version: "0.1.1"
+title: Noor Notes
 summary: Private, offline-first sticky notes for Linux
 description: |
   Noor Notes is a native GTK4 sticky-note application for Linux.
@@ -8,6 +9,12 @@ description: |
 base: core24
 grade: stable
 confinement: strict
+license: GPL-3.0-or-later
+icon: data/io.github.saamaamr.NoorNotes.svg
+website: https://github.com/saamaamr/noor-notes
+contact: https://github.com/saamaamr/noor-notes/issues
+issues: https://github.com/saamaamr/noor-notes/issues
+source-code: https://github.com/saamaamr/noor-notes
 
 platforms:
   amd64:
