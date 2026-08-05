@@ -56,6 +56,12 @@ impl MainWindow {
             .build();
         import_button.set_action_name(Some("app.import-xpad"));
         header.pack_end(&import_button);
+        let shortcuts_button = gtk::Button::builder()
+            .icon_name("help-keyboard-shortcuts-symbolic")
+            .tooltip_text("Keyboard shortcuts")
+            .action_name("app.shortcuts")
+            .build();
+        header.pack_end(&shortcuts_button);
         toolbar.add_top_bar(&header);
 
         let page = gtk::Box::new(gtk::Orientation::Vertical, 12);

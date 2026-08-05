@@ -16,5 +16,6 @@ pub mod note_window;
 pub mod rich_buffer;
 pub mod save_status;
 pub mod search;
+pub mod shortcuts;
 pub mod sync_status;
 pub mod vault_setup;

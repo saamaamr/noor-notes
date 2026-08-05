@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use adw::prelude::*;
 use chrono::Utc;
-use noor_domain::{Note, NoteState};
+use noor_domain::{Note, NoteColor, NoteState};
 use noor_storage::SqliteNoteRepository;
 use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
@@ -38,6 +38,7 @@ impl NoteWindow {
             .default_height(current.geometry.height)
             .build();
         window.add_css_class("noor-note");
+        window.add_css_class(current.color.css_class());
         window.set_opacity(current.style.opacity);
 
         let layout = gtk::Box::new(gtk::Orientation::Vertical, 0);
@@ -202,6 +203,34 @@ impl NoteWindow {
         }
         connect_export(&toolbar.export_text, &window, note.clone(), false);
         connect_export(&toolbar.export_markdown, &window, note.clone(), true);
+
+        for (button, color) in toolbar.note_color_buttons.iter().zip([
+            NoteColor::Yellow,
+            NoteColor::Cream,
+            NoteColor::Blue,
+            NoteColor::Green,
+            NoteColor::Rose,
+            NoteColor::Lavender,
+        ]) {
+            let note = note.clone();
+            let autosave = autosave.clone();
+            let window = window.clone();
+            button.connect_clicked(move |_| {
+                for candidate in [
+                    NoteColor::Yellow,
+                    NoteColor::Cream,
+                    NoteColor::Blue,
+                    NoteColor::Green,
+                    NoteColor::Rose,
+                    NoteColor::Lavender,
+                ] {
+                    window.remove_css_class(candidate.css_class());
+                }
+                window.add_css_class(color.css_class());
+                note.borrow_mut().color = color;
+                autosave.schedule(NoteDraft::from(note.borrow().clone()));
+            });
+        }
 
         toolbar.pin.set_active(current.always_on_top);
         toolbar.all_workspaces.set_active(current.all_workspaces);

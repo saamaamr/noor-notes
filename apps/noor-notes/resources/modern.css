@@ -144,3 +144,23 @@ popover contents {
   font-size: 10pt;
 
 }
+
+.noor-note.note-cream, .noor-note.note-cream .note-editor { background: #fff1ce; }
+
+.noor-note.note-blue, .noor-note.note-blue .note-editor { background: #dcecff; }
+
+.noor-note.note-green, .noor-note.note-green .note-editor { background: #dff2df; }
+
+.noor-note.note-rose, .noor-note.note-rose .note-editor { background: #f8dfe4; }
+
+.noor-note.note-lavender, .noor-note.note-lavender .note-editor { background: #e9e1f8; }
+
+
+
+.noor-note button:focus-visible, .noor-note entry:focus-visible {
+
+  outline: 2px solid #6b5315;
+
+  outline-offset: 1px;
+
+}

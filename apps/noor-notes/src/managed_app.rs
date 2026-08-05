@@ -17,6 +17,7 @@ use crate::autosave::AutosaveQueue;
 use crate::import_dialog::ImportFlow;
 use crate::main_window::MainWindow;
 use crate::note_window::NoteWindow;
+use crate::shortcuts::shortcuts_window;
 
 pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let repository = SqliteNoteRepository::open(&data_path()).await?;
@@ -124,6 +125,16 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
         });
     }
     {
+        let main_window = main_window.clone();
+        add_action(&app, "shortcuts", move |_, _| {
+            if let Some(window) = main_window.borrow().as_ref() {
+                let dialog = shortcuts_window();
+                dialog.set_transient_for(Some(&window.window));
+                dialog.present();
+            }
+        });
+    }
+    {
         let app = app.clone();
         add_action(&app.clone(), "quit", move |_, _| app.quit());
     }
@@ -131,6 +142,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     app.set_accels_for_action("app.new-note", &["<Primary>n"]);
     app.set_accels_for_action("app.search", &["<Primary>f"]);
     app.set_accels_for_action("app.quit", &["<Primary>q"]);
+    app.set_accels_for_action("app.shortcuts", &["<Primary>question"]);
     {
         let main_window = main_window.clone();
         let repository = repository.clone();

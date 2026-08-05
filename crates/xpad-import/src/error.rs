@@ -1,5 +1,7 @@
 #[derive(Debug, thiserror::Error)]
 pub enum ImportError {
+    #[error("unsafe Xpad info path: {0}")]
+    UnsafeInfoPath(std::path::PathBuf),
     #[error("cannot read Xpad data: {0}")]
     Io(#[from] std::io::Error),
     #[error("Xpad text is not valid UTF-8: {0}")]

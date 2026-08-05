@@ -27,6 +27,7 @@ pub struct ModernToolbar {
     pub emoji_buttons: Vec<gtk::Button>,
     pub all_workspaces: gtk::ToggleButton,
     pub opacity: gtk::Scale,
+    pub note_color_buttons: Vec<gtk::Button>,
     pub archive: gtk::Button,
     pub trash: gtk::Button,
     pub restore: gtk::Button,
@@ -148,6 +149,18 @@ impl ModernToolbar {
         settings_box.set_margin_start(12);
         settings_box.set_margin_end(12);
         settings_box.append(&gtk::Label::new(Some("Window settings")));
+        settings_box.append(&gtk::Label::new(Some("Note colour")));
+        let color_row = gtk::Box::new(gtk::Orientation::Horizontal, 4);
+        let note_color_buttons = ["Yellow", "Cream", "Blue", "Green", "Rose", "Lavender"]
+            .iter()
+            .map(|name| {
+                let button = gtk::Button::with_label(name);
+                button.set_tooltip_text(Some(&format!("Use {name} note colour")));
+                color_row.append(&button);
+                button
+            })
+            .collect::<Vec<_>>();
+        settings_box.append(&color_row);
         settings_box.append(&all_workspaces);
         settings_box.append(&opacity);
         let settings_popover = gtk::Popover::builder().child(&settings_box).build();
@@ -178,16 +191,25 @@ impl ModernToolbar {
         let restore = icon_button("edit-undo-symbolic", "Restore");
         let permanent_delete = icon_button("edit-delete-symbolic", "Permanently Delete");
         permanent_delete.add_css_class("destructive-hover");
+        let more_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
+        more_box.append(&rename);
+        more_box.append(&duplicate);
+        more_box.append(&export);
+        more_box.append(&settings);
+        let more_popover = gtk::Popover::builder().child(&more_box).build();
+        let more = gtk::MenuButton::builder()
+            .icon_name("view-more-symbolic")
+            .tooltip_text("More note actions")
+            .popover(&more_popover)
+            .build();
+        more.add_css_class("toolbar-button");
         let right = group();
         right.append(&find);
-        right.append(&rename);
-        right.append(&duplicate);
-        right.append(&export);
         right.append(&archive);
         right.append(&trash);
         right.append(&restore);
         right.append(&permanent_delete);
-        right.append(&settings);
+        right.append(&more);
 
         widget.append(&left);
         widget.append(&center);
@@ -218,6 +240,7 @@ impl ModernToolbar {
             emoji_buttons,
             all_workspaces,
             opacity,
+            note_color_buttons,
             archive,
             trash,
             restore,

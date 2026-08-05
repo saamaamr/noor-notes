@@ -76,7 +76,10 @@ fn parse_note(root: &Path, info_path: &Path) -> Result<ImportableNote, ImportErr
 
     let mut hasher = Sha256::new();
     hasher.update(root.to_string_lossy().as_bytes());
-    hasher.update(info_path.file_name().unwrap().as_encoded_bytes());
+    let info_name = info_path
+        .file_name()
+        .ok_or_else(|| ImportError::UnsafeInfoPath(info_path.to_path_buf()))?;
+    hasher.update(info_name.as_encoded_bytes());
     hasher.update(&info_bytes);
     hasher.update(&content_bytes);
     let source_key = format!("xpad:{:x}", hasher.finalize());
