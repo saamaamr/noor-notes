@@ -6,7 +6,7 @@
 
 **Architecture:** A `KeyStore` bootstrap obtains an independent random database key before `EncryptedSqliteRepository` opens SQLCipher. A transactional, idempotent migrator converts existing plaintext databases and fails closed. Boundary-specific validators protect network, import/export, D-Bus, and package surfaces.
 
-**Tech Stack:** Rust 1.85+, GTK4/libadwaita, Tokio, SQLx 0.8.6, libsqlite3-sys 0.30.1 with `bundled-sqlcipher-vendored-openssl`, oo7 0.6, XChaCha20-Poly1305, Rustls, Snap, Flatpak.
+**Tech Stack:** Rust 1.85+, GTK4/libadwaita, Tokio, SQLx 0.8.6, libsqlite3-sys 0.30.1 with `bundled-sqlcipher-vendored-openssl`, oo7 0.5, XChaCha20-Poly1305, Rustls, Snap, Flatpak.
 
 ## Global Constraints
 
@@ -45,7 +45,7 @@ Run: `cargo test -p noor-notes --test key_store`
 
 - [ ] **Step 3: Add dependencies and implementation**
 
-Add `oo7 = { version = "0.6", default-features = false, features = ["tokio", "native_crypto"] }` and expose the exact interfaces above. Replace subprocess storage in `account.rs`; store only refresh tokens and wrapped vaults, and add sign-out deletion.
+Add `oo7 = { version = "0.5", default-features = false, features = ["tokio", "native_crypto"] }` and expose the exact interfaces above. Replace subprocess storage in `account.rs`; store only refresh tokens and wrapped vaults, and add sign-out deletion.
 
 - [ ] **Step 4: Verify and commit**
 
