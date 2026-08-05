@@ -12,6 +12,9 @@ pub struct ModernToolbar {
     pub bullets: gtk::ToggleButton,
     pub numbered: gtk::ToggleButton,
     pub font_size: gtk::DropDown,
+    pub custom_font_size: gtk::Entry,
+    pub apply_font_size: gtk::Button,
+    pub rename: gtk::Button,
     pub alignment_buttons: Vec<gtk::ToggleButton>,
     pub foreground_buttons: Vec<gtk::Button>,
     pub highlight_buttons: Vec<gtk::Button>,
@@ -61,6 +64,16 @@ impl ModernToolbar {
         font_size.set_selected(2);
         font_size.set_tooltip_text(Some("Font size"));
         format_grid.attach(&font_size, 2, 1, 2, 1);
+        let custom_font_size = gtk::Entry::builder()
+            .placeholder_text("Custom px")
+            .input_purpose(gtk::InputPurpose::Digits)
+            .width_chars(8)
+            .tooltip_text("Custom positive whole-number font size")
+            .build();
+        let apply_font_size = gtk::Button::with_label("Apply");
+        apply_font_size.set_tooltip_text(Some("Apply custom font size"));
+        format_grid.attach(&custom_font_size, 0, 2, 3, 1);
+        format_grid.attach(&apply_font_size, 3, 2, 1, 1);
         let alignment_buttons = [
             ("format-justify-left-symbolic", "Align left"),
             ("format-justify-center-symbolic", "Align center"),
@@ -71,9 +84,9 @@ impl ModernToolbar {
         .map(|(icon, tooltip)| icon_toggle(icon, tooltip))
         .collect::<Vec<_>>();
         for (index, button) in alignment_buttons.iter().enumerate() {
-            format_grid.attach(button, index as i32, 2, 1, 1);
+            format_grid.attach(button, index as i32, 3, 1, 1);
         }
-        let foreground_buttons = color_buttons(&format_grid, 3, "Text", "text-color");
+        let foreground_buttons = color_buttons(&format_grid, 5, "Text", "text-color");
         let highlight_buttons = color_buttons(&format_grid, 4, "Highlight", "highlight-color");
         let format_popover = gtk::Popover::builder().child(&format_grid).build();
         let format = gtk::MenuButton::builder()
@@ -132,6 +145,7 @@ impl ModernToolbar {
             .popover(&settings_popover)
             .build();
         settings.add_css_class("toolbar-button");
+        let rename = icon_button("document-edit-symbolic", "Rename note");
         let archive = icon_button("folder-symbolic", "Archive");
         let trash = icon_button("user-trash-symbolic", "Move to Trash");
         trash.add_css_class("destructive-hover");
@@ -139,6 +153,7 @@ impl ModernToolbar {
         let permanent_delete = icon_button("edit-delete-symbolic", "Permanently Delete");
         permanent_delete.add_css_class("destructive-hover");
         let right = group();
+        right.append(&rename);
         right.append(&archive);
         right.append(&trash);
         right.append(&restore);
@@ -159,6 +174,9 @@ impl ModernToolbar {
             bullets,
             numbered,
             font_size,
+            custom_font_size,
+            apply_font_size,
+            rename,
             alignment_buttons,
             foreground_buttons,
             highlight_buttons,

@@ -30,7 +30,7 @@ pub struct TextMarks {
     #[serde(default, skip_serializing_if = "is_false")]
     pub strikethrough: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub font_size: Option<u16>,
+    pub font_size: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub foreground: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

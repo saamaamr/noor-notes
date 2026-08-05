@@ -48,6 +48,13 @@ impl NoteWindow {
         toolbar.permanent_delete.set_visible(is_trashed);
         header.pack_end(&toolbar.widget);
         layout.append(&header);
+        let title_entry = gtk::Entry::builder()
+            .text(current.display_title())
+            .placeholder_text("Untitled note")
+            .editable(!is_trashed)
+            .build();
+        title_entry.add_css_class("note-title-entry");
+        layout.append(&title_entry);
 
         let buffer = gtk::TextBuffer::new(None);
         RichBuffer::load(&buffer, &current.content, current.rich_content.as_ref());
@@ -91,6 +98,47 @@ impl NoteWindow {
                 .set_tooltip_text(Some("Always on Top is unavailable on this Wayland desktop"));
         }
 
+        {
+            let note = note.clone();
+            let autosave = autosave.clone();
+            title_entry.connect_changed(move |entry| {
+                note.borrow_mut().title = entry.text().trim().to_string();
+                autosave.schedule(NoteDraft::from(note.borrow().clone()));
+            });
+        }
+        {
+            let note = note.clone();
+            let autosave = autosave.clone();
+            let window = window.clone();
+            let title_entry = title_entry.clone();
+            toolbar.rename.connect_clicked(move |_| {
+                let note = note.clone();
+                let autosave = autosave.clone();
+                let window = window.clone();
+                let title_entry = title_entry.clone();
+                gtk::glib::MainContext::default().spawn_local(async move {
+                    let rename_entry = gtk::Entry::builder()
+                        .text(note.borrow().display_title())
+                        .activates_default(true)
+                        .build();
+                    let dialog = adw::AlertDialog::builder()
+                        .heading("Rename note")
+                        .body("Choose a clear name for this note.")
+                        .extra_child(&rename_entry)
+                        .build();
+                    dialog.add_response("cancel", "Cancel");
+                    dialog.add_response("rename", "Rename");
+                    dialog.set_default_response(Some("rename"));
+                    dialog.set_close_response("cancel");
+                    if dialog.choose_future(Some(&window)).await == "rename" {
+                        let title = rename_entry.text().trim().to_string();
+                        note.borrow_mut().title = title.clone();
+                        title_entry.set_text(&title);
+                        autosave.schedule(NoteDraft::from(note.borrow().clone()));
+                    }
+                });
+            });
+        }
         {
             let note = note.clone();
             let autosave = autosave.clone();

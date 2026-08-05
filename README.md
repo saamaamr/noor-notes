@@ -4,7 +4,8 @@ Noor Notes is a private, offline-first GTK4 sticky-note application for Linux. [
 
 ## Features
 
-- **Rich text**: bold, italic, underline, strikethrough, lists, font sizes, alignment, text and highlight colours, and emoji.
+- **Named notes**: edit the title directly or use the Rename action; titles appear in the searchable library.
+- **Rich text**: bold, italic, underline, strikethrough, idempotent bullet and numbered lists, preset or custom positive whole-number font sizes, alignment, text and highlight colours, and emoji.
 - A searchable library with active, archived, and **Trash** notes.
 - Source-install Xpad import that previews the migration and leaves the source files unchanged.
 - Optional window controls, including Always on Top, all-workspaces, and opacity where the desktop supports them.
@@ -72,7 +73,7 @@ The strict Snap and Flatpak packages cannot read the host `~/.config/xpad`, so t
 
 ## Rich text and Trash
 
-Use the formatting toolbar to style selected text or insert an emoji. Formatting is saved with the note; if a stored rich-text format is unsupported, Noor Notes safely displays its plain text instead.
+Name a note from its title field or Rename action. Use the compact formatting toolbar to style selected text or insert an emoji. Repeated list-button clicks toggle the list instead of duplicating markers, and Enter continues or exits lists naturally. Preset sizes and a custom positive whole-number pixel size are available. Formatting is saved with the note; if a stored rich-text format is unsupported, Noor Notes safely displays its plain text instead.
 
 Archive notes to hide them from the active list, or move them to Trash. In Trash, restore a note to the active list or choose **Permanently Delete** and confirm the destructive action. Permanent deletion removes the note from the local database.
 

@@ -226,7 +226,7 @@ impl MainWindow {
                 NoteState::Trashed { .. } => &self.trash,
             };
             let row = adw::ActionRow::builder()
-                .title(note_title(&note))
+                .title(note.display_title())
                 .subtitle(note.updated_at.format("%d %b %Y · %I:%M %p").to_string())
                 .activatable(true)
                 .build();
@@ -264,12 +264,4 @@ fn clear_list(list: &gtk::ListBox) {
     while let Some(child) = list.first_child() {
         list.remove(&child);
     }
-}
-
-fn note_title(note: &Note) -> String {
-    note.content
-        .lines()
-        .find(|line| !line.trim().is_empty())
-        .map(|line| line.chars().take(72).collect())
-        .unwrap_or_else(|| "Untitled note".into())
 }

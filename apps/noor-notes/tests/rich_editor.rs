@@ -45,6 +45,11 @@ fn rich_buffer_round_trip_preserves_bold_selection_and_emoji() {
     let mut unsupported = RichDocument::from_plain_text("stale");
     unsupported.version = 99;
     RichBuffer::load(&fallback, "safe plain text", Some(&unsupported));
+    assert_eq!(RichBuffer::parse_font_size("37"), Some(37));
+    assert_eq!(RichBuffer::parse_font_size("65536"), Some(65536));
+    assert_eq!(RichBuffer::parse_font_size("0"), None);
+    assert_eq!(RichBuffer::parse_font_size("-2"), None);
+    assert_eq!(RichBuffer::parse_font_size("2.5"), None);
     assert_eq!(
         fallback
             .text(&fallback.start_iter(), &fallback.end_iter(), true)

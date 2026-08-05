@@ -1,5 +1,5 @@
 use adw::prelude::*;
-use noor_domain::{Alignment, RichBlock, RichDocument, RichSpan, TextMarks};
+use noor_domain::{Alignment, ListKind, RichBlock, RichDocument, RichSpan, TextMarks};
 
 const BOLD: &str = "noor-bold";
 const ITALIC: &str = "noor-italic";
@@ -195,8 +195,21 @@ impl RichBuffer {
         Self::toggle_selection(buffer, STRIKE);
     }
 
-    pub fn font_size(buffer: &gtk::TextBuffer, size: u16) {
-        replace_selection_tag(buffer, "noor-size-", &format!("noor-size-{size}"));
+    pub fn font_size(buffer: &gtk::TextBuffer, size: u32) {
+        let name = format!("noor-size-{size}");
+        if buffer.tag_table().lookup(&name).is_none() {
+            buffer.tag_table().add(
+                &gtk::TextTag::builder()
+                    .name(&name)
+                    .size_points(size as f64)
+                    .build(),
+            );
+        }
+        replace_selection_tag(buffer, "noor-size-", &name);
+    }
+
+    pub fn parse_font_size(value: &str) -> Option<u32> {
+        value.trim().parse::<u32>().ok().filter(|size| *size > 0)
     }
 
     pub fn foreground(buffer: &gtk::TextBuffer, color: &str) {
@@ -223,10 +236,51 @@ impl RichBuffer {
         replace_selection_tag(buffer, "noor-bg-", &format!("noor-bg-{color}"));
     }
 
-    pub fn insert_list_prefix(buffer: &gtk::TextBuffer, prefix: &str) {
-        let mut iter = buffer.iter_at_mark(&buffer.get_insert());
-        iter.set_line_offset(0);
-        buffer.insert(&mut iter, prefix);
+    pub fn toggle_list(buffer: &gtk::TextBuffer, kind: ListKind) {
+        let (first, last) = selected_lines(buffer);
+        let all_match = (first..=last).all(|line| {
+            line_text(buffer, line)
+                .as_deref()
+                .and_then(list_marker)
+                .is_some_and(|(current, _, _)| current == kind)
+        });
+        for line in (first..=last).rev() {
+            replace_line_marker(
+                buffer,
+                line,
+                if all_match { None } else { Some(kind) },
+                line - first + 1,
+            );
+        }
+    }
+
+    pub fn list_kind_at_cursor(buffer: &gtk::TextBuffer) -> Option<ListKind> {
+        let line = buffer.iter_at_mark(&buffer.get_insert()).line();
+        line_text(buffer, line)
+            .as_deref()
+            .and_then(list_marker)
+            .map(|value| value.0)
+    }
+
+    pub fn continue_list(buffer: &gtk::TextBuffer) -> bool {
+        let cursor = buffer.iter_at_mark(&buffer.get_insert());
+        let line = cursor.line();
+        let Some(text) = line_text(buffer, line) else {
+            return false;
+        };
+        let Some((kind, marker_len, number)) = list_marker(&text) else {
+            return false;
+        };
+        if text[marker_len..].trim().is_empty() {
+            replace_line_marker(buffer, line, None, 1);
+            return true;
+        }
+        let prefix = match kind {
+            ListKind::Bullet => "\n• ".to_string(),
+            ListKind::Numbered => format!("\n{}. ", number.unwrap_or(1) + 1),
+        };
+        buffer.insert_at_cursor(&prefix);
+        true
     }
 
     pub fn insert_emoji(buffer: &gtk::TextBuffer, emoji: &str) {
@@ -254,6 +308,58 @@ impl RichBuffer {
     }
 }
 
+fn selected_lines(buffer: &gtk::TextBuffer) -> (i32, i32) {
+    let (start, mut end) = buffer.selection_bounds().unwrap_or_else(|| {
+        let cursor = buffer.iter_at_mark(&buffer.get_insert());
+        (cursor, cursor)
+    });
+    if end.line_offset() == 0 && end.offset() > start.offset() {
+        end.backward_char();
+    }
+    (start.line(), end.line())
+}
+
+fn line_text(buffer: &gtk::TextBuffer, line: i32) -> Option<String> {
+    let start = buffer.iter_at_line(line)?;
+    let mut end = start;
+    end.forward_to_line_end();
+    Some(buffer.text(&start, &end, true).to_string())
+}
+
+fn list_marker(text: &str) -> Option<(ListKind, usize, Option<u32>)> {
+    if text.starts_with("• ") {
+        return Some((ListKind::Bullet, "• ".len(), None));
+    }
+    let digits = text.bytes().take_while(u8::is_ascii_digit).count();
+    if digits > 0 && text.get(digits..digits + 2) == Some(". ") {
+        return text[..digits]
+            .parse()
+            .ok()
+            .map(|number| (ListKind::Numbered, digits + 2, Some(number)));
+    }
+    None
+}
+
+fn replace_line_marker(buffer: &gtk::TextBuffer, line: i32, kind: Option<ListKind>, ordinal: i32) {
+    let Some(mut start) = buffer.iter_at_line(line) else {
+        return;
+    };
+    if let Some(text) = line_text(buffer, line) {
+        if let Some((_, marker_len, _)) = list_marker(&text) {
+            let mut marker_end = start;
+            marker_end.forward_chars(text[..marker_len].chars().count() as i32);
+            buffer.delete(&mut start, &mut marker_end);
+        }
+    }
+    if let Some(kind) = kind {
+        let prefix = match kind {
+            ListKind::Bullet => "• ".to_string(),
+            ListKind::Numbered => format!("{ordinal}. "),
+        };
+        buffer.insert(&mut start, &prefix);
+    }
+}
+
 fn add_tag(table: &gtk::TextTagTable, tag: gtk::TextTag) {
     if tag.name().is_none_or(|name| table.lookup(&name).is_none()) {
         table.add(&tag);
@@ -277,7 +383,16 @@ fn apply_marks(
         }
     }
     if let Some(size) = marks.font_size {
-        buffer.apply_tag_by_name(&format!("noor-size-{size}"), start, end);
+        let name = format!("noor-size-{size}");
+        if buffer.tag_table().lookup(&name).is_none() {
+            buffer.tag_table().add(
+                &gtk::TextTag::builder()
+                    .name(&name)
+                    .size_points(size as f64)
+                    .build(),
+            );
+        }
+        buffer.apply_tag_by_name(&name, start, end);
     }
     if let Some(color) = &marks.foreground {
         buffer.apply_tag_by_name(&format!("noor-fg-{color}"), start, end);
@@ -290,24 +405,14 @@ fn replace_selection_tag(buffer: &gtk::TextBuffer, prefix: &str, tag: &str) {
     let Some((start, end)) = buffer.selection_bounds() else {
         return;
     };
-    for name in [
-        "noor-size-12",
-        "noor-size-14",
-        "noor-size-16",
-        "noor-size-18",
-        "noor-size-24",
-        "noor-fg-charcoal",
-        "noor-fg-blue",
-        "noor-fg-green",
-        "noor-fg-red",
-        "noor-bg-charcoal",
-        "noor-bg-blue",
-        "noor-bg-green",
-        "noor-bg-red",
-    ] {
-        if name.starts_with(prefix) {
-            buffer.remove_tag_by_name(name, &start, &end);
+    let mut names = Vec::new();
+    buffer.tag_table().foreach(|candidate| {
+        if let Some(name) = candidate.name().filter(|name| name.starts_with(prefix)) {
+            names.push(name.to_string());
         }
+    });
+    for name in names {
+        buffer.remove_tag_by_name(&name, &start, &end);
     }
     buffer.apply_tag_by_name(tag, &start, &end);
 }

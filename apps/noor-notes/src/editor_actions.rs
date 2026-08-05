@@ -1,5 +1,5 @@
 use adw::prelude::*;
-use noor_domain::Alignment;
+use noor_domain::{Alignment, ListKind};
 
 use crate::modern_toolbar::ModernToolbar;
 use crate::rich_buffer::RichBuffer;
@@ -18,15 +18,24 @@ pub fn connect(toolbar: &ModernToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
             editor.grab_focus();
         });
     }
-    for (button, prefix) in [(&toolbar.bullets, "• "), (&toolbar.numbered, "1. ")] {
+    for (button, kind) in [
+        (&toolbar.bullets, ListKind::Bullet),
+        (&toolbar.numbered, ListKind::Numbered),
+    ] {
         let buffer = buffer.clone();
         let editor = editor.clone();
-        button.connect_toggled(move |button| {
-            if button.is_active() {
-                RichBuffer::insert_list_prefix(&buffer, prefix);
-            }
+        let bullets = toolbar.bullets.clone();
+        let numbered = toolbar.numbered.clone();
+        button.connect_clicked(move |_| {
+            RichBuffer::toggle_list(&buffer, kind);
+            sync_list_buttons(&buffer, &bullets, &numbered);
             editor.grab_focus();
         });
+    }
+    {
+        let bullets = toolbar.bullets.clone();
+        let numbered = toolbar.numbered.clone();
+        buffer.connect_mark_set(move |buffer, _, _| sync_list_buttons(buffer, &bullets, &numbered));
     }
     {
         let buffer = buffer.clone();
@@ -37,6 +46,33 @@ pub fn connect(toolbar: &ModernToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
                 RichBuffer::font_size(&buffer, *size);
             }
             editor.grab_focus();
+        });
+    }
+    {
+        let buffer = buffer.clone();
+        let editor = editor.clone();
+        let entry = toolbar.custom_font_size.clone();
+        toolbar.apply_font_size.connect_clicked(move |_| {
+            if let Some(size) = RichBuffer::parse_font_size(&entry.text()) {
+                RichBuffer::font_size(&buffer, size);
+                entry.remove_css_class("error");
+                editor.grab_focus();
+            } else {
+                entry.add_css_class("error");
+            }
+        });
+    }
+    {
+        let buffer = buffer.clone();
+        let editor = editor.clone();
+        toolbar.custom_font_size.connect_activate(move |entry| {
+            if let Some(size) = RichBuffer::parse_font_size(&entry.text()) {
+                RichBuffer::font_size(&buffer, size);
+                entry.remove_css_class("error");
+                editor.grab_focus();
+            } else {
+                entry.add_css_class("error");
+            }
         });
     }
     for (button, color) in toolbar
@@ -81,6 +117,13 @@ pub fn connect(toolbar: &ModernToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
     let shortcuts = gtk::EventControllerKey::new();
     let shortcut_buffer = buffer.clone();
     shortcuts.connect_key_pressed(move |_, key, _, state| {
+        if key == gtk::gdk::Key::Return && !state.contains(gtk::gdk::ModifierType::SHIFT_MASK) {
+            return if RichBuffer::continue_list(&shortcut_buffer) {
+                gtk::glib::Propagation::Stop
+            } else {
+                gtk::glib::Propagation::Proceed
+            };
+        }
         if !state.contains(gtk::gdk::ModifierType::CONTROL_MASK) {
             return gtk::glib::Propagation::Proceed;
         }
@@ -114,4 +157,16 @@ pub fn connect(toolbar: &ModernToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
             editor.grab_focus();
         });
     }
+}
+
+fn sync_list_buttons(
+    buffer: &gtk::TextBuffer,
+    bullets: &gtk::ToggleButton,
+    numbered: &gtk::ToggleButton,
+) {
+    let kind = RichBuffer::list_kind_at_cursor(buffer);
+
+    bullets.set_active(kind == Some(ListKind::Bullet));
+
+    numbered.set_active(kind == Some(ListKind::Numbered));
 }

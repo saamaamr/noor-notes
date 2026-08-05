@@ -4,13 +4,13 @@
 }
 
 .noor-note headerbar {
-  min-height: 52px;
-  padding: 4px 8px;
+  min-height: 28px;
+  padding: 0 4px;
   background: #fff3c4;
   color: #252118;
   border: 1px solid rgba(72, 58, 18, 0.16);
   border-bottom-color: rgba(72, 58, 18, 0.22);
-  border-radius: 18px 18px 0 0;
+  border-radius: 3px 3px 0 0;
   box-shadow: 0 8px 24px rgba(63, 45, 7, 0.14);
 }
 
@@ -21,19 +21,20 @@
 
 .toolbar-group {
   padding: 2px;
-  border-radius: 12px;
+  border-radius: 3px;
 }
 
 .toolbar-button,
 .format-choice,
 .emoji-choice {
-  min-width: 40px;
-  min-height: 40px;
+  -gtk-icon-size: 12px;
+  min-width: 28px;
+  min-height: 28px;
   padding: 0;
   color: #27251f;
   background: transparent;
   border: 0;
-  border-radius: 11px;
+  border-radius: 3px;
   box-shadow: none;
 }
 
@@ -59,6 +60,17 @@
 .format-italic { font-style: italic; }
 .format-underline { text-decoration: underline; }
 .format-strike { text-decoration: line-through; }
+
+.note-title-entry {
+  min-height: 30px;
+  margin: 4px 12px 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 3px;
+  background: rgba(255,255,255,.24);
+  color: #282318;
+  font-weight: 700;
+}
 
 .note-editor {
   padding: 6px;
