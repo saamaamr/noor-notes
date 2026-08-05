@@ -5,6 +5,7 @@ pub mod autosave;
 pub mod editor_actions;
 pub mod export;
 pub mod import_dialog;
+pub mod library_preferences;
 pub mod main_window;
 pub mod managed_app;
 pub mod modern_toolbar;

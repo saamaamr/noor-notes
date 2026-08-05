@@ -3,16 +3,18 @@ use std::sync::Arc;
 use adw::prelude::*;
 use chrono::Utc;
 use noor_domain::{Note, NoteId, NoteState};
-use noor_storage::SqliteNoteRepository;
+use noor_storage::{NoteSort, SqliteNoteRepository};
 use noor_windowing::WindowController;
 
 use crate::autosave::AutosaveQueue;
+use crate::library_preferences::LibraryPreferences;
 use crate::note_window::NoteWindow;
 
 #[derive(Clone)]
 pub struct MainWindow {
     pub window: adw::ApplicationWindow,
     search: gtk::SearchEntry,
+    sort: gtk::DropDown,
     active: gtk::ListBox,
     archived: gtk::ListBox,
     trash: gtk::ListBox,
@@ -65,7 +67,19 @@ impl MainWindow {
             .placeholder_text("Search notes…")
             .hexpand(true)
             .build();
-        page.append(&search);
+        let sort =
+            gtk::DropDown::from_strings(&["Recently updated", "Title A–Z", "Newest created"]);
+        let preferences = LibraryPreferences::for_current_user();
+        sort.set_selected(match preferences.load_sort() {
+            NoteSort::UpdatedDesc => 0,
+            NoteSort::TitleAsc => 1,
+            NoteSort::CreatedDesc => 2,
+        });
+        sort.set_tooltip_text(Some("Sort notes"));
+        let filters = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        filters.append(&search);
+        filters.append(&sort);
+        page.append(&filters);
 
         let stack = adw::ViewStack::new();
         let active = note_list();
@@ -90,6 +104,7 @@ impl MainWindow {
         let this = Self {
             window,
             search,
+            sort,
             active,
             archived,
             trash,
@@ -99,6 +114,14 @@ impl MainWindow {
             controller,
             app: app.clone(),
         };
+        {
+            let this = this.clone();
+            this.sort.clone().connect_selected_notify(move |dropdown| {
+                let sort = sort_from_selected(dropdown.selected());
+                let _ = LibraryPreferences::for_current_user().save_sort(sort);
+                this.refresh();
+            });
+        }
         {
             let this = this.clone();
             this.search.clone().connect_search_changed(move |_| {
@@ -123,11 +146,12 @@ impl MainWindow {
 
     pub fn refresh(&self) {
         let query = self.search.text().to_string();
+        let sort = sort_from_selected(self.sort.selected());
         let repository = self.repository.clone();
         let this = self.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
-            match repository.search_notes(&query).await {
-                Ok(notes) => this.render(notes),
+            match repository.search_notes_sorted(&query, sort).await {
+                Ok(notes) => this.render(notes, !query.trim().is_empty()),
                 Err(error) => this.set_status(&format!("Could not load notes: {error}")),
             }
         });
@@ -215,7 +239,7 @@ impl MainWindow {
         row.add_controller(gesture);
     }
 
-    fn render(&self, notes: Vec<Note>) {
+    fn render(&self, notes: Vec<Note>, searching: bool) {
         clear_list(&self.active);
         clear_list(&self.archived);
         clear_list(&self.trash);
@@ -227,7 +251,7 @@ impl MainWindow {
             };
             let row = adw::ActionRow::builder()
                 .title(note.display_title())
-                .subtitle(note.updated_at.format("%d %b %Y · %I:%M %p").to_string())
+                .subtitle(note_subtitle(&note))
                 .activatable(true)
                 .build();
             if matches!(note.state, NoteState::Trashed { .. }) {
@@ -249,6 +273,30 @@ impl MainWindow {
             });
             target.append(&row);
         }
+        append_empty_state(
+            &self.active,
+            if searching {
+                "No matching active notes"
+            } else {
+                "No active notes yet"
+            },
+        );
+        append_empty_state(
+            &self.archived,
+            if searching {
+                "No matching archived notes"
+            } else {
+                "No archived notes"
+            },
+        );
+        append_empty_state(
+            &self.trash,
+            if searching {
+                "No matching trashed notes"
+            } else {
+                "Trash is empty"
+            },
+        );
         self.set_status("Local only · All changes saved offline");
     }
 }
@@ -263,5 +311,43 @@ fn note_list() -> gtk::ListBox {
 fn clear_list(list: &gtk::ListBox) {
     while let Some(child) = list.first_child() {
         list.remove(&child);
+    }
+}
+
+fn sort_from_selected(selected: u32) -> NoteSort {
+    match selected {
+        1 => NoteSort::TitleAsc,
+        2 => NoteSort::CreatedDesc,
+        _ => NoteSort::UpdatedDesc,
+    }
+}
+
+fn note_subtitle(note: &Note) -> String {
+    let date = note.updated_at.format("%d %b %Y · %I:%M %p");
+
+    if note.tags.is_empty() {
+        date.to_string()
+    } else {
+        format!(
+            "{} · {}",
+            date,
+            note.tags
+                .iter()
+                .map(|tag| format!("#{tag}"))
+                .collect::<Vec<_>>()
+                .join("  ")
+        )
+    }
+}
+
+fn append_empty_state(list: &gtk::ListBox, message: &str) {
+    if list.first_child().is_none() {
+        let row = adw::ActionRow::builder()
+            .title(message)
+            .subtitle("Create or restore a note to see it here")
+            .activatable(false)
+            .build();
+        row.add_css_class("empty-state");
+        list.append(&row);
     }
 }

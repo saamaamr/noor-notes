@@ -64,6 +64,13 @@ impl NoteWindow {
         title_row.append(&title_entry);
         title_row.append(&save_status.widget);
         layout.append(&title_row);
+        let tags_entry = gtk::Entry::builder()
+            .text(current.tags.join(", "))
+            .placeholder_text("Tags, separated by commas")
+            .editable(!is_trashed)
+            .build();
+        tags_entry.add_css_class("note-tags-entry");
+        layout.append(&tags_entry);
 
         let buffer = gtk::TextBuffer::new(None);
         RichBuffer::load(&buffer, &current.content, current.rich_content.as_ref());
@@ -210,6 +217,15 @@ impl NoteWindow {
                 .set_tooltip_text(Some("Always on Top is unavailable on this Wayland desktop"));
         }
 
+        {
+            let note = note.clone();
+            let autosave = autosave.clone();
+            tags_entry.connect_changed(move |entry| {
+                note.borrow_mut()
+                    .set_tags(entry.text().split(',').map(str::to_string).collect());
+                autosave.schedule(NoteDraft::from(note.borrow().clone()));
+            });
+        }
         {
             let note = note.clone();
             let autosave = autosave.clone();
