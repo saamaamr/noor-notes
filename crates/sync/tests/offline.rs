@@ -4,7 +4,7 @@ use chrono::{TimeZone, Utc};
 use noor_crypto::Vault;
 use noor_domain::Note;
 use noor_storage::SqliteNoteRepository;
-use noor_sync::{SupabaseClient, SyncStatus, SyncWorker};
+use noor_sync::{EndpointPolicy, SupabaseClient, SyncStatus, SyncWorker};
 use tempfile::tempdir;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -31,7 +31,12 @@ async fn failed_upload_stays_queued_then_acknowledges_after_reconnect() {
         .respond_with(ResponseTemplate::new(201))
         .mount(&server)
         .await;
-    let client = SupabaseClient::new(&server.uri(), "anon").unwrap();
+    let client = SupabaseClient::new(
+        &server.uri(),
+        "anon",
+        EndpointPolicy::AllowLoopbackHttpForTests,
+    )
+    .unwrap();
     let worker = SyncWorker::new(repo.clone(), client, Arc::new(vault), "access");
 
     assert_eq!(worker.run_once().await, SyncStatus::Offline);

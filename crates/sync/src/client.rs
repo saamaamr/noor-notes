@@ -3,6 +3,16 @@ use std::time::Duration;
 use chrono::{DateTime, Utc};
 use reqwest::{StatusCode, Url};
 use serde::Serialize;
+use serde::de::DeserializeOwned;
+
+const MAX_RESPONSE_BYTES: u64 = 1024 * 1024;
+const MAX_REVISIONS: usize = 500;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum EndpointPolicy {
+    Production,
+    AllowLoopbackHttpForTests,
+}
 
 use crate::{AuthSession, RemoteRevision};
 
@@ -20,6 +30,10 @@ pub enum SyncClientError {
     Http(StatusCode),
     #[error("invalid Supabase URL")]
     InvalidUrl,
+    #[error("cloud endpoint must use HTTPS")]
+    InsecureUrl,
+    #[error("cloud response exceeded the security limit")]
+    ResponseTooLarge,
 }
 
 #[derive(Clone)]
@@ -30,13 +44,40 @@ pub struct SupabaseClient {
 }
 
 impl SupabaseClient {
-    pub fn new(base_url: &str, anon_key: &str) -> Result<Self, SyncClientError> {
+    pub fn new(
+        base_url: &str,
+        anon_key: &str,
+        policy: EndpointPolicy,
+    ) -> Result<Self, SyncClientError> {
         let mut base_url = Url::parse(base_url).map_err(|_| SyncClientError::InvalidUrl)?;
+        if !base_url.username().is_empty()
+            || base_url.password().is_some()
+            || base_url.host().is_none()
+        {
+            return Err(SyncClientError::InvalidUrl);
+        }
+        let loopback = base_url.host_str().is_some_and(|host| {
+            host == "localhost"
+                || host
+                    .parse::<std::net::IpAddr>()
+                    .is_ok_and(|ip| ip.is_loopback())
+        });
+        if base_url.scheme() != "https"
+            && !(policy == EndpointPolicy::AllowLoopbackHttpForTests && loopback)
+        {
+            return Err(SyncClientError::InsecureUrl);
+        }
         if !base_url.path().ends_with('/') {
             base_url.set_path(&format!("{}/", base_url.path()));
         }
+        let http = reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .connect_timeout(Duration::from_secs(10))
+            .timeout(Duration::from_secs(30))
+            .build()
+            .map_err(redacted_transport)?;
         Ok(Self {
-            http: reqwest::Client::new(),
+            http,
             base_url,
             anon_key: anon_key.into(),
         })
@@ -70,10 +111,7 @@ impl SupabaseClient {
         if !response.status().is_success() {
             return Err(SyncClientError::Http(response.status()));
         }
-        response
-            .json()
-            .await
-            .map_err(|_| SyncClientError::MalformedResponse)
+        bounded_json(response).await
     }
 
     pub async fn upload_revision(
@@ -145,11 +183,28 @@ impl SupabaseClient {
         if !response.status().is_success() {
             return Err(SyncClientError::Http(response.status()));
         }
-        response
-            .json()
-            .await
-            .map_err(|_| SyncClientError::MalformedResponse)
+        let revisions: Vec<RemoteRevision> = bounded_json(response).await?;
+        if revisions.len() > MAX_REVISIONS {
+            return Err(SyncClientError::ResponseTooLarge);
+        }
+        Ok(revisions)
     }
+}
+
+async fn bounded_json<T: DeserializeOwned>(
+    response: reqwest::Response,
+) -> Result<T, SyncClientError> {
+    if response
+        .content_length()
+        .is_some_and(|size| size > MAX_RESPONSE_BYTES)
+    {
+        return Err(SyncClientError::ResponseTooLarge);
+    }
+    let bytes = response.bytes().await.map_err(redacted_transport)?;
+    if bytes.len() as u64 > MAX_RESPONSE_BYTES {
+        return Err(SyncClientError::ResponseTooLarge);
+    }
+    serde_json::from_slice(&bytes).map_err(|_| SyncClientError::MalformedResponse)
 }
 
 fn retry_after(headers: &reqwest::header::HeaderMap) -> Duration {

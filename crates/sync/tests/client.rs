@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use chrono::{TimeZone, Utc};
-use noor_sync::{RemoteRevision, SupabaseClient, SyncClientError};
+use noor_sync::{EndpointPolicy, RemoteRevision, SupabaseClient, SyncClientError};
 use uuid::Uuid;
 use wiremock::matchers::{header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -26,7 +26,12 @@ async fn upload_is_authenticated_and_duplicate_is_idempotent() {
         .respond_with(ResponseTemplate::new(409))
         .mount(&server)
         .await;
-    let client = SupabaseClient::new(&server.uri(), "anon-key").unwrap();
+    let client = SupabaseClient::new(
+        &server.uri(),
+        "anon-key",
+        EndpointPolicy::AllowLoopbackHttpForTests,
+    )
+    .unwrap();
 
     client
         .upload_revision("access-token", &revision())
@@ -49,7 +54,12 @@ async fn expired_token_and_rate_limit_are_actionable_errors() {
         .respond_with(ResponseTemplate::new(429).insert_header("retry-after", "7"))
         .mount(&server)
         .await;
-    let client = SupabaseClient::new(&server.uri(), "anon-key").unwrap();
+    let client = SupabaseClient::new(
+        &server.uri(),
+        "anon-key",
+        EndpointPolicy::AllowLoopbackHttpForTests,
+    )
+    .unwrap();
 
     assert!(matches!(
         client.upload_revision("expired", &revision()).await,

@@ -25,6 +25,9 @@ impl SyncWorker {
         remote_device: &str,
         now: DateTime<Utc>,
     ) -> Result<(), RemoteApplyError> {
+        remote
+            .validate(now)
+            .map_err(|_| RemoteApplyError::InvalidEncoding)?;
         let nonce: [u8; 24] = STANDARD
             .decode(remote.nonce)
             .map_err(|_| RemoteApplyError::InvalidEncoding)?

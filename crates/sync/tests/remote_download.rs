@@ -6,7 +6,7 @@ use chrono::{Duration, TimeZone, Utc};
 use noor_crypto::Vault;
 use noor_domain::{Note, Revision};
 use noor_storage::SqliteNoteRepository;
-use noor_sync::{RemoteRevision, SupabaseClient, SyncWorker};
+use noor_sync::{EndpointPolicy, RemoteRevision, SupabaseClient, SyncWorker};
 
 #[tokio::test]
 async fn authenticated_newer_remote_revision_applies_without_upload_echo() {
@@ -40,7 +40,12 @@ async fn authenticated_newer_remote_revision_applies_without_upload_echo() {
         updated_at: remote_note.updated_at,
         deleted_at: None,
     };
-    let client = SupabaseClient::new("https://example.supabase.co", "anon").unwrap();
+    let client = SupabaseClient::new(
+        "https://example.supabase.co",
+        "anon",
+        EndpointPolicy::Production,
+    )
+    .unwrap();
     let worker = SyncWorker::new(repo.clone(), client, Arc::new(vault), "access");
 
     worker

@@ -3,8 +3,8 @@
 mod client;
 mod types;
 
-pub use client::{SupabaseClient, SyncClientError};
-pub use types::{AuthSession, RemoteRevision};
+pub use client::{EndpointPolicy, SupabaseClient, SyncClientError};
+pub use types::{AuthSession, RemoteRevision, RevisionValidationError};
 mod backoff;
 mod merge;
 mod remote_worker;
