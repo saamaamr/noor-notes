@@ -2,6 +2,7 @@ pub mod account;
 pub mod actions;
 pub mod app;
 pub mod autosave;
+pub mod edit_save_gate;
 pub mod editor_actions;
 pub mod export;
 pub mod import_dialog;

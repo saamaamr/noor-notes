@@ -1,6 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::sync::Arc;
+use std::time::Duration;
 
 use adw::prelude::*;
 use chrono::Utc;
@@ -9,6 +10,7 @@ use noor_storage::SqliteNoteRepository;
 use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
 use crate::autosave::{AutosaveQueue, NoteDraft};
+use crate::edit_save_gate::EditSaveGate;
 use crate::export::{export_markdown, export_plain};
 use crate::modern_toolbar::ModernToolbar;
 use crate::note_actions;
@@ -296,15 +298,24 @@ impl NoteWindow {
                 });
             });
         }
+        let edit_save_gate = Rc::new(RefCell::new(EditSaveGate::default()));
         {
             let note = note.clone();
             let autosave = autosave.clone();
+            let edit_save_gate = edit_save_gate.clone();
             buffer.connect_changed(move |buffer| {
-                let mut note = note.borrow_mut();
-                let (content, rich_content) = RichBuffer::snapshot(buffer);
-                note.content = content;
-                note.rich_content = Some(rich_content);
-                autosave.schedule(NoteDraft::from(note.clone()));
+                if !edit_save_gate.borrow_mut().mark_changed() {
+                    return;
+                }
+                let buffer = buffer.clone();
+                let note = note.clone();
+                let autosave = autosave.clone();
+                let edit_save_gate = edit_save_gate.clone();
+                gtk::glib::timeout_add_local_once(Duration::from_millis(250), move || {
+                    if edit_save_gate.borrow_mut().take_snapshot() {
+                        save_editor_snapshot(&buffer, &note, &autosave);
+                    }
+                });
             });
         }
         {
@@ -497,8 +508,17 @@ impl NoteWindow {
             let autosave = autosave.clone();
             let id = current.id;
             let allow_close = Rc::new(Cell::new(false));
+            let buffer = buffer.clone();
+            let note = note.clone();
+            let edit_save_gate = edit_save_gate.clone();
             window.connect_close_request(move |window| {
-                if allow_close.get() || !autosave.has_pending(id) {
+                if allow_close.get() {
+                    return gtk::glib::Propagation::Proceed;
+                }
+                if edit_save_gate.borrow_mut().take_snapshot() {
+                    save_editor_snapshot(&buffer, &note, &autosave);
+                }
+                if !autosave.has_pending(id) {
                     return gtk::glib::Propagation::Proceed;
                 }
                 let autosave = autosave.clone();
@@ -520,6 +540,18 @@ impl NoteWindow {
     pub fn present(&self) {
         self.window.present();
     }
+}
+
+fn save_editor_snapshot(
+    buffer: &gtk::TextBuffer,
+    note: &Rc<RefCell<Note>>,
+    autosave: &AutosaveQueue,
+) {
+    let (content, rich_content) = RichBuffer::snapshot(buffer);
+    let mut note = note.borrow_mut();
+    note.content = content;
+    note.rich_content = Some(rich_content);
+    autosave.schedule(NoteDraft::from(note.clone()));
 }
 
 fn show_save_error(window: &adw::ApplicationWindow) {
