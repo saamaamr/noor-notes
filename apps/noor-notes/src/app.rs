@@ -4,17 +4,19 @@ use std::time::Duration;
 use adw::prelude::*;
 use chrono::Utc;
 use noor_domain::Note;
-use noor_storage::SqliteNoteRepository;
 use noor_windowing::{
     BackendKind, Environment, FallbackWindowController, WindowController, X11WindowController,
     detect_backend,
 };
 
 use crate::autosave::AutosaveQueue;
+use crate::key_store::Oo7KeyStore;
 use crate::note_window::NoteWindow;
+use crate::security_bootstrap::open_repository;
 
 pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
-    let repository = SqliteNoteRepository::open(&data_path()).await?;
+    let keys = Arc::new(Oo7KeyStore::new().await?);
+    let repository = open_repository(&data_path(), keys).await?;
     let autosave = AutosaveQueue::new(repository.clone(), Duration::from_millis(400));
     let controller: Arc<dyn WindowController> = match detect_backend(&Environment::current()) {
         BackendKind::X11 => X11WindowController::connect()

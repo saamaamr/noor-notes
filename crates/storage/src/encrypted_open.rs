@@ -30,6 +30,10 @@ impl DatabaseKey {
         }
         output
     }
+
+    pub fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
 }
 
 impl fmt::Debug for DatabaseKey {

@@ -6,7 +6,6 @@ use std::time::Duration;
 use adw::prelude::*;
 use chrono::Utc;
 use noor_domain::Note;
-use noor_storage::SqliteNoteRepository;
 use noor_windowing::{
     BackendKind, Environment, FallbackWindowController, GnomeWindowController, WindowController,
     X11WindowController, detect_backend,
@@ -15,12 +14,15 @@ use noor_windowing::{
 use crate::actions::add_action;
 use crate::autosave::AutosaveQueue;
 use crate::import_dialog::ImportFlow;
+use crate::key_store::Oo7KeyStore;
 use crate::main_window::MainWindow;
 use crate::note_window::NoteWindow;
+use crate::security_bootstrap::open_repository;
 use crate::shortcuts::shortcuts_window;
 
 pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
-    let repository = SqliteNoteRepository::open(&data_path()).await?;
+    let keys = Arc::new(Oo7KeyStore::new().await?);
+    let repository = open_repository(&data_path(), keys).await?;
     let autosave = AutosaveQueue::new(repository.clone(), Duration::from_millis(400));
     let controller = window_controller().await;
     let app = adw::Application::builder()
