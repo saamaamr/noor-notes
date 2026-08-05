@@ -1,5 +1,5 @@
 name: noor-notes
-version: "0.1.0"
+version: "0.1.1"
 summary: Private, offline-first sticky notes for Linux
 description: |
   Noor Notes is a native GTK4 sticky-note application for Linux.
@@ -59,7 +59,6 @@ parts:
       - libx11-dev
       - pkg-config
     stage-packages:
-      - libsecret-tools
     override-build: |
       cargo build --locked --release --package noor-notes
       install -Dm755 target/release/noor-notes "$CRAFT_PART_INSTALL/usr/bin/noor-notes"

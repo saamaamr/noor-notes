@@ -1,0 +1,4 @@
+[advisories]
+# SQLx records its optional MySQL backend in Cargo.lock. Noor Notes enables only
+# SQLite; `cargo tree --target all -i rsa@0.9.10` is empty, so RSA is not built.
+ignore = ["RUSTSEC-2023-0071"]

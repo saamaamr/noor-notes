@@ -1,11 +1,12 @@
 # Noor Notes
 
-Noor Notes is a private, offline-first GTK4 sticky-note application for Linux. [Version 0.1.0](https://github.com/saamaamr/noor-notes/releases/tag/v0.1.0) is available as a locally installable Snap and Flatpak bundle.
+Noor Notes is a private, offline-first GTK4 sticky-note application for Linux. Version 0.1.1 adds encrypted local storage and comprehensive security hardening.
 
 ## Features
 
 - **Named and organized notes**: edit titles, add searchable tags, choose six accessible colours, sort the library, and duplicate notes.
 - **Reliable saving**: visible Saving/Saved state, retryable failures, and close-time flushing protect pending edits.
+- **Encrypted locally**: SQLCipher protects note text, titles, tags, and history using a random key held by GNOME Keyring; existing databases migrate automatically and safely.
 - **Rich text**: bold, italic, underline, strikethrough, reliable bullet and numbered lists, preset or custom positive whole-number font sizes, alignment, text and highlight colours, emoji, undo, and redo.
 - **Productivity**: Unicode-aware find-in-note, plain-text and Markdown export, keyboard shortcuts help, and polished empty states.
 - A searchable library with active, archived, and **Trash** notes.
@@ -16,10 +17,10 @@ Noor Notes is a private, offline-first GTK4 sticky-note application for Linux. [
 
 ### Release packages
 
-Download `noor-notes_0.1.0_amd64.snap` or `noor-notes.flatpak` from the [v0.1.0 release](https://github.com/saamaamr/noor-notes/releases/tag/v0.1.0), verify it as described below, then install one package.
+Download `noor-notes_0.1.1_amd64.snap` or `noor-notes.flatpak` from the v0.1.1 release, verify it as described below, then install one package.
 
 ```bash
-sudo snap install --dangerous ./noor-notes_0.1.0_amd64.snap
+sudo snap install --dangerous ./noor-notes_0.1.1_amd64.snap
 ```
 
 On Ubuntu or another APT-based system, install Flatpak and add a runtime remote before installing the Flatpak bundle:
@@ -50,8 +51,8 @@ It installs the required system packages, installs Rust only if it is missing, b
 To download every published asset from a terminal:
 
 ```bash
-release=https://github.com/saamaamr/noor-notes/releases/download/v0.1.0
-curl -LO "$release/noor-notes_0.1.0_amd64.snap"
+release=https://github.com/saamaamr/noor-notes/releases/download/v0.1.1
+curl -LO "$release/noor-notes_0.1.1_amd64.snap"
 curl -LO "$release/noor-notes.flatpak"
 curl -LO "$release/SHA256SUMS.txt"
 sha256sum -c SHA256SUMS.txt
@@ -71,7 +72,7 @@ The final command must report `OK` for the selected artifact before installation
 
 Create a note from the library. With a native/source installation, use the Xpad import control, review the preview, and confirm the import. Noor Notes does not modify Xpad or its files under `~/.config/xpad`.
 
-The strict Snap and Flatpak packages cannot read the host `~/.config/xpad`, so their import control cannot migrate host Xpad notes in v0.1.0. No portal or file-selection import path is provided in those packages; use a native/source installation for Xpad migration.
+The strict Snap and Flatpak packages cannot read the host `~/.config/xpad`, so their import control cannot migrate host Xpad notes in v0.1.1. No portal or file-selection import path is provided in those packages; use a native/source installation for Xpad migration.
 
 ## Rich text and Trash
 
@@ -87,7 +88,7 @@ On X11, Noor Notes uses native window-manager support. A source checkout can als
 
 ## Encrypted sync
 
-Encrypted synchronization is not available to v0.1.0 users: the released app has no account, vault, or Supabase-project configuration flow, and its Sync action reports that cloud sync is not configured. Do not apply the bundled migration expecting a supported runtime setup. Notes remain local until a future release integrates that workflow.
+Encrypted synchronization is not available to v0.1.1 users: the released app has no account, vault, or Supabase-project configuration flow, and its Sync action reports that cloud sync is not configured. Notes remain encrypted locally until a future release integrates that workflow.
 
 ## Data and recovery
 
@@ -97,14 +98,14 @@ Back up the database only while Noor Notes is closed. Its location depends on ho
 - **Flatpak:** `~/.var/app/io.github.saamaamr.NoorNotes/data/noor-notes/notes.db`.
 - **Snap:** normally `~/snap/noor-notes/current/.local/share/noor-notes/notes.db`; the app's snap-scoped `HOME` maps to the revision-specific `SNAP_USER_DATA` directory.
 
-If database corruption is detected, Noor Notes preserves a timestamped `.corrupt-*.bak` copy beside the database. v0.1.0 has no configured cloud vault or recovery-key workflow, so a closed-app copy of this local database is the available recovery measure.
+Back up the encrypted database together with a working GNOME Keyring backup. If the local database key is lost, the ciphertext cannot be recovered. Plain-text and Markdown exports are intentionally unencrypted; protect or delete them separately.
 
 ## Troubleshooting
 
 - If a release package will not install, re-download it and `SHA256SUMS.txt`, then use the selected-artifact checksum commands above. Confirm that the exact package reports `OK`.
 - If Always on Top is disabled on GNOME Wayland, use a source installation with the separately installed GNOME Shell extension, or use a supported window environment.
-- If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v0.1.0.
-- If Sync says it is not configured, that is the current v0.1.0 limitation; there is no supported account or Supabase setup path yet.
+- If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v0.1.1.
+- If Sync says it is not configured, that is the current v0.1.1 limitation; there is no supported account or Supabase setup path yet.
 - If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
 - If an Xpad note is skipped, inspect the import preview; it identifies entries that cannot be parsed before any import is committed.
 
@@ -122,6 +123,8 @@ Before contributing a change, run:
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
+cargo audit
+cargo deny check
 xvfb-run -a cargo test -p noor-windowing
 gjs -m extensions/gnome/tests/test-policy.js
 bash tests/e2e/two_device_sync.sh
@@ -129,7 +132,7 @@ bash tests/e2e/two_device_sync.sh
 
 ## Release automation and Store status
 
-Version tags build Snap and Flatpak artifacts in GitHub Actions. The final `v0.1.0` tag creates the GitHub release with `noor-notes_0.1.0_amd64.snap`, `noor-notes.flatpak`, and `SHA256SUMS.txt`.
+Version tags build Snap and Flatpak artifacts in GitHub Actions. The `v0.1.1` tag creates the GitHub release with `noor-notes_0.1.1_amd64.snap`, `noor-notes.flatpak`, and `SHA256SUMS.txt` after the security gate passes.
 
 Store publication is not automated: Snap Store upload remains a manual owner action, and a Flathub submission is not created by this project’s workflow. Use the published release artifacts above rather than assuming Snap Store or Flathub availability.
 

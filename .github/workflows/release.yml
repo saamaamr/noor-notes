@@ -90,7 +90,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: github.ref_name == 'v0.1.0'
+    if: github.ref_name == 'v0.1.1'
     needs: [snap, flatpak]
     permissions:
       contents: write

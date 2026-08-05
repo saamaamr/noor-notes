@@ -69,8 +69,8 @@ if not any(
 release = jobs["release"]
 if release.get("needs") != ["snap", "flatpak"]:
     raise SystemExit("Release job must wait for both package builds")
-if release.get("if") != "github.ref_name == 'v0.1.0'":
-    raise SystemExit("Release publication must be limited to the final v0.1.0 tag")
+if release.get("if") != "github.ref_name == 'v0.1.1'":
+    raise SystemExit("Release publication must be limited to the final v0.1.1 tag")
 release_steps = release.get("steps", [])
 if not any(
     isinstance(step, dict)
