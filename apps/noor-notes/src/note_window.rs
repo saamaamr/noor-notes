@@ -9,8 +9,10 @@ use noor_storage::SqliteNoteRepository;
 use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
 use crate::autosave::{AutosaveQueue, NoteDraft};
+use crate::export::{export_markdown, export_plain};
 use crate::modern_toolbar::ModernToolbar;
 use crate::note_actions;
+use crate::note_find::FindResults;
 use crate::rich_buffer::RichBuffer;
 use crate::save_status::SaveStatusIndicator;
 
@@ -76,6 +78,67 @@ impl NoteWindow {
             .build();
         editor.add_css_class("note-editor");
         editor.set_editable(!is_trashed);
+        let find_entry = gtk::SearchEntry::builder()
+            .placeholder_text("Find in note…")
+            .hexpand(true)
+            .build();
+        let find_previous = gtk::Button::builder()
+            .icon_name("go-up-symbolic")
+            .tooltip_text("Previous match")
+            .build();
+        let find_next = gtk::Button::builder()
+            .icon_name("go-down-symbolic")
+            .tooltip_text("Next match")
+            .build();
+        let find_count = gtk::Label::new(Some("0 of 0"));
+        let find_bar = gtk::Box::new(gtk::Orientation::Horizontal, 4);
+        find_bar.add_css_class("find-bar");
+        find_bar.append(&find_entry);
+        find_bar.append(&find_count);
+        find_bar.append(&find_previous);
+        find_bar.append(&find_next);
+        find_bar.set_visible(false);
+        layout.append(&find_bar);
+        let find_results = Rc::new(RefCell::new(FindResults::default()));
+        {
+            let buffer = buffer.clone();
+            let results = find_results.clone();
+            let count = find_count.clone();
+            find_entry.connect_search_changed(move |entry| {
+                let text = buffer.text(&buffer.start_iter(), &buffer.end_iter(), true);
+                results.borrow_mut().update(&text, &entry.text());
+                select_find_result(&buffer, &results.borrow(), &count);
+            });
+        }
+        {
+            let buffer = buffer.clone();
+            let results = find_results.clone();
+            let count = find_count.clone();
+            find_next.connect_clicked(move |_| {
+                results.borrow_mut().next();
+                select_find_result(&buffer, &results.borrow(), &count);
+            });
+        }
+        {
+            let buffer = buffer.clone();
+            let results = find_results.clone();
+            let count = find_count.clone();
+            find_previous.connect_clicked(move |_| {
+                results.borrow_mut().previous();
+                select_find_result(&buffer, &results.borrow(), &count);
+            });
+        }
+        {
+            let find_bar = find_bar.clone();
+            let find_entry = find_entry.clone();
+            toolbar.find.connect_toggled(move |button| {
+                find_bar.set_visible(button.is_active());
+                if button.is_active() {
+                    find_entry.grab_focus();
+                }
+            });
+        }
+
         let scroller = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never)
             .vexpand(true)
@@ -110,6 +173,28 @@ impl NoteWindow {
                 .new_note
                 .connect_clicked(move |_| app.activate_action("new-note", None));
         }
+
+        {
+            let app = app.clone();
+            let repository = repository.clone();
+            let controller = controller.clone();
+            let autosave = autosave.clone();
+            let source = note.clone();
+            toolbar.duplicate.connect_clicked(move |_| {
+                let app = app.clone();
+                let repository = repository.clone();
+                let controller = controller.clone();
+                let autosave = autosave.clone();
+                let id = source.borrow().id;
+                gtk::glib::MainContext::default().spawn_local(async move {
+                    if let Ok(copy) = repository.duplicate_note(id, Utc::now()).await {
+                        NoteWindow::new(&app, copy, autosave, repository, controller).present();
+                    }
+                });
+            });
+        }
+        connect_export(&toolbar.export_text, &window, note.clone(), false);
+        connect_export(&toolbar.export_markdown, &window, note.clone(), true);
 
         toolbar.pin.set_active(current.always_on_top);
         toolbar.all_workspaces.set_active(current.all_workspaces);
@@ -409,4 +494,60 @@ fn native_window_id(window: &adw::ApplicationWindow) -> Option<NativeWindowId> {
     window
         .title()
         .map(|title| NativeWindowId::Wayland(title.to_string()))
+}
+
+fn select_find_result(buffer: &gtk::TextBuffer, results: &FindResults, count: &gtk::Label) {
+    if let Some((current, total)) = results.position() {
+        count.set_text(&format!("{current} of {total}"));
+    } else {
+        count.set_text("0 of 0");
+    }
+
+    if let Some((start, end)) = results.current_range() {
+        buffer.select_range(
+            &buffer.iter_at_offset(start as i32),
+            &buffer.iter_at_offset(end as i32),
+        );
+    }
+}
+
+fn connect_export(
+    button: &gtk::Button,
+    window: &adw::ApplicationWindow,
+    note: Rc<RefCell<Note>>,
+    markdown: bool,
+) {
+    let window = window.clone();
+    button.connect_clicked(move |_| {
+        let window = window.clone();
+        let note = note.borrow().clone();
+
+        gtk::glib::MainContext::default().spawn_local(async move {
+            let extension = if markdown { "md" } else { "txt" };
+            let dialog = gtk::FileDialog::builder()
+                .title("Export note")
+                .initial_name(format!("{}.{}", note.display_title(), extension))
+                .build();
+
+            if let Ok(file) = dialog.save_future(Some(&window)).await {
+                let contents = if markdown {
+                    export_markdown(&note)
+                } else {
+                    export_plain(&note)
+                };
+                if file
+                    .replace_contents_future(
+                        contents.into_bytes(),
+                        None,
+                        false,
+                        gtk::gio::FileCreateFlags::REPLACE_DESTINATION,
+                    )
+                    .await
+                    .is_err()
+                {
+                    show_save_error(&window);
+                }
+            }
+        });
+    });
 }

@@ -17,6 +17,10 @@ pub struct ModernToolbar {
     pub custom_font_size: gtk::Entry,
     pub apply_font_size: gtk::Button,
     pub rename: gtk::Button,
+    pub find: gtk::ToggleButton,
+    pub duplicate: gtk::Button,
+    pub export_text: gtk::Button,
+    pub export_markdown: gtk::Button,
     pub alignment_buttons: Vec<gtk::ToggleButton>,
     pub foreground_buttons: Vec<gtk::Button>,
     pub highlight_buttons: Vec<gtk::Button>,
@@ -153,6 +157,20 @@ impl ModernToolbar {
             .popover(&settings_popover)
             .build();
         settings.add_css_class("toolbar-button");
+        let find = toggle_button("edit-find-symbolic", "Find in note (Ctrl+F)");
+        let duplicate = icon_button("edit-copy-symbolic", "Duplicate note");
+        let export_text = gtk::Button::with_label("Plain text (.txt)");
+        let export_markdown = gtk::Button::with_label("Markdown (.md)");
+        let export_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
+        export_box.append(&export_text);
+        export_box.append(&export_markdown);
+        let export_popover = gtk::Popover::builder().child(&export_box).build();
+        let export = gtk::MenuButton::builder()
+            .icon_name("document-save-symbolic")
+            .tooltip_text("Export note")
+            .popover(&export_popover)
+            .build();
+        export.add_css_class("toolbar-button");
         let rename = icon_button("document-edit-symbolic", "Rename note");
         let archive = icon_button("folder-symbolic", "Archive");
         let trash = icon_button("user-trash-symbolic", "Move to Trash");
@@ -161,7 +179,10 @@ impl ModernToolbar {
         let permanent_delete = icon_button("edit-delete-symbolic", "Permanently Delete");
         permanent_delete.add_css_class("destructive-hover");
         let right = group();
+        right.append(&find);
         right.append(&rename);
+        right.append(&duplicate);
+        right.append(&export);
         right.append(&archive);
         right.append(&trash);
         right.append(&restore);
@@ -187,6 +208,10 @@ impl ModernToolbar {
             custom_font_size,
             apply_font_size,
             rename,
+            find,
+            duplicate,
+            export_text,
+            export_markdown,
             alignment_buttons,
             foreground_buttons,
             highlight_buttons,
