@@ -6,6 +6,7 @@ pub mod edit_save_gate;
 pub mod editor_actions;
 pub mod export;
 pub mod import_dialog;
+pub mod key_store;
 pub mod library_preferences;
 pub mod main_window;
 pub mod managed_app;

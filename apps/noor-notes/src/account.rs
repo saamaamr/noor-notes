@@ -1,83 +1,64 @@
-use std::io::Write;
-use std::process::{Command, Stdio};
+use std::sync::Arc;
 
 use noor_sync::{AuthSession, SupabaseClient, SyncClientError};
+
+use crate::key_store::{KeyStore, KeyStoreError, Oo7KeyStore, SecretKind};
 
 #[derive(Debug, thiserror::Error)]
 pub enum AccountError {
     #[error(transparent)]
     Cloud(#[from] SyncClientError),
-    #[error("the desktop Secret Service is unavailable")]
-    SecretServiceUnavailable,
-    #[error("the desktop Secret Service rejected the credential")]
-    SecretServiceRejected,
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct SecretServiceStore;
-
-impl SecretServiceStore {
-    pub fn store(&self, kind: &str, account: &str, secret: &[u8]) -> Result<(), AccountError> {
-        let mut child = Command::new("secret-tool")
-            .args([
-                "store",
-                "--label=Noor Notes",
-                "application",
-                "io.github.saamaamr.NoorNotes",
-                "kind",
-                kind,
-                "account",
-                account,
-            ])
-            .stdin(Stdio::piped())
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn()
-            .map_err(|_| AccountError::SecretServiceUnavailable)?;
-        child
-            .stdin
-            .as_mut()
-            .ok_or(AccountError::SecretServiceUnavailable)?
-            .write_all(secret)
-            .map_err(|_| AccountError::SecretServiceUnavailable)?;
-        if child
-            .wait()
-            .map_err(|_| AccountError::SecretServiceUnavailable)?
-            .success()
-        {
-            Ok(())
-        } else {
-            Err(AccountError::SecretServiceRejected)
-        }
-    }
+    #[error(transparent)]
+    Secret(#[from] KeyStoreError),
 }
 
 pub struct AccountController {
     client: SupabaseClient,
-    secrets: SecretServiceStore,
+    secrets: Arc<dyn KeyStore>,
 }
 
 impl AccountController {
-    pub fn new(client: SupabaseClient) -> Self {
-        Self {
+    pub async fn new(client: SupabaseClient) -> Result<Self, AccountError> {
+        Ok(Self {
             client,
-            secrets: SecretServiceStore,
-        }
+            secrets: Arc::new(Oo7KeyStore::new().await?),
+        })
+    }
+
+    pub fn with_key_store(client: SupabaseClient, secrets: Arc<dyn KeyStore>) -> Self {
+        Self { client, secrets }
     }
 
     pub async fn sign_in(&self, email: &str, password: &str) -> Result<AuthSession, AccountError> {
         let session = self.client.sign_in(email, password).await?;
         self.secrets
-            .store("refresh-token", email, session.refresh_token.as_bytes())?;
+            .put(
+                SecretKind::RefreshToken,
+                email,
+                session.refresh_token.as_bytes(),
+            )
+            .await?;
         Ok(session)
     }
 
-    pub fn store_wrapped_vault(
+    pub async fn store_wrapped_vault(
         &self,
         account: &str,
         wrapped_vault_json: &[u8],
     ) -> Result<(), AccountError> {
         self.secrets
-            .store("wrapped-vault", account, wrapped_vault_json)
+            .put(SecretKind::WrappedVault, account, wrapped_vault_json)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn sign_out(&self, account: &str) -> Result<(), AccountError> {
+        self.secrets
+            .delete(SecretKind::RefreshToken, account)
+            .await?;
+        self.secrets
+            .delete(SecretKind::WrappedVault, account)
+            .await?;
+        Ok(())
     }
 }
