@@ -5,6 +5,20 @@ use crate::modern_toolbar::ModernToolbar;
 use crate::rich_buffer::RichBuffer;
 
 pub fn connect(toolbar: &ModernToolbar, buffer: &gtk::TextBuffer, editor: &gtk::TextView) {
+    {
+        let undo_buffer = buffer.clone();
+        toolbar
+            .undo
+            .connect_clicked(move |_| RichBuffer::undo(&undo_buffer));
+        let redo_buffer = buffer.clone();
+        toolbar
+            .redo
+            .connect_clicked(move |_| RichBuffer::redo(&redo_buffer));
+        let undo = toolbar.undo.clone();
+        buffer.connect_can_undo_notify(move |buffer| undo.set_sensitive(buffer.can_undo()));
+        let redo = toolbar.redo.clone();
+        buffer.connect_can_redo_notify(move |buffer| redo.set_sensitive(buffer.can_redo()));
+    }
     for (button, action) in [
         (&toolbar.bold, RichBuffer::bold as fn(&gtk::TextBuffer)),
         (&toolbar.italic, RichBuffer::italic),
@@ -127,18 +141,28 @@ pub fn connect(toolbar: &ModernToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         if !state.contains(gtk::gdk::ModifierType::CONTROL_MASK) {
             return gtk::glib::Propagation::Proceed;
         }
-        let handled = if key == gtk::gdk::Key::b {
-            RichBuffer::bold(&shortcut_buffer);
-            true
-        } else if key == gtk::gdk::Key::i {
-            RichBuffer::italic(&shortcut_buffer);
-            true
-        } else if key == gtk::gdk::Key::u {
-            RichBuffer::underline(&shortcut_buffer);
-            true
-        } else {
-            false
-        };
+        let handled =
+            if key == gtk::gdk::Key::z && state.contains(gtk::gdk::ModifierType::SHIFT_MASK) {
+                RichBuffer::redo(&shortcut_buffer);
+                true
+            } else if key == gtk::gdk::Key::z {
+                RichBuffer::undo(&shortcut_buffer);
+                true
+            } else if key == gtk::gdk::Key::y {
+                RichBuffer::redo(&shortcut_buffer);
+                true
+            } else if key == gtk::gdk::Key::b {
+                RichBuffer::bold(&shortcut_buffer);
+                true
+            } else if key == gtk::gdk::Key::i {
+                RichBuffer::italic(&shortcut_buffer);
+                true
+            } else if key == gtk::gdk::Key::u {
+                RichBuffer::underline(&shortcut_buffer);
+                true
+            } else {
+                false
+            };
         if handled {
             gtk::glib::Propagation::Stop
         } else {

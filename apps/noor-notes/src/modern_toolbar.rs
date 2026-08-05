@@ -4,6 +4,8 @@ use adw::prelude::*;
 pub struct ModernToolbar {
     pub widget: gtk::Box,
     pub new_note: gtk::Button,
+    pub undo: gtk::Button,
+    pub redo: gtk::Button,
     pub pin: gtk::ToggleButton,
     pub bold: gtk::ToggleButton,
     pub italic: gtk::ToggleButton,
@@ -33,10 +35,16 @@ impl ModernToolbar {
         widget.add_css_class("modern-toolbar");
 
         let new_note = icon_button("list-add-symbolic", "New note");
+        let undo = icon_button("edit-undo-symbolic", "Undo (Ctrl+Z)");
+        let redo = icon_button("edit-redo-symbolic", "Redo (Ctrl+Shift+Z)");
+        undo.set_sensitive(false);
+        redo.set_sensitive(false);
         let pin = toggle_button("view-pin-symbolic", "Always on Top");
         let left = group();
         left.append(&pin);
         left.append(&new_note);
+        left.append(&undo);
+        left.append(&redo);
 
         let bold = text_toggle("B", "Bold (Ctrl+B)", "format-bold");
         let italic = text_toggle("I", "Italic (Ctrl+I)", "format-italic");
@@ -166,6 +174,8 @@ impl ModernToolbar {
         Self {
             widget,
             new_note,
+            undo,
+            redo,
             pin,
             bold,
             italic,

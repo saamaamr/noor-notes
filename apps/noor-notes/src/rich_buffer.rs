@@ -30,6 +30,7 @@ pub struct RichBuffer;
 
 impl RichBuffer {
     pub fn prepare(buffer: &gtk::TextBuffer) {
+        buffer.set_enable_undo(true);
         let table = buffer.tag_table();
         add_tag(
             &table,
@@ -176,6 +177,23 @@ impl RichBuffer {
             buffer.remove_tag_by_name(tag_name, &start, &end);
         } else {
             buffer.apply_tag_by_name(tag_name, &start, &end);
+        }
+    }
+
+    pub fn can_undo(buffer: &gtk::TextBuffer) -> bool {
+        buffer.can_undo()
+    }
+    pub fn can_redo(buffer: &gtk::TextBuffer) -> bool {
+        buffer.can_redo()
+    }
+    pub fn undo(buffer: &gtk::TextBuffer) {
+        if buffer.can_undo() {
+            buffer.undo();
+        }
+    }
+    pub fn redo(buffer: &gtk::TextBuffer) {
+        if buffer.can_redo() {
+            buffer.redo();
         }
     }
 
