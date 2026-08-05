@@ -1535,6 +1535,7 @@ name = "noor-notes"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "chrono",
  "gdk4-x11",
  "gtk4",

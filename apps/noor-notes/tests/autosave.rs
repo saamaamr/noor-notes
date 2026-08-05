@@ -29,6 +29,7 @@ async fn rapid_edits_are_debounced_to_the_latest_content() {
         repo.get_note(note.id).await.unwrap().unwrap().content,
         "final"
     );
+    assert!(!queue.has_pending(note.id));
 }
 
 #[tokio::test]

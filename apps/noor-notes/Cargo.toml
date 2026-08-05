@@ -19,6 +19,7 @@ noor-windowing = { path = "../../crates/windowing" }
 noor-xpad-import = { path = "../../crates/xpad-import" }
 tokio.workspace = true
 thiserror.workspace = true
+async-trait.workspace = true
 
 [dev-dependencies]
 chrono.workspace = true

@@ -61,9 +61,11 @@
 .format-underline { text-decoration: underline; }
 .format-strike { text-decoration: line-through; }
 
+.note-title-row { margin: 4px 12px 0; }
+
 .note-title-entry {
   min-height: 30px;
-  margin: 4px 12px 0;
+  margin: 0;
   padding: 0 8px;
   border: 0;
   border-radius: 3px;

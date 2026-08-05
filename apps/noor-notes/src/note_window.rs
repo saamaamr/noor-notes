@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -12,6 +12,7 @@ use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::modern_toolbar::ModernToolbar;
 use crate::note_actions;
 use crate::rich_buffer::RichBuffer;
+use crate::save_status::SaveStatusIndicator;
 
 pub struct NoteWindow {
     pub window: adw::ApplicationWindow,
@@ -54,7 +55,13 @@ impl NoteWindow {
             .editable(!is_trashed)
             .build();
         title_entry.add_css_class("note-title-entry");
-        layout.append(&title_entry);
+        title_entry.set_hexpand(true);
+        let save_status = SaveStatusIndicator::new();
+        let title_row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+        title_row.add_css_class("note-title-row");
+        title_row.append(&title_entry);
+        title_row.append(&save_status.widget);
+        layout.append(&title_row);
 
         let buffer = gtk::TextBuffer::new(None);
         RichBuffer::load(&buffer, &current.content, current.rich_content.as_ref());
@@ -77,6 +84,26 @@ impl NoteWindow {
         layout.append(&scroller);
         window.set_content(Some(&layout));
         crate::editor_actions::connect(&toolbar, &buffer, &editor);
+        {
+            let mut state = autosave.subscribe(current.id);
+            let indicator = save_status.clone();
+            indicator.set_state(&state.borrow_and_update().clone());
+            gtk::glib::MainContext::default().spawn_local(async move {
+                while state.changed().await.is_ok() {
+                    indicator.set_state(&state.borrow_and_update().clone());
+                }
+            });
+        }
+        {
+            let autosave = autosave.clone();
+            let id = current.id;
+            save_status.retry.connect_clicked(move |_| {
+                let autosave = autosave.clone();
+                gtk::glib::MainContext::default().spawn_local(async move {
+                    let _ = autosave.retry(id).await;
+                });
+            });
+        }
         {
             let app = app.clone();
             toolbar
@@ -333,6 +360,27 @@ impl NoteWindow {
             window.connect_notify_local(Some("height"), move |window, _| {
                 note.borrow_mut().geometry.height = window.height();
                 autosave.schedule(NoteDraft::from(note.borrow().clone()));
+            });
+        }
+
+        {
+            let autosave = autosave.clone();
+            let id = current.id;
+            let allow_close = Rc::new(Cell::new(false));
+            window.connect_close_request(move |window| {
+                if allow_close.get() || !autosave.has_pending(id) {
+                    return gtk::glib::Propagation::Proceed;
+                }
+                let autosave = autosave.clone();
+                let window = window.clone();
+                let allow_close = allow_close.clone();
+                gtk::glib::MainContext::default().spawn_local(async move {
+                    if autosave.flush(id).await.is_ok() {
+                        allow_close.set(true);
+                        window.close();
+                    }
+                });
+                gtk::glib::Propagation::Stop
             });
         }
 
