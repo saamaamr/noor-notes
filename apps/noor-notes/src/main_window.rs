@@ -260,6 +260,7 @@ impl MainWindow {
                 .subtitle(note_subtitle(&note))
                 .activatable(true)
                 .build();
+            row.add_css_class(note.color.css_class());
             if matches!(note.state, NoteState::Trashed { .. }) {
                 self.attach_trash_actions(&row, note.id);
             }

@@ -164,3 +164,15 @@ popover contents {
   outline-offset: 1px;
 
 }
+
+.main-window row.note-blue { border-left: 4px solid #6d9ed2; }
+
+.main-window row.note-green { border-left: 4px solid #6ca56f; }
+
+.main-window row.note-rose { border-left: 4px solid #c98091; }
+
+.main-window row.note-lavender { border-left: 4px solid #9279bd; }
+
+.main-window row.note-cream { border-left: 4px solid #d4b66d; }
+
+.main-window row.note-yellow { border-left: 4px solid #d3a91e; }
