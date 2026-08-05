@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{NoteStyle, RichDocument, WindowGeometry};
+use crate::{NoteColor, NoteStyle, RichDocument, WindowGeometry};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
@@ -57,6 +57,8 @@ pub enum NoteState {
 pub struct Note {
     pub id: NoteId,
     pub title: String,
+    pub color: NoteColor,
+    pub tags: Vec<String>,
     pub content: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rich_content: Option<RichDocument>,
@@ -75,6 +77,10 @@ struct NoteWire {
     id: NoteId,
     #[serde(default)]
     title: Option<String>,
+    #[serde(default)]
+    color: NoteColor,
+    #[serde(default)]
+    tags: Vec<String>,
     content: String,
     #[serde(default)]
     rich_content: Option<RichDocument>,
@@ -98,6 +104,8 @@ impl<'de> Deserialize<'de> for Note {
         Ok(Self {
             id: wire.id,
             title,
+            color: wire.color,
+            tags: wire.tags,
             content: wire.content,
             rich_content: wire.rich_content,
             style: wire.style,
@@ -130,10 +138,38 @@ impl Note {
         }
     }
 
+    pub fn set_tags(&mut self, values: Vec<String>) {
+        let mut keys = std::collections::HashSet::new();
+        self.tags = values
+            .into_iter()
+            .filter_map(|value| {
+                let value = value.trim().to_string();
+                if value.is_empty() || !keys.insert(value.to_lowercase()) {
+                    None
+                } else {
+                    Some(value)
+                }
+            })
+            .collect();
+    }
+
+    pub fn duplicate(&self, now: DateTime<Utc>) -> Self {
+        let mut copy = Self::new(now);
+        copy.title = format!("{} copy", self.display_title());
+        copy.color = self.color;
+        copy.tags = self.tags.clone();
+        copy.content = self.content.clone();
+        copy.rich_content = self.rich_content.clone();
+        copy.style = self.style.clone();
+        copy
+    }
+
     pub fn new(now: DateTime<Utc>) -> Self {
         Self {
             id: NoteId::new(),
             title: "Untitled note".into(),
+            color: NoteColor::default(),
+            tags: Vec::new(),
             content: String::new(),
             rich_content: None,
             style: NoteStyle::default(),

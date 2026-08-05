@@ -10,4 +10,5 @@ mod repository;
 
 pub use error::StorageError;
 pub use journal::PendingChange;
+pub use lifecycle::NoteSort;
 pub use repository::SqliteNoteRepository;

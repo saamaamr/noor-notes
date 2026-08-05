@@ -56,6 +56,16 @@ impl SqliteNoteRepository {
                 .execute(&pool)
                 .await?;
         }
+        let has_color: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM pragma_table_info('notes') WHERE name = 'color'",
+        )
+        .fetch_one(&pool)
+        .await?;
+        if has_color == 0 {
+            sqlx::raw_sql(include_str!("../migrations/0003_note_metadata.sql"))
+                .execute(&pool)
+                .await?;
+        }
         let legacy_rows = sqlx::query("SELECT id, payload_json FROM notes")
             .fetch_all(&pool)
             .await?;
@@ -64,8 +74,10 @@ impl SqliteNoteRepository {
             let payload: String = row.try_get("payload_json")?;
             let note: Note = serde_json::from_str(&payload)?;
             let normalized = serde_json::to_string(&note)?;
-            sqlx::query("UPDATE notes SET title = ?, payload_json = ? WHERE id = ?")
+            sqlx::query("UPDATE notes SET title = ?, color = ?, tags_text = ?, payload_json = ? WHERE id = ?")
                 .bind(note.display_title())
+                .bind(format!("{:?}", note.color).to_lowercase())
+                .bind(note.tags.join(" "))
                 .bind(normalized)
                 .bind(id)
                 .execute(&pool)
@@ -82,14 +94,16 @@ impl SqliteNoteRepository {
         let state = serde_json::to_string(&note.state)?;
 
         sqlx::query(
-            "INSERT INTO notes (id, title, payload_json, content, state_json, revision, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-             ON CONFLICT(id) DO UPDATE SET title=excluded.title, payload_json=excluded.payload_json,
+            "INSERT INTO notes (id, title, color, tags_text, payload_json, content, state_json, revision, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             ON CONFLICT(id) DO UPDATE SET title=excluded.title, color=excluded.color, tags_text=excluded.tags_text, payload_json=excluded.payload_json,
              content=excluded.content, state_json=excluded.state_json,
              revision=excluded.revision, updated_at=excluded.updated_at",
         )
         .bind(&id)
         .bind(note.display_title())
+        .bind(format!("{:?}", note.color).to_lowercase())
+        .bind(note.tags.join(" "))
         .bind(&payload)
         .bind(&note.content)
         .bind(state)
