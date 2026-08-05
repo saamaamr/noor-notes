@@ -3,10 +3,10 @@ use std::path::Path;
 use crate::StorageError;
 
 pub(crate) fn prepare_database_path(path: &Path) -> Result<(), StorageError> {
-    if let Ok(metadata) = std::fs::symlink_metadata(path)
-        && (metadata.file_type().is_symlink() || !metadata.file_type().is_file())
-    {
-        return Err(StorageError::UnsafeDatabasePath(path.to_path_buf()));
+    if let Ok(metadata) = std::fs::symlink_metadata(path) {
+        if metadata.file_type().is_symlink() || !metadata.file_type().is_file() {
+            return Err(StorageError::UnsafeDatabasePath(path.to_path_buf()));
+        }
     }
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|source| StorageError::PrepareDirectory {
