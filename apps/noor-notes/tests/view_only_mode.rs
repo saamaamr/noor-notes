@@ -13,3 +13,15 @@ fn note_window_persists_and_exits_view_only_mode_from_keyboard_or_body() {
     assert!(PRESENTATION.contains("editor.set_editable(false)"));
     assert!(PRESENTATION.contains("widget.set_visible(false)"));
 }
+
+#[test]
+fn view_only_is_a_direct_action_in_the_main_more_menu() {
+    assert!(
+        TOOLBAR.contains("more_box.append(&view_only)"),
+        "View Only must be directly visible in More note actions"
+    );
+    assert!(
+        !TOOLBAR.contains("view_box.append(&view_only)"),
+        "View Only must not be hidden behind a second ellipsis menu"
+    );
+}

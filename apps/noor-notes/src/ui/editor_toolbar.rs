@@ -205,7 +205,6 @@ impl EditorToolbar {
         view_box.append(&zoom_reset);
         view_box.append(&go_to_line);
         view_box.append(&fullscreen);
-        view_box.append(&view_only);
         let view_popover = gtk::Popover::builder().child(&view_box).build();
         let view = gtk::MenuButton::builder()
             .icon_name("view-more-symbolic")
@@ -256,6 +255,7 @@ impl EditorToolbar {
         more_box.append(&rename);
         more_box.append(&duplicate);
         more_box.append(&pin);
+        more_box.append(&view_only);
         more_box.append(&archive);
         more_box.append(&trash);
         more_box.append(&restore);
