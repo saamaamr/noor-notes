@@ -214,5 +214,11 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-oled .paper-dark-slate { background: #121317; color: #f4f4f7; }
 .nn-theme-graphite text selection, .nn-theme-midnight text selection, .nn-theme-oled text selection { background: rgba(141,165,255,.42); color: #ffffff; }
 
+.nn-theme-swatch { min-width: 42px; min-height: 26px; border-radius: 7px; border: 1px solid rgba(127,127,127,.35); }
+.nn-swatch-system { background: #7b8190; }
+.nn-swatch-light { background: #f5f5f4; }
+.nn-swatch-graphite { background: #24262a; border-color: #9aafff; }
+.nn-swatch-midnight { background: #172131; border-color: #73b7ff; }
+.nn-swatch-oled { background: #050506; border-color: #b1a0ff; }
 /* prefers-reduced-motion: GTK follows the desktop animation setting; component
  * transitions remain below 180 ms and are omitted by libadwaita when disabled. */

@@ -95,7 +95,36 @@ impl AppearanceManager {
         self.state.borrow_mut().listeners.push(callback);
     }
 
+    pub fn install_action(&self, app: &adw::Application) {
+        let action = gtk::gio::SimpleAction::new_stateful(
+            "appearance",
+            Some(gtk::glib::VariantTy::STRING),
+            &self.preferences().mode.action_name().to_variant(),
+        );
+        let selection = self.clone();
+        action.connect_activate(move |action, parameter| {
+            let Some(value) = parameter.and_then(|value| value.str()) else {
+                return;
+            };
+            let Some(mode) = AppearanceMode::from_action_name(value) else {
+                return;
+            };
+            if selection.set_mode(mode).is_ok() {
+                action.set_state(&mode.action_name().to_variant());
+            }
+        });
+        let live_action = action.clone();
+        self.subscribe(move |preferences, _| {
+            live_action.set_state(&preferences.mode.action_name().to_variant());
+        });
+        app.add_action(&action);
+    }
+
     fn apply(&self, preferences: AppearancePreferences) {
+        let style_manager = adw::StyleManager::default();
+        if preferences.mode == AppearanceMode::System {
+            style_manager.set_color_scheme(adw::ColorScheme::Default);
+        }
         let theme = preferences.resolve(current_system_scheme());
         let (windows, listeners) = {
             let mut state = self.state.borrow_mut();
@@ -105,10 +134,12 @@ impl AppearanceManager {
         for window in windows.into_iter().filter_map(|window| window.upgrade()) {
             apply_theme_class(&window, theme);
         }
-        adw::StyleManager::default().set_color_scheme(match theme {
-            EffectiveTheme::Light => adw::ColorScheme::ForceLight,
-            _ => adw::ColorScheme::ForceDark,
-        });
+        if preferences.mode != AppearanceMode::System {
+            style_manager.set_color_scheme(match theme {
+                EffectiveTheme::Light => adw::ColorScheme::ForceLight,
+                _ => adw::ColorScheme::ForceDark,
+            });
+        }
         for listener in listeners {
             listener(preferences.clone(), theme);
         }

@@ -3,12 +3,14 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::appearance::global;
 use adw::prelude::*;
 use chrono::Utc;
 use noor_domain::{Note, NoteId};
 use noor_storage::{NoteSort, SqliteNoteRepository};
 use noor_windowing::WindowController;
 
+use super::appearance_button::AppearanceButton;
 use crate::autosave::AutosaveQueue;
 use crate::library::{LibrarySection, LibraryState};
 use crate::library_preferences::LibraryPreferences;
@@ -60,6 +62,8 @@ impl MainWindow {
             .height_request(480)
             .build();
         window.add_css_class("nn-library-window");
+        let appearance = global();
+        appearance.register_window(&window);
 
         let toolbar = adw::ToolbarView::new();
         let header = adw::HeaderBar::new();
@@ -94,8 +98,21 @@ impl MainWindow {
         });
         header.pack_end(&sort);
         let menu = gtk::gio::Menu::new();
+        let appearance_button = AppearanceButton::new(appearance);
+        header.pack_end(&appearance_button.button);
         menu.append(Some("Import Xpad Notes…"), Some("app.import-xpad"));
         menu.append(Some("Keyboard Shortcuts"), Some("app.shortcuts"));
+        let appearance_menu = gtk::gio::Menu::new();
+        appearance_menu.append(Some("System"), Some("app.appearance::system"));
+        appearance_menu.append(Some("Light"), Some("app.appearance::light"));
+        appearance_menu.append(Some("Graphite"), Some("app.appearance::graphite"));
+        appearance_menu.append(Some("Midnight"), Some("app.appearance::midnight"));
+        appearance_menu.append(Some("OLED"), Some("app.appearance::oled"));
+        menu.append_submenu(Some("Appearance"), &appearance_menu);
+        menu.append(
+            Some("Appearance Settings…"),
+            Some("app.appearance-settings"),
+        );
         menu.append(Some("Quit"), Some("app.quit"));
         header.pack_end(
             &gtk::MenuButton::builder()

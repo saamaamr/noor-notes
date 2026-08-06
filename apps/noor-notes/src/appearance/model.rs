@@ -11,6 +11,29 @@ pub enum AppearanceMode {
     Oled,
 }
 
+impl AppearanceMode {
+    pub fn action_name(self) -> &'static str {
+        match self {
+            Self::System => "system",
+            Self::Light => "light",
+            Self::Graphite => "graphite",
+            Self::Midnight => "midnight",
+            Self::Oled => "oled",
+        }
+    }
+
+    pub fn from_action_name(value: &str) -> Option<Self> {
+        match value {
+            "system" => Some(Self::System),
+            "light" => Some(Self::Light),
+            "graphite" => Some(Self::Graphite),
+            "midnight" => Some(Self::Midnight),
+            "oled" => Some(Self::Oled),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum DarkPalette {

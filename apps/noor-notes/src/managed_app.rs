@@ -12,6 +12,7 @@ use noor_windowing::{
 };
 
 use crate::actions::add_action;
+use crate::appearance::{AppearanceManager, AppearanceStore, global, install_global};
 use crate::autosave::AutosaveQueue;
 use crate::import_dialog::ImportFlow;
 use crate::key_store::Oo7KeyStore;
@@ -19,6 +20,7 @@ use crate::main_window::MainWindow;
 use crate::note_window::NoteWindow;
 use crate::security_bootstrap::open_repository;
 use crate::shortcuts::shortcuts_window;
+use crate::ui::appearance_settings::AppearanceSettings;
 
 pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let keys = Arc::new(Oo7KeyStore::new().await?);
@@ -28,6 +30,9 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let app = adw::Application::builder()
         .application_id("io.github.saamaamr.NoorNotes")
         .build();
+    let appearance = AppearanceManager::new(AppearanceStore::for_current_user());
+    appearance.install_action(&app);
+    install_global(appearance);
     app.connect_startup(|_| load_css());
     let main_window: Rc<RefCell<Option<MainWindow>>> = Rc::new(RefCell::new(None));
 
@@ -133,6 +138,19 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
                 let dialog = shortcuts_window();
                 dialog.set_transient_for(Some(&window.window));
                 dialog.present();
+            }
+        });
+    }
+    {
+        let app = app.clone();
+        let settings: Rc<RefCell<Option<AppearanceSettings>>> = Rc::new(RefCell::new(None));
+        add_action(&app.clone(), "appearance-settings", move |_, _| {
+            if settings.borrow().is_none() {
+                settings.replace(Some(AppearanceSettings::new(&app, global())));
+            }
+            if let Some(settings) = settings.borrow().as_ref() {
+                global().register_window(&settings.window);
+                settings.present();
             }
         });
     }

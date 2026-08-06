@@ -9,6 +9,7 @@ use noor_domain::{EditorMode, Note, NoteColor, NoteState};
 use noor_storage::SqliteNoteRepository;
 use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
+use crate::appearance::global;
 use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::edit_save_gate::EditSaveGate;
 use crate::editor::{SourceEditorAdapter, apply_conversion, preview_conversion};
@@ -19,6 +20,7 @@ use crate::note_find::{FindOptions, FindResults};
 use crate::rich_buffer::RichBuffer;
 use crate::safe_export::{ExportExtension, sanitize_export_name, set_owner_only};
 use crate::save_status::SaveStatusIndicator;
+use crate::ui::appearance_button::AppearanceButton;
 use crate::ui::editor_toolbar::EditorToolbar;
 
 pub struct NoteWindow {
@@ -45,6 +47,8 @@ impl NoteWindow {
         window.add_css_class("nn-editor-window");
         window.add_css_class(current.color.css_class());
         window.set_opacity(current.style.opacity);
+        let appearance = global();
+        appearance.register_window(&window);
 
         let layout = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let header = adw::HeaderBar::new();
@@ -83,6 +87,8 @@ impl NoteWindow {
             .active(current.favorite)
             .build();
         header.pack_end(&toolbar.appearance);
+        let appearance_button = AppearanceButton::new(appearance);
+        header.pack_end(&appearance_button.button);
         header.pack_end(&favorite);
         header.pack_end(&library_pin);
         layout.append(&header);
