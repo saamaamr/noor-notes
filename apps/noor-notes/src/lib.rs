@@ -8,6 +8,7 @@ pub mod editor_status;
 pub mod export;
 pub mod import_dialog;
 pub mod key_store;
+pub mod library;
 pub mod library_preferences;
 pub mod library_view;
 pub mod main_window;

@@ -55,16 +55,11 @@ pub enum EditorMode {
     Code,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SourceLanguage {
+    #[default]
     Markdown,
     Named(String),
-}
-
-impl Default for SourceLanguage {
-    fn default() -> Self {
-        Self::Markdown
-    }
 }
 
 impl SourceLanguage {
