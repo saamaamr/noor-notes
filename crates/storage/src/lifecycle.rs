@@ -6,6 +6,7 @@ pub enum NoteSort {
     #[default]
     UpdatedDesc,
     TitleAsc,
+    TitleDesc,
     CreatedDesc,
 }
 
@@ -49,6 +50,12 @@ impl SqliteNoteRepository {
                 a.display_title()
                     .to_lowercase()
                     .cmp(&b.display_title().to_lowercase())
+                    .then_with(|| a.id.value().cmp(&b.id.value()))
+            }),
+            NoteSort::TitleDesc => notes.sort_by(|a, b| {
+                b.display_title()
+                    .to_lowercase()
+                    .cmp(&a.display_title().to_lowercase())
                     .then_with(|| a.id.value().cmp(&b.id.value()))
             }),
             NoteSort::CreatedDesc => notes.sort_by(|a, b| {

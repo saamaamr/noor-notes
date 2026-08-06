@@ -24,6 +24,7 @@ impl LibraryPreferences {
             .map(str::trim)
         {
             Some("title") => NoteSort::TitleAsc,
+            Some("title-desc") => NoteSort::TitleDesc,
             Some("created") => NoteSort::CreatedDesc,
             _ => NoteSort::UpdatedDesc,
         }
@@ -37,6 +38,7 @@ impl LibraryPreferences {
             match sort {
                 NoteSort::UpdatedDesc => "updated",
                 NoteSort::TitleAsc => "title",
+                NoteSort::TitleDesc => "title-desc",
                 NoteSort::CreatedDesc => "created",
             },
         )
