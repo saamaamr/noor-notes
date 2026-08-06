@@ -54,6 +54,8 @@ parts:
   noor-notes:
     after:
       - rust-deps
+    stage-packages:
+      - libgtksourceview-5-0
     plugin: rust
     source: .
     rust-channel: none
@@ -63,6 +65,7 @@ parts:
       - build-essential
       - libadwaita-1-dev
       - libgtk-4-dev
+      - libgtksourceview-5-dev
       - libx11-dev
       - pkg-config
     override-build: |

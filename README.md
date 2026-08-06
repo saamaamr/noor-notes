@@ -1,10 +1,12 @@
 # Noor Notes
 
-Noor Notes is a private, offline-first GTK4 sticky-note application for Linux. Version 0.1.1 adds encrypted local storage and comprehensive security hardening.
+Noor Notes is a private, offline-first GTK4/libadwaita notes application for Linux, combining a fast sticky-note workflow with a modern three-pane library and focused writing editor.
 
 ## Features
 
 - **Modern native library**: a focused GNOME header, private/offline status, Notes/Archived/Trash navigation, note previews, section counts, useful empty states, and keyboard-selectable rows.
+- **Completely redesigned library**: adaptive sidebar, virtualized note cards, selected-note preview, seven navigation sections, responsive empty states, and a compact native header.
+- **Dual editor modes**: existing rich notes remain compatible, while Markdown, plain-text, and code notes use GtkSourceView with line numbers, current-line highlighting, regex search, bookmarks, and syntax languages.
 - **Fast search and sorting**: Unicode-aware library search is debounced and stale results are discarded; sort by recently updated, recently created, title A–Z, or title Z–A.
 - **Named and organized notes**: edit titles, add searchable tags, choose six accessible colours, and duplicate notes.
 - **Reliable saving**: visible Saving/Saved state, retryable failures, and close-time flushing protect pending edits.
@@ -12,7 +14,7 @@ Noor Notes is a private, offline-first GTK4 sticky-note application for Linux. V
 - **Rich text**: bold, italic, underline, strikethrough, reliable bullet and numbered lists, preset or custom positive whole-number font sizes, alignment, text and highlight colours, emoji, undo, and redo.
 - **Find and replace**: navigate matches, replace one or all matches, and optionally match case or whole words while preserving Unicode character offsets.
 - **Editor productivity**: word wrap, zoom from 50% to 300%, go to line, full screen, line/column position, line/word/character/selection counts, plain-text and Markdown export, and a keyboard-shortcut reference.
-- **Accessible appearance**: 40 px toolbar hit targets, consistent symbolic icons, visible tooltips, focusable controls, and improved dark-theme styling with optional sticky-note colours.
+- **Accessible appearance**: compact consistent controls, symbolic icons, visible tooltips and focus states, semantic light/dark palettes, and optional readable paper colours.
 - A searchable library with active, archived, and **Trash** notes.
 - Source-install Xpad import that previews the migration and leaves the source files unchanged.
 - Optional window controls, including Always on Top, all-workspaces, and opacity where the desktop supports them.
@@ -69,6 +71,10 @@ artifact=noor-notes.flatpak
 test "$(grep -Fc "  $artifact" SHA256SUMS.txt)" = 1
 grep -F "  $artifact" SHA256SUMS.txt | sha256sum -c -
 ```
+
+Choose **Editor mode** from the note's More menu to switch between Rich Text,
+Markdown, Plain Text, and Code. Noor Notes previews conversions first and creates
+a recovery copy whenever rich styling would be lost.
 
 The final command must report `OK` for the selected artifact before installation.
 

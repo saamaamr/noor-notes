@@ -45,6 +45,7 @@ printf 'Installing Noor Notes system dependencies...\n'
     desktop-file-utils \
     libadwaita-1-dev \
     libgtk-4-dev \
+    libgtksourceview-5-dev \
     libsecret-tools \
     libsqlite3-dev \
     libssl-dev \
