@@ -1,0 +1,80 @@
+use adw::prelude::*;
+use noor_domain::Note;
+
+#[derive(Clone)]
+pub struct NotePreview {
+    pub widget: gtk::ScrolledWindow,
+    title: gtk::Label,
+    metadata: gtk::Label,
+    body: gtk::Label,
+}
+
+impl NotePreview {
+    pub fn new() -> Self {
+        let document = gtk::Box::new(gtk::Orientation::Vertical, 16);
+        document.add_css_class("nn-preview");
+        document.set_valign(gtk::Align::Start);
+        let title = gtk::Label::new(Some("Select a note"));
+        title.add_css_class("nn-display-title");
+        title.set_xalign(0.0);
+        title.set_wrap(true);
+        document.append(&title);
+        let metadata = gtk::Label::new(Some("Your note preview will appear here"));
+        metadata.add_css_class("nn-metadata");
+        metadata.set_xalign(0.0);
+        document.append(&metadata);
+        document.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
+        let body = gtk::Label::new(Some(
+            "Choose a note from the library to read it without opening another window.",
+        ));
+        body.add_css_class("nn-body");
+        body.set_xalign(0.0);
+        body.set_yalign(0.0);
+        body.set_wrap(true);
+        body.set_selectable(true);
+        document.append(&body);
+        let widget = gtk::ScrolledWindow::builder()
+            .hexpand(true)
+            .vexpand(true)
+            .hscrollbar_policy(gtk::PolicyType::Never)
+            .child(&document)
+            .build();
+        Self {
+            widget,
+            title,
+            metadata,
+            body,
+        }
+    }
+
+    pub fn show_note(&self, note: &Note) {
+        self.title.set_text(note.display_title());
+        self.metadata.set_text(&format!(
+            "Edited {}{}",
+            note.updated_at.format("%d %B %Y · %I:%M %p"),
+            if note.tags.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    "  ·  {}",
+                    note.tags
+                        .iter()
+                        .map(|tag| format!("#{tag}"))
+                        .collect::<Vec<_>>()
+                        .join("  ")
+                )
+            }
+        ));
+        self.body.set_text(if note.content.trim().is_empty() {
+            "This note is empty."
+        } else {
+            &note.content
+        });
+    }
+}
+
+impl Default for NotePreview {
+    fn default() -> Self {
+        Self::new()
+    }
+}

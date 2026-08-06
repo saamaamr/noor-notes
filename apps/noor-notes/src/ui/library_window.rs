@@ -1,0 +1,372 @@
+use std::cell::{Cell, RefCell};
+use std::rc::Rc;
+use std::sync::Arc;
+use std::time::Duration;
+
+use adw::prelude::*;
+use chrono::Utc;
+use noor_domain::{Note, NoteId};
+use noor_storage::{NoteSort, SqliteNoteRepository};
+use noor_windowing::WindowController;
+
+use crate::autosave::AutosaveQueue;
+use crate::library::{LibrarySection, LibraryState};
+use crate::library_preferences::LibraryPreferences;
+use crate::note_window::NoteWindow;
+
+use super::empty_state::EmptyState;
+use super::library_sidebar::LibrarySidebar;
+use super::note_card::CardAction;
+use super::note_collection::NoteCollection;
+use super::note_preview::NotePreview;
+
+type CardActionHandler = Rc<dyn Fn(NoteId, CardAction)>;
+
+#[derive(Clone)]
+pub struct MainWindow {
+    pub window: adw::ApplicationWindow,
+    search_bar: gtk::SearchBar,
+    search: gtk::SearchEntry,
+    sort: gtk::DropDown,
+    sidebar: LibrarySidebar,
+    collection: NoteCollection,
+    collection_stack: gtk::Stack,
+    empty: EmptyState,
+    preview: NotePreview,
+    status: gtk::Label,
+    results: gtk::Label,
+    repository: SqliteNoteRepository,
+    autosave: AutosaveQueue,
+    controller: Arc<dyn WindowController>,
+    app: adw::Application,
+    notes: Rc<RefCell<Vec<Note>>>,
+    section: Rc<Cell<LibrarySection>>,
+    refresh_generation: Rc<Cell<u64>>,
+}
+
+impl MainWindow {
+    pub fn new(
+        app: &adw::Application,
+        repository: SqliteNoteRepository,
+        autosave: AutosaveQueue,
+        controller: Arc<dyn WindowController>,
+    ) -> Self {
+        let window = adw::ApplicationWindow::builder()
+            .application(app)
+            .title("Noor Notes")
+            .default_width(1180)
+            .default_height(760)
+            .width_request(620)
+            .height_request(480)
+            .build();
+        window.add_css_class("nn-library-window");
+
+        let toolbar = adw::ToolbarView::new();
+        let header = adw::HeaderBar::new();
+        let title = adw::WindowTitle::new("Noor Notes", "Private notebook");
+        header.set_title_widget(Some(&title));
+        let new_button = gtk::Button::builder()
+            .label("New Note")
+            .icon_name("list-add-symbolic")
+            .tooltip_text("Create a new note (Ctrl+N)")
+            .action_name("app.new-note")
+            .build();
+        new_button.add_css_class("suggested-action");
+        header.pack_start(&new_button);
+        let search_button = gtk::ToggleButton::builder()
+            .icon_name("system-search-symbolic")
+            .tooltip_text("Search notes (Ctrl+F)")
+            .build();
+        header.pack_end(&search_button);
+        let sort = gtk::DropDown::from_strings(&[
+            "Recently updated",
+            "Recently created",
+            "Title A–Z",
+            "Title Z–A",
+        ]);
+        sort.set_tooltip_text(Some("Sort notes"));
+        sort.add_css_class("flat");
+        sort.set_selected(match LibraryPreferences::for_current_user().load_sort() {
+            NoteSort::UpdatedDesc => 0,
+            NoteSort::CreatedDesc => 1,
+            NoteSort::TitleAsc => 2,
+            NoteSort::TitleDesc => 3,
+        });
+        header.pack_end(&sort);
+        let menu = gtk::gio::Menu::new();
+        menu.append(Some("Import Xpad Notes…"), Some("app.import-xpad"));
+        menu.append(Some("Keyboard Shortcuts"), Some("app.shortcuts"));
+        menu.append(Some("Quit"), Some("app.quit"));
+        header.pack_end(
+            &gtk::MenuButton::builder()
+                .icon_name("open-menu-symbolic")
+                .tooltip_text("Main menu")
+                .menu_model(&menu)
+                .build(),
+        );
+        toolbar.add_top_bar(&header);
+
+        let page = gtk::Box::new(gtk::Orientation::Vertical, 0);
+        let search = gtk::SearchEntry::builder()
+            .placeholder_text("Search titles, text, and tags…")
+            .hexpand(true)
+            .margin_top(8)
+            .margin_bottom(8)
+            .margin_start(16)
+            .margin_end(16)
+            .build();
+        let search_bar = gtk::SearchBar::new();
+        search_bar.connect_entry(&search);
+        search_bar.set_child(Some(&search));
+        search_bar.set_search_mode(false);
+        search_button
+            .bind_property("active", &search_bar, "search-mode-enabled")
+            .bidirectional()
+            .sync_create()
+            .build();
+        page.append(&search_bar);
+
+        let sidebar = LibrarySidebar::new();
+        let empty = EmptyState::new();
+        let action_holder = Rc::new(RefCell::new(None::<CardActionHandler>));
+        let action_proxy: CardActionHandler = {
+            let action_holder = action_holder.clone();
+            Rc::new(move |id, action| {
+                if let Some(handler) = action_holder.borrow().as_ref() {
+                    handler(id, action);
+                }
+            })
+        };
+        let collection = NoteCollection::new(action_proxy);
+        let list_scroll = gtk::ScrolledWindow::builder()
+            .vexpand(true)
+            .hscrollbar_policy(gtk::PolicyType::Never)
+            .child(&collection.widget)
+            .build();
+        let collection_stack = gtk::Stack::new();
+        collection_stack.add_named(&list_scroll, Some("notes"));
+        collection_stack.add_named(&empty.widget, Some("empty"));
+        collection_stack.set_visible_child_name("empty");
+        collection_stack.set_width_request(360);
+        let preview = NotePreview::new();
+
+        let panes = gtk::Paned::new(gtk::Orientation::Horizontal);
+        let navigation = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+        navigation.append(&sidebar.widget);
+        navigation.append(&gtk::Separator::new(gtk::Orientation::Vertical));
+        navigation.append(&collection_stack);
+        panes.set_start_child(Some(&navigation));
+        panes.set_end_child(Some(&preview.widget));
+        panes.set_position(570);
+        panes.set_resize_start_child(false);
+        panes.set_shrink_start_child(false);
+        panes.set_vexpand(true);
+        page.append(&panes);
+
+        let footer = gtk::Box::new(gtk::Orientation::Horizontal, 12);
+        footer.add_css_class("nn-statusbar");
+        let results = gtk::Label::new(Some("Loading library…"));
+        results.set_halign(gtk::Align::Start);
+        footer.append(&results);
+        let status = gtk::Label::new(Some("Local only"));
+        status.set_halign(gtk::Align::End);
+        status.set_hexpand(true);
+        footer.append(&status);
+        page.append(&footer);
+        toolbar.set_content(Some(&page));
+        window.set_content(Some(&toolbar));
+        search_bar.set_key_capture_widget(Some(&window));
+
+        let this = Self {
+            window,
+            search_bar,
+            search,
+            sort,
+            sidebar,
+            collection,
+            collection_stack,
+            empty,
+            preview,
+            status,
+            results,
+            repository,
+            autosave,
+            controller,
+            app: app.clone(),
+            notes: Rc::new(RefCell::new(Vec::new())),
+            section: Rc::new(Cell::new(LibrarySection::AllNotes)),
+            refresh_generation: Rc::new(Cell::new(0)),
+        };
+        {
+            let this = this.clone();
+            *action_holder.borrow_mut() = Some(Rc::new(move |id, action| {
+                this.handle_card_action(id, action);
+            }));
+        }
+        {
+            let this = this.clone();
+            let sidebar = this.sidebar.clone();
+            sidebar.connect_selected(move |section| {
+                this.section.set(section);
+                this.render_current();
+            });
+        }
+        {
+            let this = this.clone();
+            this.collection.connect_selected(move |note| {
+                if let Some(note) = note {
+                    this.preview.show_note(&note);
+                }
+            });
+        }
+        {
+            let this = this.clone();
+            let collection = this.collection.clone();
+            collection.connect_activate(move |note| this.open_note(note));
+        }
+        {
+            let this = this.clone();
+            this.sort.clone().connect_selected_notify(move |dropdown| {
+                let sort = sort_from_selected(dropdown.selected());
+                let _ = LibraryPreferences::for_current_user().save_sort(sort);
+                this.render_current();
+            });
+        }
+        {
+            let this = this.clone();
+            this.search.clone().connect_search_changed(move |_| {
+                let generation = this.refresh_generation.get().wrapping_add(1);
+                this.refresh_generation.set(generation);
+                let this = this.clone();
+                gtk::glib::timeout_add_local_once(Duration::from_millis(180), move || {
+                    if this.refresh_generation.get() == generation {
+                        this.render_current();
+                    }
+                });
+            });
+        }
+        {
+            let preview = this.preview.widget.clone();
+            this.window
+                .connect_notify_local(Some("width"), move |window, _| {
+                    preview.set_visible(window.width() >= 920);
+                });
+        }
+        this.refresh();
+        this
+    }
+
+    pub fn present(&self) {
+        self.window.present();
+    }
+
+    pub fn focus_search(&self) {
+        self.search_bar.set_search_mode(true);
+        self.search.grab_focus();
+    }
+
+    pub fn set_status(&self, message: &str) {
+        self.status.set_text(message);
+    }
+
+    pub fn refresh(&self) {
+        let generation = self.refresh_generation.get().wrapping_add(1);
+        self.refresh_generation.set(generation);
+        let repository = self.repository.clone();
+        let this = self.clone();
+        gtk::glib::MainContext::default().spawn_local(async move {
+            match repository
+                .search_notes_sorted("", NoteSort::UpdatedDesc)
+                .await
+            {
+                Ok(notes) if this.refresh_generation.get() == generation => {
+                    this.notes.replace(notes);
+                    this.render_current();
+                }
+                Ok(_) => {}
+                Err(error) => this.set_status(&format!("Could not load notes: {error}")),
+            }
+        });
+    }
+
+    fn render_current(&self) {
+        let state = LibraryState::new(self.notes.borrow().clone());
+        for section in LibrarySection::NAVIGATION {
+            self.sidebar.set_count(section, state.count(section));
+        }
+        let section = self.section.get();
+        let projected = state.project(
+            section,
+            self.search.text().as_str(),
+            sort_from_selected(self.sort.selected()),
+        );
+        let notes = self.notes.borrow();
+        let visible: Vec<Note> = projected
+            .iter()
+            .filter_map(|item| notes.iter().find(|note| note.id == item.id).cloned())
+            .collect();
+        self.collection.set_notes(&visible);
+        let searching = !self.search.text().trim().is_empty();
+        if visible.is_empty() {
+            self.empty.update(section, searching);
+            self.collection_stack.set_visible_child_name("empty");
+        } else {
+            self.collection_stack.set_visible_child_name("notes");
+            self.preview.show_note(&visible[0]);
+        }
+        self.results.set_text(&if searching {
+            format!("{} results", visible.len())
+        } else {
+            format!("{} · {} notes", section.label(), visible.len())
+        });
+        self.set_status("Private · Saved locally");
+    }
+
+    fn open_note(&self, note: Note) {
+        NoteWindow::new(
+            &self.app,
+            note,
+            self.autosave.clone(),
+            self.repository.clone(),
+            self.controller.clone(),
+        )
+        .present();
+    }
+
+    fn handle_card_action(&self, id: NoteId, action: CardAction) {
+        let this = self.clone();
+        gtk::glib::MainContext::default().spawn_local(async move {
+            if action == CardAction::DeletePermanently {
+                let dialog = adw::AlertDialog::new(
+                    Some("Permanently delete this note?"),
+                    Some("This cannot be undone. The note and its local history will be removed."),
+                );
+                dialog.add_response("cancel", "Cancel");
+                dialog.add_response("delete", "Delete Permanently");
+                dialog.set_default_response(Some("cancel"));
+                dialog.set_close_response("cancel");
+                dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
+                if dialog.choose_future(Some(&this.window)).await != "delete" {
+                    return;
+                }
+            }
+            let result = match action {
+                CardAction::Restore => this.repository.restore(id, Utc::now()).await,
+                CardAction::DeletePermanently => this.repository.delete_permanently(id).await,
+            };
+            match result {
+                Ok(()) => this.refresh(),
+                Err(error) => this.set_status(&format!("Note action failed: {error}")),
+            }
+        });
+    }
+}
+
+fn sort_from_selected(selected: u32) -> NoteSort {
+    match selected {
+        1 => NoteSort::CreatedDesc,
+        2 => NoteSort::TitleAsc,
+        3 => NoteSort::TitleDesc,
+        _ => NoteSort::UpdatedDesc,
+    }
+}

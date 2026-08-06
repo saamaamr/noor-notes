@@ -25,4 +25,5 @@ pub mod search;
 pub mod security_bootstrap;
 pub mod shortcuts;
 pub mod sync_status;
+pub mod ui;
 pub mod vault_setup;
