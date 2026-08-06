@@ -93,6 +93,8 @@ pub struct EditorPreferences {
     pub scroll_offset: i32,
     #[serde(default)]
     pub bookmarks: Vec<u32>,
+    #[serde(default)]
+    pub view_only: bool,
 }
 
 const fn default_zoom_percent() -> u16 {
@@ -111,6 +113,7 @@ impl Default for EditorPreferences {
             cursor_offset: 0,
             scroll_offset: 0,
             bookmarks: Vec::new(),
+            view_only: false,
         }
     }
 }
@@ -255,6 +258,7 @@ impl Note {
         copy.tags = self.tags.clone();
         copy.content = self.content.clone();
         copy.editor_preferences = self.editor_preferences.clone();
+        copy.editor_preferences.view_only = false;
         copy.rich_content = self.rich_content.clone();
         copy.style = self.style.clone();
         copy

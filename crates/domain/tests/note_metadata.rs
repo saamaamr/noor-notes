@@ -22,6 +22,7 @@ fn metadata_defaults_and_legacy_json_are_safe() {
     assert!(!restored.pinned);
     assert!(!restored.favorite);
     assert_eq!(restored.editor_preferences, EditorPreferences::default());
+    assert!(!restored.editor_preferences.view_only);
     assert_eq!(restored.editor_mode, EditorMode::Rich);
     assert_eq!(restored.source_language, SourceLanguage::Markdown);
 }
@@ -53,6 +54,7 @@ fn editor_preferences_are_clamped_and_round_trip_with_note_metadata() {
     note.favorite = true;
     note.editor_preferences.word_wrap = false;
     note.editor_preferences.set_zoom_percent(425);
+    note.editor_preferences.view_only = true;
 
     assert_eq!(note.editor_preferences.zoom_percent, 300);
 
@@ -61,6 +63,7 @@ fn editor_preferences_are_clamped_and_round_trip_with_note_metadata() {
     assert!(restored.favorite);
     assert!(!restored.editor_preferences.word_wrap);
     assert_eq!(restored.editor_preferences.zoom_percent, 300);
+    assert!(restored.editor_preferences.view_only);
 }
 
 #[test]
@@ -86,6 +89,7 @@ fn duplicate_is_fresh_active_note_with_copied_content_and_style() {
     note.color = NoteColor::Blue;
     note.set_tags(vec!["work".into()]);
     note.state = NoteState::Archived;
+    note.editor_preferences.view_only = true;
     let copy = note.duplicate(duplicated_at);
     assert_ne!(copy.id, note.id);
     assert_eq!(copy.title, "Plan copy");
@@ -96,4 +100,5 @@ fn duplicate_is_fresh_active_note_with_copied_content_and_style() {
     assert_eq!(copy.created_at, duplicated_at);
     assert_eq!(copy.updated_at, duplicated_at);
     assert_eq!(copy.revision.value(), 0);
+    assert!(!copy.editor_preferences.view_only);
 }
