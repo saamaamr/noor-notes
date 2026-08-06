@@ -28,6 +28,10 @@ pub struct EditorToolbar {
     pub duplicate: gtk::Button,
     pub export_text: gtk::Button,
     pub export_markdown: gtk::Button,
+    pub mode_rich: gtk::Button,
+    pub mode_markdown: gtk::Button,
+    pub mode_plain: gtk::Button,
+    pub mode_code: gtk::Button,
     pub alignment_buttons: Vec<gtk::ToggleButton>,
     pub foreground_buttons: Vec<gtk::Button>,
     pub appearance: gtk::MenuButton,
@@ -221,6 +225,18 @@ impl EditorToolbar {
         let archive = icon_button("folder-symbolic", "Archive");
         let trash = icon_button("user-trash-symbolic", "Move to Trash");
         trash.add_css_class("destructive-hover");
+        let mode_label = gtk::Label::new(Some("Editor mode"));
+        mode_label.add_css_class("heading");
+        mode_label.set_halign(gtk::Align::Start);
+        let mode_rich = gtk::Button::with_label("Rich Text");
+        mode_rich.set_tooltip_text(Some("Convert to rich text"));
+        let mode_markdown = gtk::Button::with_label("Markdown");
+        mode_markdown.set_tooltip_text(Some("Convert to Markdown"));
+        let mode_plain = gtk::Button::with_label("Plain Text");
+        mode_plain.set_tooltip_text(Some("Convert to plain text"));
+        let mode_code = gtk::Button::with_label("Code");
+        mode_code.set_tooltip_text(Some("Convert to code mode"));
+
         let restore = icon_button("edit-undo-symbolic", "Restore");
         let permanent_delete = icon_button("edit-delete-symbolic", "Permanently Delete");
         permanent_delete.add_css_class("destructive-hover");
@@ -239,6 +255,12 @@ impl EditorToolbar {
         more_box.append(&permanent_delete);
         more_box.append(&export);
         more_box.append(&view);
+        more_box.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
+        more_box.append(&mode_label);
+        more_box.append(&mode_rich);
+        more_box.append(&mode_markdown);
+        more_box.append(&mode_plain);
+        more_box.append(&mode_code);
         let more_popover = gtk::Popover::builder().child(&more_box).build();
         let more = gtk::MenuButton::builder()
             .icon_name("view-more-symbolic")
@@ -261,6 +283,10 @@ impl EditorToolbar {
             new_note,
             undo,
             redo,
+            mode_rich,
+            mode_markdown,
+            mode_plain,
+            mode_code,
             pin,
             bold,
             italic,

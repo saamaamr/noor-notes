@@ -23,6 +23,7 @@ pub mod safe_export;
 pub mod save_status;
 pub mod search;
 pub mod security_bootstrap;
+pub mod services;
 pub mod shortcuts;
 pub mod sync_status;
 pub mod ui;

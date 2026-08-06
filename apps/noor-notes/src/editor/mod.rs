@@ -15,3 +15,5 @@ pub use search::SearchOptions;
 pub use session::EditorSession;
 pub use source_adapter::SourceEditorAdapter;
 pub use statistics::EditorStatistics;
+mod conversion;
+pub use conversion::{ConversionPreview, apply_conversion, preview_conversion};

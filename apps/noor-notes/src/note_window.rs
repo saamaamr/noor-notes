@@ -11,7 +11,7 @@ use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
 use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::edit_save_gate::EditSaveGate;
-use crate::editor::SourceEditorAdapter;
+use crate::editor::{SourceEditorAdapter, apply_conversion, preview_conversion};
 use crate::editor_status::{EditorStatistics, clamp_zoom, line_offset};
 use crate::export::{export_markdown, export_plain};
 use crate::note_actions;
@@ -521,6 +521,23 @@ impl NoteWindow {
             });
         }
         connect_export(&toolbar.export_text, &window, note.clone(), false);
+        let mode_context = ModeSwitchContext {
+            window: window.clone(),
+            app: app.clone(),
+            buffer: buffer.clone(),
+            note: note.clone(),
+            autosave: autosave.clone(),
+            repository: repository.clone(),
+            controller: controller.clone(),
+        };
+        for (button, target) in [
+            (&toolbar.mode_rich, EditorMode::Rich),
+            (&toolbar.mode_markdown, EditorMode::Markdown),
+            (&toolbar.mode_plain, EditorMode::PlainText),
+            (&toolbar.mode_code, EditorMode::Code),
+        ] {
+            connect_editor_mode(button, target, mode_context.clone());
+        }
         connect_export(&toolbar.export_markdown, &window, note.clone(), true);
 
         for (button, color) in toolbar.note_color_buttons.iter().zip([
@@ -1028,6 +1045,92 @@ fn show_go_to_line(
         editor.scroll_to_mark(&buffer.get_insert(), 0.15, true, 0.0, 0.5);
     });
 }
+#[derive(Clone)]
+struct ModeSwitchContext {
+    window: adw::ApplicationWindow,
+    app: adw::Application,
+    buffer: gtk::TextBuffer,
+    note: Rc<RefCell<Note>>,
+    autosave: AutosaveQueue,
+    repository: SqliteNoteRepository,
+    controller: Arc<dyn WindowController>,
+}
+
+fn connect_editor_mode(button: &gtk::Button, target: EditorMode, context: ModeSwitchContext) {
+    button.connect_clicked(move |_| {
+        save_editor_snapshot(&context.buffer, &context.note, &context.autosave);
+        let preview = preview_conversion(&context.note.borrow(), target.clone());
+        if preview.from == preview.to {
+            return;
+        }
+        let body = if preview.warnings.is_empty() {
+            format!("Switch this note to {}?", editor_mode_name(&target))
+        } else {
+            format!(
+                "{}\n\nA recovery copy will be created before conversion.",
+                preview.warnings.join("\n")
+            )
+        };
+        let dialog = adw::AlertDialog::new(Some("Change editor mode?"), Some(&body));
+        dialog.add_response("cancel", "Cancel");
+        dialog.add_response("convert", "Convert");
+        dialog.set_response_appearance("convert", adw::ResponseAppearance::Suggested);
+        dialog.set_default_response(Some("convert"));
+        dialog.set_close_response("cancel");
+
+        let context = context.clone();
+        gtk::glib::MainContext::default().spawn_local(async move {
+            if dialog.choose_future(Some(&context.window)).await != "convert" {
+                return;
+            }
+            let id = context.note.borrow().id;
+            if context.autosave.flush(id).await.is_err() {
+                show_save_error(&context.window);
+                return;
+            }
+            if !preview.warnings.is_empty()
+                && context
+                    .repository
+                    .duplicate_note(id, Utc::now())
+                    .await
+                    .is_err()
+            {
+                show_save_error(&context.window);
+                return;
+            }
+            let original = context.note.borrow().clone();
+            apply_conversion(&mut context.note.borrow_mut(), preview);
+            context.buffer.set_text(&context.note.borrow().content);
+            context
+                .autosave
+                .schedule(NoteDraft::from(context.note.borrow().clone()));
+            if context.autosave.flush(id).await.is_err() {
+                *context.note.borrow_mut() = original;
+                show_save_error(&context.window);
+                return;
+            }
+            NoteWindow::new(
+                &context.app,
+                context.note.borrow().clone(),
+                context.autosave.clone(),
+                context.repository.clone(),
+                context.controller.clone(),
+            )
+            .present();
+            context.window.close();
+        });
+    });
+}
+
+fn editor_mode_name(mode: &EditorMode) -> &'static str {
+    match mode {
+        EditorMode::Rich => "Rich Text",
+        EditorMode::Markdown => "Markdown",
+        EditorMode::PlainText => "Plain Text",
+        EditorMode::Code => "Code",
+    }
+}
+
 fn connect_export(
     button: &gtk::Button,
     window: &adw::ApplicationWindow,

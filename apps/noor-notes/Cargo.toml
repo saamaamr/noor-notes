@@ -23,6 +23,8 @@ thiserror.workspace = true
 oo7.workspace = true
 zeroize.workspace = true
 async-trait.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 
 [dev-dependencies]
 chrono.workspace = true

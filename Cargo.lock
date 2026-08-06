@@ -1608,6 +1608,8 @@ dependencies = [
  "noor-windowing",
  "noor-xpad-import",
  "oo7",
+ "serde",
+ "serde_json",
  "sourceview5",
  "tempfile",
  "thiserror",
