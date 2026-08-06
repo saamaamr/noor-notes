@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<style-scheme id="noor-light" _name="Noor Light" version="1.0" parent-scheme="Adwaita">
+  <_description>Noor Notes light source editor</_description>
+  <metadata><property name="variant">light</property></metadata>
+  <style name="text" foreground="#202124" background="#ffffff"/>
+  <style name="cursor" foreground="#4d6fdc"/>
+  <style name="line-numbers" foreground="#686a70" background="#f5f5f4"/>
+  <style name="current-line-number" foreground="#4d6fdc" background="#f3f5fb" bold="true"/>
+  <style name="current-line" background="#f3f5fb"/>
+  <style name="selection" foreground="#202124" background="#cdd8ff"/>
+  <style name="search-match" foreground="#202124" background="#ffe080"/>
+  <style name="bracket-match" foreground="#4d6fdc" bold="true"/>
+  <style name="def:comment" foreground="#5f6368" italic="true"/>
+  <style name="def:keyword" foreground="#4d6fdc" bold="true"/>
+  <style name="def:string" foreground="#137333"/>
+  <style name="def:number" foreground="#7b1fa2"/>
+  <style name="def:constant" foreground="#7b1fa2"/>
+  <style name="def:type" foreground="#0b57d0" bold="true"/>
+  <style name="def:function" foreground="#8a3b12"/>
+  <style name="def:heading" foreground="#4d6fdc" bold="true"/>
+  <style name="def:link-destination" foreground="#0b57d0" underline="single"/>
+  <style name="def:error" foreground="#b3261e" underline="error" underline-color="#b3261e"/>
+</style-scheme>

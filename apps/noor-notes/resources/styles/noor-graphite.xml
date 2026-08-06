@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<style-scheme id="noor-graphite" _name="Noor Graphite" version="1.0" parent-scheme="Adwaita-dark">
+  <_description>Noor Notes graphite source editor</_description>
+  <metadata><property name="variant">dark</property></metadata>
+  <style name="text" foreground="#f5f6f8" background="#282a2f"/>
+  <style name="cursor" foreground="#9aafff"/>
+  <style name="line-numbers" foreground="#b8bbc3" background="#222428"/>
+  <style name="current-line-number" foreground="#9aafff" background="#303238" bold="true"/>
+  <style name="current-line" background="#303238"/>
+  <style name="selection" foreground="#ffffff" background="#465273"/>
+  <style name="search-match" foreground="#ffffff" background="#725b20"/>
+  <style name="bracket-match" foreground="#9aafff" bold="true"/>
+  <style name="def:comment" foreground="#b8bbc3" italic="true"/>
+  <style name="def:keyword" foreground="#9aafff" bold="true"/>
+  <style name="def:string" foreground="#7ed7a2"/>
+  <style name="def:number" foreground="#d6a8ff"/>
+  <style name="def:constant" foreground="#d6a8ff"/>
+  <style name="def:type" foreground="#87c7ff" bold="true"/>
+  <style name="def:function" foreground="#ffc078"/>
+  <style name="def:heading" foreground="#9aafff" bold="true"/>
+  <style name="def:link-destination" foreground="#87c7ff" underline="single"/>
+  <style name="def:error" foreground="#ff858b" underline="error" underline-color="#ff858b"/>
+</style-scheme>

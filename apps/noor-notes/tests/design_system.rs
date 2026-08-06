@@ -39,3 +39,24 @@ fn replacement_design_system_is_valid_gtk_css() {
     provider.load_from_string(CSS);
     assert!(errors.borrow().is_empty(), "{}", errors.borrow().join("\n"));
 }
+
+#[test]
+fn source_canvas_layout_does_not_override_sourceview_palette_colors() {
+    let source_canvas = CSS
+        .split(".nn-writing-canvas {")
+        .nth(1)
+        .and_then(|rules| rules.split('}').next())
+        .expect("source canvas rules");
+    assert!(!source_canvas.contains("background:"));
+    assert!(!source_canvas.contains("color:"));
+    assert!(!source_canvas.contains("caret-color:"));
+
+    let rich_canvas = CSS
+        .split(".nn-rich-writing-canvas {")
+        .nth(1)
+        .and_then(|rules| rules.split('}').next())
+        .expect("rich canvas rules");
+    assert!(rich_canvas.contains("background:"));
+    assert!(rich_canvas.contains("color:"));
+    assert!(rich_canvas.contains("caret-color:"));
+}

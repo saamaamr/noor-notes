@@ -1,5 +1,8 @@
 use noor_domain::SourceLanguage;
-use noor_notes::editor::{EditorAdapter, SourceEditorAdapter, available_language_ids};
+use noor_notes::{
+    appearance::EffectiveTheme,
+    editor::{EditorAdapter, SourceEditorAdapter, available_language_ids},
+};
 use sourceview5::prelude::*;
 
 #[test]
@@ -47,4 +50,57 @@ fn source_editor_supports_languages_regex_unicode_lines_and_bookmarks() {
     assert!(ids.windows(2).all(|pair| pair[0] <= pair[1]));
     assert!(ids.contains(&"markdown".to_string()));
     assert!(ids.contains(&"python3".to_string()));
+    source_editor_applies_theme_without_losing_text_selection_or_undo();
+    plain_text_has_no_language_while_markdown_and_code_keep_theirs();
+}
+
+fn source_editor_applies_theme_without_losing_text_selection_or_undo() {
+    let mut editor = SourceEditorAdapter::new_with_theme(
+        "hello বাংলা",
+        Some(&SourceLanguage::Markdown),
+        EffectiveTheme::Light,
+    );
+    editor.replace_text("hello বাংলা!".into(), 12);
+    editor.select_range(0, 5);
+
+    editor.apply_theme(EffectiveTheme::Midnight);
+
+    assert_eq!(editor.text(), "hello বাংলা!");
+    assert_eq!(editor.selection(), Some((0, 5)));
+    assert!(editor.can_undo());
+    assert_eq!(
+        editor.buffer().style_scheme().unwrap().id().as_str(),
+        "noor-midnight"
+    );
+}
+
+fn plain_text_has_no_language_while_markdown_and_code_keep_theirs() {
+    let plain = SourceEditorAdapter::new_with_theme("let value = 1;", None, EffectiveTheme::Light);
+    let markdown = SourceEditorAdapter::new_with_theme(
+        "# Heading",
+        Some(&SourceLanguage::Markdown),
+        EffectiveTheme::Graphite,
+    );
+    let rust = SourceLanguage::new("rust").unwrap();
+    let code =
+        SourceEditorAdapter::new_with_theme("fn main() {}", Some(&rust), EffectiveTheme::Oled);
+
+    assert!(plain.buffer().language().is_none());
+    assert_eq!(
+        markdown.buffer().language().unwrap().id().as_str(),
+        "markdown"
+    );
+    assert_eq!(code.buffer().language().unwrap().id().as_str(), "rust");
+    assert_eq!(
+        plain.buffer().style_scheme().unwrap().id().as_str(),
+        "noor-light"
+    );
+    assert_eq!(
+        markdown.buffer().style_scheme().unwrap().id().as_str(),
+        "noor-graphite"
+    );
+    assert_eq!(
+        code.buffer().style_scheme().unwrap().id().as_str(),
+        "noor-oled"
+    );
 }

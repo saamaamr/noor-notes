@@ -2,7 +2,9 @@ use adw::prelude::*;
 use noor_domain::SourceLanguage;
 use sourceview5::prelude::*;
 
-use super::{AdapterCapabilities, EditorAdapter, resolve_language};
+use crate::appearance::EffectiveTheme;
+
+use super::{AdapterCapabilities, EditorAdapter, resolve_language, source_palette};
 
 #[derive(Clone)]
 pub struct SourceEditorAdapter {
@@ -14,6 +16,14 @@ pub struct SourceEditorAdapter {
 
 impl SourceEditorAdapter {
     pub fn new(text: &str, language: &SourceLanguage) -> Self {
+        Self::new_with_theme(text, Some(language), EffectiveTheme::Light)
+    }
+
+    pub fn new_with_theme(
+        text: &str,
+        language: Option<&SourceLanguage>,
+        theme: EffectiveTheme,
+    ) -> Self {
         let manager = sourceview5::LanguageManager::default();
         let buffer = sourceview5::Buffer::builder()
             .text(text)
@@ -21,9 +31,10 @@ impl SourceEditorAdapter {
             .highlight_syntax(true)
             .highlight_matching_brackets(true)
             .build();
-        if let Some(language) = resolve_language(&manager, language) {
+        if let Some(language) = language.and_then(|language| resolve_language(&manager, language)) {
             buffer.set_language(Some(&language));
         }
+        source_palette::apply(&buffer, theme);
         let view = sourceview5::View::with_buffer(&buffer);
         view.set_show_line_numbers(true);
         view.set_highlight_current_line(true);
@@ -65,6 +76,10 @@ impl SourceEditorAdapter {
 
     pub fn search_context(&self) -> &sourceview5::SearchContext {
         &self.search_context
+    }
+
+    pub fn apply_theme(&self, theme: EffectiveTheme) {
+        source_palette::apply(&self.buffer, theme);
     }
 
     pub fn set_language(&self, language: &SourceLanguage) -> bool {

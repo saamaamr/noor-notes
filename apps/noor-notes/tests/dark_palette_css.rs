@@ -11,7 +11,7 @@ fn all_dark_palettes_style_every_major_surface_and_semantic_icon_state() {
             ".nn-note-list",
             ".nn-note-card",
             ".nn-preview",
-            ".nn-writing-canvas",
+            ".nn-rich-writing-canvas",
             ".nn-find-panel",
             ".nn-statusbar",
             "popover",

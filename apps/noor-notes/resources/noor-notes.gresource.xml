@@ -3,5 +3,9 @@
   <gresource prefix="/io/github/saamaamr/NoorNotes">
     <file>design-system.css</file>
     <file>note-window.ui</file>
+    <file>styles/noor-light.xml</file>
+    <file>styles/noor-graphite.xml</file>
+    <file>styles/noor-midnight.xml</file>
+    <file>styles/noor-oled.xml</file>
   </gresource>
 </gresources>

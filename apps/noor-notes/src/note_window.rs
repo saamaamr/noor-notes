@@ -12,7 +12,7 @@ use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 use crate::appearance::global;
 use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::edit_save_gate::EditSaveGate;
-use crate::editor::{SourceEditorAdapter, apply_conversion, preview_conversion};
+use crate::editor::{SourceEditorAdapter, apply_conversion, preview_conversion, source_palette};
 use crate::editor_status::{EditorStatistics, clamp_zoom, line_offset};
 use crate::export::{export_markdown, export_plain};
 use crate::note_actions;
@@ -92,7 +92,7 @@ impl NoteWindow {
             .build();
         header.pack_end(&toolbar.header_trash);
         header.pack_end(&toolbar.appearance);
-        let appearance_button = AppearanceButton::new(appearance);
+        let appearance_button = AppearanceButton::new(appearance.clone());
         header.pack_end(&appearance_button.button);
         header.pack_end(&favorite);
         header.pack_end(&library_pin);
@@ -116,18 +116,36 @@ impl NoteWindow {
         metadata.append(&tags_entry);
         layout.append(&metadata);
 
-        let (buffer, editor) = if current.editor_mode == EditorMode::Rich {
+        let (buffer, editor, source_buffer) = if current.editor_mode == EditorMode::Rich {
             let buffer = gtk::TextBuffer::new(None);
             RichBuffer::load(&buffer, &current.content, current.rich_content.as_ref());
             let editor = gtk::TextView::with_buffer(&buffer);
-            (buffer, editor)
+            (buffer, editor, None)
         } else {
-            let adapter = SourceEditorAdapter::new(&current.content, &current.source_language);
+            let language = match current.editor_mode {
+                EditorMode::PlainText => None,
+                EditorMode::Markdown | EditorMode::Code => Some(&current.source_language),
+                EditorMode::Rich => unreachable!(),
+            };
+            let adapter = SourceEditorAdapter::new_with_theme(
+                &current.content,
+                language,
+                appearance.effective_theme(),
+            );
             (
                 adapter.buffer().clone().upcast::<gtk::TextBuffer>(),
                 adapter.view().clone().upcast::<gtk::TextView>(),
+                Some(adapter.buffer().clone()),
             )
         };
+        if let Some(source_buffer) = source_buffer {
+            let source_buffer = source_buffer.downgrade();
+            appearance.subscribe(move |_, theme| {
+                if let Some(buffer) = source_buffer.upgrade() {
+                    source_palette::apply(&buffer, theme);
+                }
+            });
+        }
         let rich_mode = current.editor_mode == EditorMode::Rich;
         for control in [
             &toolbar.bold,
@@ -155,6 +173,9 @@ impl NoteWindow {
         editor.set_bottom_margin(48);
         editor.set_accepts_tab(true);
         editor.add_css_class("nn-writing-canvas");
+        if rich_mode {
+            editor.add_css_class("nn-rich-writing-canvas");
+        }
         editor.set_editable(!is_trashed);
         let find_entry = gtk::SearchEntry::builder()
             .placeholder_text("Find in note…")

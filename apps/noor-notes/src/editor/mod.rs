@@ -5,6 +5,7 @@ mod rich_adapter;
 mod search;
 mod session;
 mod source_adapter;
+pub mod source_palette;
 mod statistics;
 
 pub use adapter::{AdapterCapabilities, EditorAdapter};
