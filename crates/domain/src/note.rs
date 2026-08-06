@@ -46,12 +46,58 @@ impl Revision {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum EditorMode {
+    #[default]
+    Rich,
+    Markdown,
+    PlainText,
+    Code,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum SourceLanguage {
+    Markdown,
+    Named(String),
+}
+
+impl Default for SourceLanguage {
+    fn default() -> Self {
+        Self::Markdown
+    }
+}
+
+impl SourceLanguage {
+    pub fn new(value: &str) -> Option<Self> {
+        let value = value.trim();
+        (!value.is_empty()
+            && value.len() <= 64
+            && value.chars().all(|character| {
+                character.is_ascii_alphanumeric() || matches!(character, '-' | '_')
+            }))
+        .then(|| Self::Named(value.to_ascii_lowercase()))
+    }
+
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Markdown => "markdown",
+            Self::Named(value) => value,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EditorPreferences {
     #[serde(default = "default_zoom_percent")]
     pub zoom_percent: u16,
     #[serde(default = "default_word_wrap")]
     pub word_wrap: bool,
+    #[serde(default)]
+    pub cursor_offset: usize,
+    #[serde(default)]
+    pub scroll_offset: i32,
+    #[serde(default)]
+    pub bookmarks: Vec<u32>,
 }
 
 const fn default_zoom_percent() -> u16 {
@@ -67,6 +113,9 @@ impl Default for EditorPreferences {
         Self {
             zoom_percent: default_zoom_percent(),
             word_wrap: default_word_wrap(),
+            cursor_offset: 0,
+            scroll_offset: 0,
+            bookmarks: Vec::new(),
         }
     }
 }
@@ -94,6 +143,8 @@ pub struct Note {
     pub pinned: bool,
     pub favorite: bool,
     pub editor_preferences: EditorPreferences,
+    pub editor_mode: EditorMode,
+    pub source_language: SourceLanguage,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rich_content: Option<RichDocument>,
     pub style: NoteStyle,
@@ -113,6 +164,10 @@ struct NoteWire {
     title: Option<String>,
     #[serde(default)]
     color: NoteColor,
+    #[serde(default)]
+    editor_mode: EditorMode,
+    #[serde(default)]
+    source_language: SourceLanguage,
     #[serde(default)]
     tags: Vec<String>,
     content: String,
@@ -150,6 +205,8 @@ impl<'de> Deserialize<'de> for Note {
             pinned: wire.pinned,
             favorite: wire.favorite,
             editor_preferences: wire.editor_preferences,
+            editor_mode: wire.editor_mode,
+            source_language: wire.source_language,
             rich_content: wire.rich_content,
             style: wire.style,
             geometry: wire.geometry,
@@ -202,7 +259,7 @@ impl Note {
         copy.color = self.color;
         copy.tags = self.tags.clone();
         copy.content = self.content.clone();
-        copy.editor_preferences = self.editor_preferences;
+        copy.editor_preferences = self.editor_preferences.clone();
         copy.rich_content = self.rich_content.clone();
         copy.style = self.style.clone();
         copy
@@ -218,6 +275,8 @@ impl Note {
             pinned: false,
             favorite: false,
             editor_preferences: EditorPreferences::default(),
+            editor_mode: EditorMode::default(),
+            source_language: SourceLanguage::default(),
             rich_content: None,
             style: NoteStyle::default(),
             geometry: WindowGeometry::default(),

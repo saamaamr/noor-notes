@@ -1,5 +1,5 @@
 use chrono::{TimeZone, Utc};
-use noor_domain::{EditorPreferences, Note, NoteColor, NoteState};
+use noor_domain::{EditorMode, EditorPreferences, Note, NoteColor, NoteState, SourceLanguage};
 
 #[test]
 fn metadata_defaults_and_legacy_json_are_safe() {
@@ -14,12 +14,35 @@ fn metadata_defaults_and_legacy_json_are_safe() {
     object.remove("pinned");
     object.remove("favorite");
     object.remove("editor_preferences");
+    object.remove("editor_mode");
+    object.remove("source_language");
     let restored: Note = serde_json::from_value(value).unwrap();
     assert_eq!(restored.color, NoteColor::Yellow);
     assert!(restored.tags.is_empty());
     assert!(!restored.pinned);
     assert!(!restored.favorite);
     assert_eq!(restored.editor_preferences, EditorPreferences::default());
+    assert_eq!(restored.editor_mode, EditorMode::Rich);
+    assert_eq!(restored.source_language, SourceLanguage::Markdown);
+}
+
+#[test]
+fn source_modes_validate_languages_and_round_trip() {
+    let now = Utc.with_ymd_and_hms(2026, 8, 5, 10, 0, 0).unwrap();
+    let mut note = Note::new(now);
+    note.editor_mode = EditorMode::Code;
+    note.source_language = SourceLanguage::new("rust").unwrap();
+    note.editor_preferences.cursor_offset = 42;
+    note.editor_preferences.scroll_offset = 120;
+    note.editor_preferences.bookmarks = vec![2, 8, 13];
+    assert!(SourceLanguage::new("../../unsafe").is_none());
+
+    let restored: Note = serde_json::from_str(&serde_json::to_string(&note).unwrap()).unwrap();
+    assert_eq!(restored.editor_mode, EditorMode::Code);
+    assert_eq!(restored.source_language.as_str(), "rust");
+    assert_eq!(restored.editor_preferences.cursor_offset, 42);
+    assert_eq!(restored.editor_preferences.scroll_offset, 120);
+    assert_eq!(restored.editor_preferences.bookmarks, vec![2, 8, 13]);
 }
 
 #[test]
