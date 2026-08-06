@@ -26,22 +26,14 @@ struct State {
 impl AppearanceManager {
     pub fn new(store: AppearanceStore) -> Self {
         let preferences = store.load();
-        let manager = Self {
+        Self {
             state: Rc::new(RefCell::new(State {
                 store,
                 preferences,
                 windows: Vec::new(),
                 listeners: Vec::new(),
             })),
-        };
-        let system_observer = manager.clone();
-        adw::StyleManager::default().connect_dark_notify(move |_| {
-            let preferences = system_observer.preferences();
-            if preferences.mode == AppearanceMode::System {
-                system_observer.apply(preferences);
-            }
-        });
-        manager
+        }
     }
 
     pub fn register_window(&self, window: &impl IsA<gtk::Window>) {
@@ -121,11 +113,26 @@ impl AppearanceManager {
                 action.set_state(&mode.action_name().to_variant());
             }
         });
-        let live_action = action.clone();
-        self.subscribe(move |preferences, _| {
-            live_action.set_state(&preferences.mode.action_name().to_variant());
-        });
         app.add_action(&action);
+        let startup = self.clone();
+        let live_action = action.clone();
+        app.connect_startup(move |_| {
+            let action = live_action.clone();
+            startup.subscribe(move |preferences, _| {
+                action.set_state(&preferences.mode.action_name().to_variant());
+            });
+            startup.initialize_native_theme();
+        });
+    }
+
+    fn initialize_native_theme(&self) {
+        let system_observer = self.clone();
+        adw::StyleManager::default().connect_dark_notify(move |_| {
+            let preferences = system_observer.preferences();
+            if preferences.mode == AppearanceMode::System {
+                system_observer.apply(preferences);
+            }
+        });
         self.apply(self.preferences());
     }
 
