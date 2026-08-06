@@ -1,6 +1,11 @@
 use adw::prelude::*;
 use noor_domain::{Alignment, ListKind, RichBlock, RichDocument, RichSpan, TextMarks};
 
+use crate::appearance::EffectiveTheme;
+use crate::rich_color::{
+    ColorRole, normalize_stored, presets, rendered_color, stored_value_from_tag, tag_name,
+};
+
 const BOLD: &str = "noor-bold";
 const ITALIC: &str = "noor-italic";
 const UNDERLINE: &str = "noor-underline";
@@ -12,18 +17,6 @@ const SIZE_TAGS: [(&str, u16); 5] = [
     ("noor-size-16", 16),
     ("noor-size-18", 18),
     ("noor-size-24", 24),
-];
-const FG_TAGS: [(&str, &str); 4] = [
-    ("noor-fg-charcoal", "#29251f"),
-    ("noor-fg-blue", "#174a7e"),
-    ("noor-fg-green", "#276749"),
-    ("noor-fg-red", "#a12c2c"),
-];
-const BG_TAGS: [(&str, &str); 4] = [
-    ("noor-bg-charcoal", "#d8c99b"),
-    ("noor-bg-blue", "#b9d9ee"),
-    ("noor-bg-green", "#bfe3c0"),
-    ("noor-bg-red", "#efb9bd"),
 ];
 
 pub struct RichBuffer;
@@ -74,18 +67,17 @@ impl RichBuffer {
                     .build(),
             );
         }
-        for (name, color) in FG_TAGS {
-            add_tag(
-                &table,
-                gtk::TextTag::builder().name(name).foreground(color).build(),
-            );
+        for role in [ColorRole::Foreground, ColorRole::Highlight] {
+            for preset in presets(role) {
+                ensure_color_tag(buffer, role, preset.id, EffectiveTheme::Light);
+            }
         }
-        for (name, color) in BG_TAGS {
-            add_tag(
-                &table,
-                gtk::TextTag::builder().name(name).background(color).build(),
-            );
-        }
+        ensure_color_tag(
+            buffer,
+            ColorRole::Highlight,
+            "charcoal",
+            EffectiveTheme::Light,
+        );
         for (name, justification) in [
             ("noor-align-start", gtk::Justification::Left),
             ("noor-align-center", gtk::Justification::Center),
@@ -231,7 +223,24 @@ impl RichBuffer {
     }
 
     pub fn foreground(buffer: &gtk::TextBuffer, color: &str) {
-        replace_selection_tag(buffer, "noor-fg-", &format!("noor-fg-{color}"));
+        apply_color(buffer, ColorRole::Foreground, color);
+    }
+
+    pub fn clear_foreground(buffer: &gtk::TextBuffer) {
+        clear_selection_tags(buffer, ColorRole::Foreground.tag_prefix());
+    }
+
+    pub fn clear_highlight(buffer: &gtk::TextBuffer) {
+        clear_selection_tags(buffer, ColorRole::Highlight.tag_prefix());
+    }
+
+    pub fn apply_color_theme(buffer: &gtk::TextBuffer, theme: EffectiveTheme) {
+        for role in [ColorRole::Foreground, ColorRole::Highlight] {
+            for preset in presets(role) {
+                update_color_tag(buffer, role, preset.id, theme);
+            }
+        }
+        update_color_tag(buffer, ColorRole::Highlight, "charcoal", theme);
     }
 
     pub fn align(buffer: &gtk::TextBuffer, alignment: Alignment) {
@@ -251,7 +260,7 @@ impl RichBuffer {
     }
 
     pub fn highlight(buffer: &gtk::TextBuffer, color: &str) {
-        replace_selection_tag(buffer, "noor-bg-", &format!("noor-bg-{color}"));
+        apply_color(buffer, ColorRole::Highlight, color);
     }
 
     pub fn clear_formatting(buffer: &gtk::TextBuffer) {
@@ -430,11 +439,83 @@ fn apply_marks(
         buffer.apply_tag_by_name(&name, start, end);
     }
     if let Some(color) = &marks.foreground {
-        buffer.apply_tag_by_name(&format!("noor-fg-{color}"), start, end);
+        if let Some(name) =
+            ensure_color_tag(buffer, ColorRole::Foreground, color, EffectiveTheme::Light)
+        {
+            buffer.apply_tag_by_name(&name, start, end);
+        }
     }
     if let Some(color) = &marks.highlight {
-        buffer.apply_tag_by_name(&format!("noor-bg-{color}"), start, end);
+        if let Some(name) =
+            ensure_color_tag(buffer, ColorRole::Highlight, color, EffectiveTheme::Light)
+        {
+            buffer.apply_tag_by_name(&name, start, end);
+        }
     }
+}
+fn apply_color(buffer: &gtk::TextBuffer, role: ColorRole, value: &str) {
+    let Some(name) = ensure_color_tag(buffer, role, value, EffectiveTheme::Light) else {
+        return;
+    };
+    replace_selection_tag(buffer, role.tag_prefix(), &name);
+}
+
+fn ensure_color_tag(
+    buffer: &gtk::TextBuffer,
+    role: ColorRole,
+    value: &str,
+    theme: EffectiveTheme,
+) -> Option<String> {
+    let stored = normalize_stored(role, value)?;
+    let name = tag_name(role, &stored)?;
+    if buffer.tag_table().lookup(&name).is_none() {
+        let rendered = rendered_color(role, &stored, theme)?;
+        let tag = match role {
+            ColorRole::Foreground => gtk::TextTag::builder()
+                .name(&name)
+                .foreground(&rendered)
+                .build(),
+            ColorRole::Highlight => gtk::TextTag::builder()
+                .name(&name)
+                .background(&rendered)
+                .build(),
+        };
+        buffer.tag_table().add(&tag);
+    }
+    Some(name)
+}
+
+fn update_color_tag(buffer: &gtk::TextBuffer, role: ColorRole, value: &str, theme: EffectiveTheme) {
+    let Some(name) = ensure_color_tag(buffer, role, value, theme) else {
+        return;
+    };
+    let Some(rendered) = rendered_color(role, value, theme) else {
+        return;
+    };
+    let Some(tag) = buffer.tag_table().lookup(&name) else {
+        return;
+    };
+    match role {
+        ColorRole::Foreground => tag.set_foreground(Some(&rendered)),
+        ColorRole::Highlight => tag.set_background(Some(&rendered)),
+    }
+}
+
+fn clear_selection_tags(buffer: &gtk::TextBuffer, prefix: &str) {
+    let Some((start, end)) = buffer.selection_bounds() else {
+        return;
+    };
+    let mut names = Vec::new();
+    buffer.tag_table().foreach(|candidate| {
+        if let Some(name) = candidate.name().filter(|name| name.starts_with(prefix)) {
+            names.push(name.to_string());
+        }
+    });
+    buffer.begin_user_action();
+    for name in names {
+        buffer.remove_tag_by_name(&name, &start, &end);
+    }
+    buffer.end_user_action();
 }
 fn replace_selection_tag(buffer: &gtk::TextBuffer, prefix: &str, tag: &str) {
     let Some((start, end)) = buffer.selection_bounds() else {
@@ -446,10 +527,12 @@ fn replace_selection_tag(buffer: &gtk::TextBuffer, prefix: &str, tag: &str) {
             names.push(name.to_string());
         }
     });
+    buffer.begin_user_action();
     for name in names {
         buffer.remove_tag_by_name(&name, &start, &end);
     }
     buffer.apply_tag_by_name(tag, &start, &end);
+    buffer.end_user_action();
 }
 
 fn tag_suffix(names: &[String], prefix: &str) -> Option<String> {
@@ -496,7 +579,11 @@ fn marks_at(iter: &gtk::TextIter) -> TextMarks {
         underline: names.iter().any(|name| name == UNDERLINE),
         strikethrough: names.iter().any(|name| name == STRIKE),
         font_size: tag_suffix(&names, "noor-size-").and_then(|value| value.parse().ok()),
-        foreground: tag_suffix(&names, "noor-fg-"),
-        highlight: tag_suffix(&names, "noor-bg-"),
+        foreground: names
+            .iter()
+            .find_map(|name| stored_value_from_tag(ColorRole::Foreground, name)),
+        highlight: names
+            .iter()
+            .find_map(|name| stored_value_from_tag(ColorRole::Highlight, name)),
     }
 }

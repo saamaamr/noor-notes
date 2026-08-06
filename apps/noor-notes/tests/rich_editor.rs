@@ -69,4 +69,33 @@ fn rich_buffer_round_trip_preserves_bold_selection_and_emoji() {
     RichBuffer::clear_formatting(&clear_buffer);
     let (_, cleared) = RichBuffer::snapshot(&clear_buffer);
     assert_eq!(cleared.blocks[0].spans[0].marks, TextMarks::default());
+    let custom = gtk::TextBuffer::new(None);
+    RichBuffer::load(
+        &custom,
+        "Custom",
+        Some(&RichDocument::from_plain_text("Custom")),
+    );
+    custom.select_range(&custom.start_iter(), &custom.end_iter());
+    RichBuffer::foreground(&custom, "#1a2b3c");
+    RichBuffer::highlight(&custom, "#f1e2d3");
+    let (custom_plain, custom_document) = RichBuffer::snapshot(&custom);
+    assert_eq!(
+        custom_document.blocks[0].spans[0]
+            .marks
+            .foreground
+            .as_deref(),
+        Some("#1A2B3C")
+    );
+    assert_eq!(
+        custom_document.blocks[0].spans[0]
+            .marks
+            .highlight
+            .as_deref(),
+        Some("#F1E2D3")
+    );
+
+    let custom_reloaded = gtk::TextBuffer::new(None);
+    RichBuffer::load(&custom_reloaded, &custom_plain, Some(&custom_document));
+    let (_, custom_reloaded_document) = RichBuffer::snapshot(&custom_reloaded);
+    assert_eq!(custom_reloaded_document, custom_document);
 }
