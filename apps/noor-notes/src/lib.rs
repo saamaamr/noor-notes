@@ -14,7 +14,6 @@ pub mod library_preferences;
 pub mod library_view;
 pub mod main_window;
 pub mod managed_app;
-pub mod modern_toolbar;
 pub mod note_actions;
 pub mod note_find;
 pub mod note_toolbar;

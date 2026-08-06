@@ -1,10 +1,10 @@
 use adw::prelude::*;
 use noor_domain::{Alignment, ListKind};
 
-use crate::modern_toolbar::ModernToolbar;
 use crate::rich_buffer::RichBuffer;
+use crate::ui::editor_toolbar::EditorToolbar;
 
-pub fn connect(toolbar: &ModernToolbar, buffer: &gtk::TextBuffer, editor: &gtk::TextView) {
+pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::TextView) {
     {
         let undo_buffer = buffer.clone();
         toolbar

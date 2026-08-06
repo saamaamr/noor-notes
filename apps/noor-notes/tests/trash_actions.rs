@@ -1,12 +1,13 @@
-const MAIN_WINDOW: &str = include_str!("../src/main_window.rs");
+const MAIN_WINDOW: &str = include_str!("../src/ui/library_window.rs");
+const NOTE_CARD: &str = include_str!("../src/ui/note_card.rs");
 const NOTE_WINDOW: &str = include_str!("../src/note_window.rs");
-const TOOLBAR: &str = include_str!("../src/modern_toolbar.rs");
+const TOOLBAR: &str = include_str!("../src/ui/editor_toolbar.rs");
 
 #[test]
 fn trash_rows_expose_restore_delete_and_context_actions() {
-    assert!(MAIN_WINDOW.contains("Restore"));
-    assert!(MAIN_WINDOW.contains("Permanently Delete"));
-    assert!(MAIN_WINDOW.contains("GestureClick"));
+    assert!(NOTE_CARD.contains("Restore"));
+    assert!(NOTE_CARD.contains("Delete permanently"));
+    assert!(NOTE_CARD.contains("Popover"));
     assert!(MAIN_WINDOW.contains("delete_permanently"));
     assert!(MAIN_WINDOW.contains("repository.restore"));
 }

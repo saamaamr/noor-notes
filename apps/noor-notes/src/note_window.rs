@@ -13,12 +13,12 @@ use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::edit_save_gate::EditSaveGate;
 use crate::editor_status::{EditorStatistics, clamp_zoom, line_offset};
 use crate::export::{export_markdown, export_plain};
-use crate::modern_toolbar::ModernToolbar;
 use crate::note_actions;
 use crate::note_find::{FindOptions, FindResults};
 use crate::rich_buffer::RichBuffer;
 use crate::safe_export::{ExportExtension, sanitize_export_name, set_owner_only};
 use crate::save_status::SaveStatusIndicator;
+use crate::ui::editor_toolbar::EditorToolbar;
 
 pub struct NoteWindow {
     pub window: adw::ApplicationWindow,
@@ -41,13 +41,13 @@ impl NoteWindow {
             .default_width(current.geometry.width)
             .default_height(current.geometry.height)
             .build();
-        window.add_css_class("noor-note");
+        window.add_css_class("nn-editor-window");
         window.add_css_class(current.color.css_class());
         window.set_opacity(current.style.opacity);
 
         let layout = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let header = adw::HeaderBar::new();
-        let toolbar = ModernToolbar::new();
+        let toolbar = EditorToolbar::new();
         let is_trashed = matches!(current.state, NoteState::Trashed { .. });
         toolbar.archive.set_visible(!is_trashed);
         toolbar.trash.set_visible(!is_trashed);
@@ -58,7 +58,7 @@ impl NoteWindow {
             .placeholder_text("Untitled note")
             .editable(!is_trashed)
             .build();
-        title_entry.add_css_class("note-title-entry");
+        title_entry.add_css_class("nn-editor-title");
         title_entry.set_hexpand(true);
         title_entry.set_width_chars(32);
         let save_status = SaveStatusIndicator::new();
@@ -81,20 +81,25 @@ impl NoteWindow {
             .tooltip_text("Add to favorites")
             .active(current.favorite)
             .build();
-        header.pack_start(&library_pin);
-        header.pack_start(&favorite);
+        header.pack_end(&toolbar.appearance);
+        header.pack_end(&favorite);
+        header.pack_end(&library_pin);
         layout.append(&header);
         layout.append(&toolbar.widget);
 
         let metadata = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-        metadata.add_css_class("note-metadata");
+        metadata.add_css_class("nn-tag-strip");
+        metadata.set_margin_start(24);
+        metadata.set_margin_end(24);
+        metadata.set_margin_top(8);
+        metadata.set_margin_bottom(8);
         metadata.append(&gtk::Image::from_icon_name("tag-symbolic"));
         let tags_entry = gtk::Entry::builder()
             .text(current.tags.join(", "))
             .placeholder_text("Add tags, separated by commas")
             .editable(!is_trashed)
             .build();
-        tags_entry.add_css_class("note-tags-entry");
+        tags_entry.add_css_class("nn-tag-entry");
         tags_entry.set_hexpand(true);
         metadata.append(&tags_entry);
         layout.append(&metadata);
@@ -112,13 +117,13 @@ impl NoteWindow {
         let editor = gtk::TextView::builder()
             .buffer(&buffer)
             .wrap_mode(initial_wrap)
-            .left_margin(22)
-            .right_margin(22)
-            .top_margin(18)
-            .bottom_margin(22)
+            .left_margin(48)
+            .right_margin(48)
+            .top_margin(32)
+            .bottom_margin(48)
             .accepts_tab(true)
             .build();
-        editor.add_css_class("note-editor");
+        editor.add_css_class("nn-writing-canvas");
         editor.set_editable(!is_trashed);
         let find_entry = gtk::SearchEntry::builder()
             .placeholder_text("Find in note…")
@@ -146,7 +151,7 @@ impl NoteWindow {
             .build();
         let find_count = gtk::Label::new(Some("0 of 0"));
         let find_bar = gtk::Box::new(gtk::Orientation::Vertical, 4);
-        find_bar.add_css_class("find-bar");
+        find_bar.add_css_class("nn-find-panel");
         let find_row = gtk::Box::new(gtk::Orientation::Horizontal, 4);
         find_row.append(&find_entry);
         find_row.append(&find_count);
@@ -306,11 +311,19 @@ impl NoteWindow {
             .vexpand(true)
             .child(&editor)
             .build();
+        scroller.add_css_class("nn-canvas-scroller");
         layout.append(&scroller);
         let editor_status =
             gtk::Label::new(Some("Ln 1, Col 1  ·  0 words  ·  0 characters  ·  100%"));
-        editor_status.add_css_class("editor-status");
-        layout.append(&editor_status);
+        editor_status.set_halign(gtk::Align::Start);
+        let mode_status = gtk::Label::new(Some("Rich Text  ·  UTF-8"));
+        mode_status.set_halign(gtk::Align::End);
+        mode_status.set_hexpand(true);
+        let status_bar = gtk::Box::new(gtk::Orientation::Horizontal, 12);
+        status_bar.add_css_class("nn-statusbar");
+        status_bar.append(&editor_status);
+        status_bar.append(&mode_status);
+        layout.append(&status_bar);
         window.set_content(Some(&layout));
         {
             let keys = gtk::EventControllerKey::new();

@@ -1,10 +1,10 @@
 use gtk::prelude::*;
-use noor_notes::modern_toolbar::ModernToolbar;
+use noor_notes::ui::editor_toolbar::EditorToolbar;
 
 #[test]
 fn primary_controls_have_accessible_descriptions_and_colour_choices() {
     gtk::init().unwrap();
-    let toolbar = ModernToolbar::new();
+    let toolbar = EditorToolbar::new();
     for button in [
         &toolbar.new_note,
         &toolbar.undo,

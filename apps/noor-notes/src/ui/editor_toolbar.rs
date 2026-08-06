@@ -1,7 +1,7 @@
 use adw::prelude::*;
 
 #[derive(Clone)]
-pub struct ModernToolbar {
+pub struct EditorToolbar {
     pub widget: gtk::Box,
     pub new_note: gtk::Button,
     pub undo: gtk::Button,
@@ -30,6 +30,7 @@ pub struct ModernToolbar {
     pub export_markdown: gtk::Button,
     pub alignment_buttons: Vec<gtk::ToggleButton>,
     pub foreground_buttons: Vec<gtk::Button>,
+    pub appearance: gtk::MenuButton,
     pub highlight_buttons: Vec<gtk::Button>,
     pub emoji_buttons: Vec<gtk::Button>,
     pub all_workspaces: gtk::ToggleButton,
@@ -41,14 +42,10 @@ pub struct ModernToolbar {
     pub permanent_delete: gtk::Button,
 }
 
-impl ModernToolbar {
+impl EditorToolbar {
     pub fn new() -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Horizontal, 8);
-        widget.add_css_class("modern-toolbar");
-        widget.set_margin_start(12);
-        widget.set_margin_end(12);
-        widget.set_margin_top(6);
-        widget.set_margin_bottom(6);
+        widget.add_css_class("nn-editor-toolbar");
 
         let new_note = icon_button("list-add-symbolic", "New note");
         let undo = icon_button("edit-undo-symbolic", "Undo (Ctrl+Z)");
@@ -74,14 +71,10 @@ impl ModernToolbar {
             .margin_start(12)
             .margin_end(12)
             .build();
-        for (index, button) in [&bold, &italic, &underline, &strikethrough]
-            .iter()
-            .enumerate()
-        {
+        for (index, button) in [&underline, &strikethrough].iter().enumerate() {
             format_grid.attach(*button, index as i32, 0, 1, 1);
         }
-        format_grid.attach(&bullets, 0, 1, 1, 1);
-        format_grid.attach(&numbered, 1, 1, 1, 1);
+        format_grid.attach(&numbered, 0, 1, 1, 1);
         let font_size = gtk::DropDown::from_strings(&["12 px", "14 px", "16 px", "18 px", "24 px"]);
         font_size.set_selected(2);
         font_size.set_tooltip_text(Some("Font size"));
@@ -150,7 +143,12 @@ impl ModernToolbar {
         let center = group();
         let find = toggle_button("edit-find-symbolic", "Find in note (Ctrl+F)");
         center.append(&find);
+        center.append(&gtk::Separator::new(gtk::Orientation::Vertical));
+        center.append(&bold);
+        center.append(&italic);
+        center.append(&bullets);
         center.append(&format);
+        center.append(&gtk::Separator::new(gtk::Orientation::Vertical));
         center.append(&emoji);
 
         let all_workspaces = toggle_button("focus-windows-symbolic", "Show on all workspaces");
@@ -179,12 +177,12 @@ impl ModernToolbar {
         settings_box.append(&all_workspaces);
         settings_box.append(&opacity);
         let settings_popover = gtk::Popover::builder().child(&settings_box).build();
-        let settings = gtk::MenuButton::builder()
+        let appearance = gtk::MenuButton::builder()
             .icon_name("emblem-system-symbolic")
             .tooltip_text("Note settings")
             .popover(&settings_popover)
             .build();
-        settings.add_css_class("toolbar-button");
+        appearance.add_css_class("flat");
         let word_wrap = toggle_button("format-justify-left-symbolic", "Word wrap");
         word_wrap.set_active(true);
         let zoom_in = icon_button("zoom-in-symbolic", "Zoom in (Ctrl++)");
@@ -241,7 +239,6 @@ impl ModernToolbar {
         more_box.append(&permanent_delete);
         more_box.append(&export);
         more_box.append(&view);
-        more_box.append(&settings);
         let more_popover = gtk::Popover::builder().child(&more_box).build();
         let more = gtk::MenuButton::builder()
             .icon_name("view-more-symbolic")
@@ -253,7 +250,11 @@ impl ModernToolbar {
         right.append(&more);
 
         widget.append(&left);
+        widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
         widget.append(&center);
+        let spacer = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+        spacer.set_hexpand(true);
+        widget.append(&spacer);
         widget.append(&right);
         Self {
             widget,
@@ -286,6 +287,7 @@ impl ModernToolbar {
             foreground_buttons,
             highlight_buttons,
             emoji_buttons,
+            appearance,
             all_workspaces,
             opacity,
             note_color_buttons,
@@ -353,7 +355,7 @@ fn text_toggle(label: &str, tooltip: &str, class: &str) -> gtk::ToggleButton {
     button.add_css_class(class);
     button
 }
-impl Default for ModernToolbar {
+impl Default for EditorToolbar {
     fn default() -> Self {
         Self::new()
     }

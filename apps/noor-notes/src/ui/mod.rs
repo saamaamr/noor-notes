@@ -1,3 +1,4 @@
+pub mod editor_toolbar;
 pub mod empty_state;
 pub mod library_sidebar;
 pub mod library_window;

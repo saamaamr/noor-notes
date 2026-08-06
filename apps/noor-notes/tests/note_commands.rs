@@ -1,10 +1,10 @@
 use gtk::prelude::*;
-use noor_notes::modern_toolbar::ModernToolbar;
+use noor_notes::ui::editor_toolbar::EditorToolbar;
 
 #[test]
 fn productivity_commands_are_discoverable_and_keyboard_focusable() {
     gtk::init().unwrap();
-    let toolbar = ModernToolbar::new();
+    let toolbar = EditorToolbar::new();
     for widget in [
         toolbar.find.upcast_ref::<gtk::Widget>(),
         toolbar.duplicate.upcast_ref(),
