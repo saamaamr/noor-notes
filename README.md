@@ -7,6 +7,7 @@ Noor Notes is a private, offline-first GTK4/libadwaita notes application for Lin
 - **Modern native library**: a focused GNOME header, private/offline status, Notes/Archived/Trash navigation, note previews, section counts, useful empty states, and keyboard-selectable rows.
 - **Completely redesigned library**: adaptive sidebar, virtualized note cards, selected-note preview, seven navigation sections, responsive empty states, and a compact native header.
 - **Dual editor modes**: existing rich notes remain compatible, while Markdown, plain-text, and code notes use GtkSourceView with line numbers, current-line highlighting, regex search, bookmarks, and syntax languages.
+- **Premium appearance modes**: follow GNOME automatically or choose Light, Graphite, Midnight, or OLED; every palette updates open windows, editor surfaces, paper colors, and symbolic icon colors together.
 - **Fast search and sorting**: Unicode-aware library search is debounced and stale results are discarded; sort by recently updated, recently created, title A–Z, or title Z–A.
 - **Named and organized notes**: edit titles, add searchable tags, choose six accessible colours, and duplicate notes.
 - **Reliable saving**: visible Saving/Saved state, retryable failures, and close-time flushing protect pending edits.
@@ -73,6 +74,16 @@ grep -F "  $artifact" SHA256SUMS.txt | sha256sum -c -
 ```
 
 Choose **Editor mode** from the note's More menu to switch between Rich Text,
+## Appearance and dark palettes
+
+Use the moon button in a library or editor header to cycle quickly between
+Graphite, Midnight, and OLED. For a direct choice, open the main menu's
+**Appearance** submenu. **Appearance Settings** shows all five modes with
+visual swatches. System follows GNOME while remembering the last preferred
+dark palette.
+
+Native symbolic icons automatically adopt the selected palette: neutral icons
+follow foreground text, active icons use the accent, and destructive icons
 Markdown, Plain Text, and Code. Noor Notes previews conversions first and creates
 a recovery copy whenever rich styling would be lost.
 
