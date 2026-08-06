@@ -39,6 +39,14 @@ fn manager_updates_windows_cycles_palettes_and_persists_the_active_mode() {
     );
     assert_eq!(manager.cycle_dark_palette().unwrap(), EffectiveTheme::Oled);
     assert_eq!(store.load().mode, AppearanceMode::Oled);
+    let app = adw::Application::builder()
+        .application_id("io.github.saamaamr.NoorNotes.AppearanceTest")
+        .build();
+    manager.install_action(&app);
+    assert_eq!(
+        adw::StyleManager::default().color_scheme(),
+        adw::ColorScheme::ForceDark
+    );
     let blocker = directory.path().join("not-a-directory");
     std::fs::write(&blocker, "blocked").unwrap();
     let failing = AppearanceManager::new(AppearanceStore::at(blocker.join("appearance.json")));

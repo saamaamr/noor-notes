@@ -126,6 +126,7 @@ impl AppearanceManager {
             live_action.set_state(&preferences.mode.action_name().to_variant());
         });
         app.add_action(&action);
+        self.apply(self.preferences());
     }
 
     fn apply(&self, preferences: AppearancePreferences) {
