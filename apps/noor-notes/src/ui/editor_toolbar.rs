@@ -4,6 +4,7 @@ use adw::prelude::*;
 pub struct EditorToolbar {
     pub widget: gtk::FlowBox,
     pub more: gtk::MenuButton,
+    pub more_actions: gtk::FlowBox,
     pub new_note: gtk::Button,
     pub undo: gtk::Button,
     pub redo: gtk::Button,
@@ -242,28 +243,56 @@ impl EditorToolbar {
         let restore = icon_button("edit-undo-symbolic", "Restore");
         let permanent_delete = icon_button("edit-delete-symbolic", "Permanently Delete");
         permanent_delete.add_css_class("destructive-hover");
+        let more_actions = gtk::FlowBox::builder()
+            .orientation(gtk::Orientation::Vertical)
+            .selection_mode(gtk::SelectionMode::None)
+            .min_children_per_line(1)
+            .max_children_per_line(6)
+            .column_spacing(6)
+            .row_spacing(4)
+            .build();
+        more_actions.add_css_class("nn-more-actions");
+        for action in [
+            new_note.upcast_ref::<gtk::Widget>(),
+            rename.upcast_ref(),
+            duplicate.upcast_ref(),
+            pin.upcast_ref(),
+            view_only.upcast_ref(),
+            archive.upcast_ref(),
+            trash.upcast_ref(),
+            restore.upcast_ref(),
+            permanent_delete.upcast_ref(),
+            export.upcast_ref(),
+            view.upcast_ref(),
+        ] {
+            more_actions.insert(action, -1);
+        }
+
+        let mode_actions = gtk::FlowBox::builder()
+            .selection_mode(gtk::SelectionMode::None)
+            .min_children_per_line(1)
+            .max_children_per_line(4)
+            .column_spacing(4)
+            .row_spacing(4)
+            .build();
+        for action in [
+            mode_rich.upcast_ref::<gtk::Widget>(),
+            mode_markdown.upcast_ref(),
+            mode_plain.upcast_ref(),
+            mode_code.upcast_ref(),
+        ] {
+            mode_actions.insert(action, -1);
+        }
+
         let more_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
         more_box.set_margin_top(6);
         more_box.set_margin_bottom(6);
         more_box.set_margin_start(6);
         more_box.set_margin_end(6);
-        more_box.append(&new_note);
-        more_box.append(&rename);
-        more_box.append(&duplicate);
-        more_box.append(&pin);
-        more_box.append(&view_only);
-        more_box.append(&archive);
-        more_box.append(&trash);
-        more_box.append(&restore);
-        more_box.append(&permanent_delete);
-        more_box.append(&export);
-        more_box.append(&view);
+        more_box.append(&more_actions);
         more_box.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
         more_box.append(&mode_label);
-        more_box.append(&mode_rich);
-        more_box.append(&mode_markdown);
-        more_box.append(&mode_plain);
-        more_box.append(&mode_code);
+        more_box.append(&mode_actions);
         let more_popover = gtk::Popover::builder().child(&more_box).build();
         let more = gtk::MenuButton::builder()
             .icon_name("view-more-symbolic")
@@ -287,6 +316,7 @@ impl EditorToolbar {
         Self {
             widget,
             more,
+            more_actions,
             new_note,
             undo,
             redo,
