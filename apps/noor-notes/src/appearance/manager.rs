@@ -26,14 +26,22 @@ struct State {
 impl AppearanceManager {
     pub fn new(store: AppearanceStore) -> Self {
         let preferences = store.load();
-        Self {
+        let manager = Self {
             state: Rc::new(RefCell::new(State {
                 store,
                 preferences,
                 windows: Vec::new(),
                 listeners: Vec::new(),
             })),
-        }
+        };
+        let system_observer = manager.clone();
+        adw::StyleManager::default().connect_dark_notify(move |_| {
+            let preferences = system_observer.preferences();
+            if preferences.mode == AppearanceMode::System {
+                system_observer.apply(preferences);
+            }
+        });
+        manager
     }
 
     pub fn register_window(&self, window: &impl IsA<gtk::Window>) {
@@ -43,7 +51,7 @@ impl AppearanceManager {
     }
 
     pub fn set_mode(&self, mode: AppearanceMode) -> io::Result<()> {
-        let preferences = {
+        let (preferences, save_result) = {
             let mut state = self.state.borrow_mut();
             state.preferences.mode = mode;
             state.preferences.preferred_dark = match mode {
@@ -52,11 +60,11 @@ impl AppearanceManager {
                 AppearanceMode::Oled => DarkPalette::Oled,
                 AppearanceMode::System | AppearanceMode::Light => state.preferences.preferred_dark,
             };
-            state.store.save(&state.preferences)?;
-            state.preferences.clone()
+            let save_result = state.store.save(&state.preferences);
+            (state.preferences.clone(), save_result)
         };
         self.apply(preferences);
-        Ok(())
+        save_result
     }
 
     pub fn cycle_dark_palette(&self) -> io::Result<EffectiveTheme> {

@@ -39,4 +39,12 @@ fn manager_updates_windows_cycles_palettes_and_persists_the_active_mode() {
     );
     assert_eq!(manager.cycle_dark_palette().unwrap(), EffectiveTheme::Oled);
     assert_eq!(store.load().mode, AppearanceMode::Oled);
+    let blocker = directory.path().join("not-a-directory");
+    std::fs::write(&blocker, "blocked").unwrap();
+    let failing = AppearanceManager::new(AppearanceStore::at(blocker.join("appearance.json")));
+    let failure_window = gtk::Window::new();
+    failing.register_window(&failure_window);
+    assert!(failing.set_mode(AppearanceMode::Oled).is_err());
+    assert_eq!(failing.effective_theme(), EffectiveTheme::Oled);
+    assert!(failure_window.has_css_class("nn-theme-oled"));
 }
