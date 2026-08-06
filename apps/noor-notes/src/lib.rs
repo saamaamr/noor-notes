@@ -3,6 +3,7 @@ pub mod actions;
 pub mod app;
 pub mod autosave;
 pub mod edit_save_gate;
+pub mod editor;
 pub mod editor_actions;
 pub mod editor_status;
 pub mod export;
