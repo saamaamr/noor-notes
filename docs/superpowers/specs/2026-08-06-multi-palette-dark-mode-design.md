@@ -77,6 +77,18 @@ The palette applies consistently to:
 - note list background, cards, metadata, and selection
 - preview surface and document typography
 - editor canvas, title, tags, cursor, and text selection
+## Adaptive Iconography
+
+All symbolic icons change automatically with the effective theme:
+
+- neutral icons use the palette's primary or secondary foreground color
+- active, selected, and toggled icons use the palette accent with a readable selected background
+- disabled icons remain identifiable and meet the surrounding disabled-state contrast
+- destructive icons remain neutral by default and use the error color only on destructive hover, focus, or confirmed destructive actions
+- success and warning icons use their semantic palette colors and never communicate status without a text or accessible-label equivalent
+
+Icons remain native symbolic assets; theme switching never substitutes emoji or unrelated colored artwork.
+
 - formatting and appearance popovers
 - find/replace panel
 - status bars
