@@ -25,6 +25,7 @@ pub struct EditorToolbar {
     pub zoom_reset: gtk::Button,
     pub go_to_line: gtk::Button,
     pub fullscreen: gtk::ToggleButton,
+    pub view_only: gtk::Button,
     pub duplicate: gtk::Button,
     pub export_text: gtk::Button,
     pub export_markdown: gtk::Button,
@@ -194,6 +195,8 @@ impl EditorToolbar {
         let zoom_reset = icon_button("zoom-original-symbolic", "Reset zoom (Ctrl+0)");
         let go_to_line = icon_button("go-jump-symbolic", "Go to line (Ctrl+G)");
         let fullscreen = toggle_button("view-fullscreen-symbolic", "Full screen (F11)");
+        let view_only = gtk::Button::with_label("View Only");
+        view_only.set_tooltip_text(Some("Read this note without editing controls"));
         let view_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
         view_box.append(&word_wrap);
         view_box.append(&zoom_in);
@@ -201,6 +204,7 @@ impl EditorToolbar {
         view_box.append(&zoom_reset);
         view_box.append(&go_to_line);
         view_box.append(&fullscreen);
+        view_box.append(&view_only);
         let view_popover = gtk::Popover::builder().child(&view_box).build();
         let view = gtk::MenuButton::builder()
             .icon_name("view-more-symbolic")
@@ -306,6 +310,7 @@ impl EditorToolbar {
             zoom_reset,
             go_to_line,
             fullscreen,
+            view_only,
             duplicate,
             export_text,
             export_markdown,

@@ -1,5 +1,6 @@
 pub mod appearance_button;
 pub mod appearance_settings;
+pub mod editor_presentation;
 pub mod editor_toolbar;
 pub mod empty_state;
 pub mod library_sidebar;
