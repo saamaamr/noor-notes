@@ -5,12 +5,13 @@ use std::time::Duration;
 
 use adw::prelude::*;
 use chrono::Utc;
-use noor_domain::{Note, NoteColor, NoteState};
+use noor_domain::{EditorMode, Note, NoteColor, NoteState};
 use noor_storage::SqliteNoteRepository;
 use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
 use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::edit_save_gate::EditSaveGate;
+use crate::editor::SourceEditorAdapter;
 use crate::editor_status::{EditorStatistics, clamp_zoom, line_offset};
 use crate::export::{export_markdown, export_plain};
 use crate::note_actions;
@@ -104,8 +105,29 @@ impl NoteWindow {
         metadata.append(&tags_entry);
         layout.append(&metadata);
 
-        let buffer = gtk::TextBuffer::new(None);
-        RichBuffer::load(&buffer, &current.content, current.rich_content.as_ref());
+        let (buffer, editor) = if current.editor_mode == EditorMode::Rich {
+            let buffer = gtk::TextBuffer::new(None);
+            RichBuffer::load(&buffer, &current.content, current.rich_content.as_ref());
+            let editor = gtk::TextView::with_buffer(&buffer);
+            (buffer, editor)
+        } else {
+            let adapter = SourceEditorAdapter::new(&current.content, &current.source_language);
+            (
+                adapter.buffer().clone().upcast::<gtk::TextBuffer>(),
+                adapter.view().clone().upcast::<gtk::TextView>(),
+            )
+        };
+        let rich_mode = current.editor_mode == EditorMode::Rich;
+        for control in [
+            &toolbar.bold,
+            &toolbar.italic,
+            &toolbar.underline,
+            &toolbar.strikethrough,
+            &toolbar.bullets,
+            &toolbar.numbered,
+        ] {
+            control.set_sensitive(rich_mode);
+        }
         toolbar
             .word_wrap
             .set_active(current.editor_preferences.word_wrap);
@@ -114,15 +136,13 @@ impl NoteWindow {
         } else {
             gtk::WrapMode::None
         };
-        let editor = gtk::TextView::builder()
-            .buffer(&buffer)
-            .wrap_mode(initial_wrap)
-            .left_margin(48)
-            .right_margin(48)
-            .top_margin(32)
-            .bottom_margin(48)
-            .accepts_tab(true)
-            .build();
+        editor.set_buffer(Some(&buffer));
+        editor.set_wrap_mode(initial_wrap);
+        editor.set_left_margin(48);
+        editor.set_right_margin(48);
+        editor.set_top_margin(32);
+        editor.set_bottom_margin(48);
+        editor.set_accepts_tab(true);
         editor.add_css_class("nn-writing-canvas");
         editor.set_editable(!is_trashed);
         let find_entry = gtk::SearchEntry::builder()
@@ -316,7 +336,13 @@ impl NoteWindow {
         let editor_status =
             gtk::Label::new(Some("Ln 1, Col 1  ·  0 words  ·  0 characters  ·  100%"));
         editor_status.set_halign(gtk::Align::Start);
-        let mode_status = gtk::Label::new(Some("Rich Text  ·  UTF-8"));
+        let mode_name = match current.editor_mode {
+            EditorMode::Rich => "Rich Text",
+            EditorMode::Markdown => "Markdown",
+            EditorMode::PlainText => "Plain Text",
+            EditorMode::Code => current.source_language.as_str(),
+        };
+        let mode_status = gtk::Label::new(Some(&format!("{mode_name}  ·  UTF-8")));
         mode_status.set_halign(gtk::Align::End);
         mode_status.set_hexpand(true);
         let status_bar = gtk::Box::new(gtk::Orientation::Horizontal, 12);
@@ -862,10 +888,17 @@ fn save_editor_snapshot(
     note: &Rc<RefCell<Note>>,
     autosave: &AutosaveQueue,
 ) {
-    let (content, rich_content) = RichBuffer::snapshot(buffer);
     let mut note = note.borrow_mut();
-    note.content = content;
-    note.rich_content = Some(rich_content);
+    if note.editor_mode == EditorMode::Rich {
+        let (content, rich_content) = RichBuffer::snapshot(buffer);
+        note.content = content;
+        note.rich_content = Some(rich_content);
+    } else {
+        note.content = buffer
+            .text(&buffer.start_iter(), &buffer.end_iter(), true)
+            .to_string();
+        note.rich_content = None;
+    }
     autosave.schedule(NoteDraft::from(note.clone()));
 }
 

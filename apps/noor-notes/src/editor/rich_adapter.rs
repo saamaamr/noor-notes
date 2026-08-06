@@ -41,9 +41,15 @@ impl EditorAdapter for RichEditorAdapter {
 
     fn replace_text(&mut self, text: String, cursor: usize) {
         self.buffer.begin_user_action();
-        self.buffer.set_text(&text);
-        self.buffer
-            .place_cursor(&self.buffer.iter_at_offset(cursor as i32));
+        let mut start = self.buffer.start_iter();
+        let mut end = self.buffer.end_iter();
+        self.buffer.delete(&mut start, &mut end);
+        self.buffer.insert(&mut start, &text);
+        self.buffer.place_cursor(
+            &self
+                .buffer
+                .iter_at_offset(cursor.min(text.chars().count()) as i32),
+        );
         self.buffer.end_user_action();
     }
 
