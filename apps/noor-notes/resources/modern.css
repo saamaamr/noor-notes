@@ -4,7 +4,7 @@
 }
 
 .noor-note headerbar {
-  min-height: 28px;
+  min-height: 40px;
   padding: 0 4px;
   background: #fff3c4;
   color: #252118;
@@ -27,14 +27,14 @@
 .toolbar-button,
 .format-choice,
 .emoji-choice {
-  -gtk-icon-size: 12px;
-  min-width: 28px;
-  min-height: 28px;
-  padding: 0;
+  -gtk-icon-size: 16px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 2px;
   color: #27251f;
   background: transparent;
   border: 0;
-  border-radius: 3px;
+  border-radius: 8px;
   box-shadow: none;
 }
 
@@ -76,7 +76,7 @@
 
 .note-editor {
   padding: 6px;
-  background: #f8df86;
+  background: alpha(@window_bg_color, .96);
   color: #282318;
   font-family: Inter, "Segoe UI", Cantarell, sans-serif;
   font-size: 13pt;
@@ -109,7 +109,44 @@ popover contents {
 
 .find-bar {
 
+.editor-status { padding: 5px 12px; border-top: 1px solid alpha(currentColor, .12); font-size: 9pt; color: alpha(currentColor, .72); }
+.zoom-50 { font-size: 6.5pt; }
+.zoom-60 { font-size: 7.8pt; }
+.zoom-70 { font-size: 9.1pt; }
+.zoom-80 { font-size: 10.4pt; }
+.zoom-90 { font-size: 11.7pt; }
+.zoom-100 { font-size: 13pt; }
+.zoom-110 { font-size: 14.3pt; }
+.zoom-120 { font-size: 15.6pt; }
+.zoom-130 { font-size: 16.9pt; }
+.zoom-140 { font-size: 18.2pt; }
+.zoom-150 { font-size: 19.5pt; }
+.zoom-160 { font-size: 20.8pt; }
+.zoom-170 { font-size: 22.1pt; }
+.zoom-180 { font-size: 23.4pt; }
+.zoom-190 { font-size: 24.7pt; }
+.zoom-200 { font-size: 26pt; }
+.zoom-210 { font-size: 27.3pt; }
+.zoom-220 { font-size: 28.6pt; }
+.zoom-230 { font-size: 29.9pt; }
+.zoom-240 { font-size: 31.2pt; }
+.zoom-250 { font-size: 32.5pt; }
+.zoom-260 { font-size: 33.8pt; }
+.zoom-270 { font-size: 35.1pt; }
+.zoom-280 { font-size: 36.4pt; }
+.zoom-290 { font-size: 37.7pt; }
+.zoom-300 { font-size: 39pt; }
+.find-bar button,
+.find-bar entry { min-height: 36px; }
   margin: 4px 12px 0;
+.dark .noor-note,
+.dark .noor-note .note-editor {
+  background: #242424;
+  color: #f2f2f2;
+}
+
+.dark .noor-note headerbar { background: #303030; color: #f2f2f2; }
+
 
   padding: 3px;
 

@@ -10,6 +10,12 @@ fn productivity_commands_are_discoverable_and_keyboard_focusable() {
         toolbar.duplicate.upcast_ref(),
         toolbar.export_text.upcast_ref(),
         toolbar.export_markdown.upcast_ref(),
+        toolbar.word_wrap.upcast_ref(),
+        toolbar.zoom_in.upcast_ref(),
+        toolbar.zoom_out.upcast_ref(),
+        toolbar.zoom_reset.upcast_ref(),
+        toolbar.go_to_line.upcast_ref(),
+        toolbar.fullscreen.upcast_ref(),
     ] {
         assert!(widget.is_sensitive());
         assert!(widget.can_focus());
@@ -21,5 +27,12 @@ fn productivity_commands_are_discoverable_and_keyboard_focusable() {
             .tooltip_text()
             .unwrap()
             .contains("Duplicate")
+    );
+    assert!(
+        toolbar
+            .go_to_line
+            .tooltip_text()
+            .unwrap()
+            .contains("Ctrl+G")
     );
 }

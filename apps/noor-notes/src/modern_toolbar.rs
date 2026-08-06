@@ -18,6 +18,12 @@ pub struct ModernToolbar {
     pub apply_font_size: gtk::Button,
     pub rename: gtk::Button,
     pub find: gtk::ToggleButton,
+    pub word_wrap: gtk::ToggleButton,
+    pub zoom_in: gtk::Button,
+    pub zoom_out: gtk::Button,
+    pub zoom_reset: gtk::Button,
+    pub go_to_line: gtk::Button,
+    pub fullscreen: gtk::ToggleButton,
     pub duplicate: gtk::Button,
     pub export_text: gtk::Button,
     pub export_markdown: gtk::Button,
@@ -171,6 +177,27 @@ impl ModernToolbar {
             .build();
         settings.add_css_class("toolbar-button");
         let find = toggle_button("edit-find-symbolic", "Find in note (Ctrl+F)");
+        let word_wrap = toggle_button("format-justify-left-symbolic", "Word wrap");
+        word_wrap.set_active(true);
+        let zoom_in = icon_button("zoom-in-symbolic", "Zoom in (Ctrl++)");
+        let zoom_out = icon_button("zoom-out-symbolic", "Zoom out (Ctrl+-)");
+        let zoom_reset = icon_button("zoom-original-symbolic", "Reset zoom (Ctrl+0)");
+        let go_to_line = icon_button("go-jump-symbolic", "Go to line (Ctrl+G)");
+        let fullscreen = toggle_button("view-fullscreen-symbolic", "Full screen (F11)");
+        let view_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
+        view_box.append(&word_wrap);
+        view_box.append(&zoom_in);
+        view_box.append(&zoom_out);
+        view_box.append(&zoom_reset);
+        view_box.append(&go_to_line);
+        view_box.append(&fullscreen);
+        let view_popover = gtk::Popover::builder().child(&view_box).build();
+        let view = gtk::MenuButton::builder()
+            .icon_name("view-more-symbolic")
+            .tooltip_text("Editor view options")
+            .popover(&view_popover)
+            .build();
+        view.add_css_class("toolbar-button");
         let duplicate = icon_button("edit-copy-symbolic", "Duplicate note");
         let export_text = gtk::Button::with_label("Plain text (.txt)");
         let export_markdown = gtk::Button::with_label("Markdown (.md)");
@@ -195,6 +222,7 @@ impl ModernToolbar {
         more_box.append(&rename);
         more_box.append(&duplicate);
         more_box.append(&export);
+        more_box.append(&view);
         more_box.append(&settings);
         let more_popover = gtk::Popover::builder().child(&more_box).build();
         let more = gtk::MenuButton::builder()
@@ -231,6 +259,12 @@ impl ModernToolbar {
             apply_font_size,
             rename,
             find,
+            word_wrap,
+            zoom_in,
+            zoom_out,
+            zoom_reset,
+            go_to_line,
+            fullscreen,
             duplicate,
             export_text,
             export_markdown,

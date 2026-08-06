@@ -34,6 +34,17 @@ async fn metadata_search_sort_and_duplicate_are_persistent() {
         titled.iter().map(|n| n.title.as_str()).collect::<Vec<_>>(),
         vec!["Alpha", "Beta"]
     );
+    let descending = repo
+        .search_notes_sorted("", NoteSort::TitleDesc)
+        .await
+        .unwrap();
+    assert_eq!(
+        descending
+            .iter()
+            .map(|note| note.title.as_str())
+            .collect::<Vec<_>>(),
+        vec!["Beta", "Alpha"]
+    );
     let copy = repo
         .duplicate_note(beta.id, now + Duration::hours(1))
         .await

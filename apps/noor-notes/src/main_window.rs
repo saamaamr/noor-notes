@@ -1,4 +1,7 @@
+use std::cell::Cell;
+use std::rc::Rc;
 use std::sync::Arc;
+use std::time::Duration;
 
 use adw::prelude::*;
 use chrono::Utc;
@@ -8,6 +11,7 @@ use noor_windowing::WindowController;
 
 use crate::autosave::AutosaveQueue;
 use crate::library_preferences::LibraryPreferences;
+use crate::library_view::{NoteCounts, content_preview};
 use crate::note_window::NoteWindow;
 
 #[derive(Clone)]
@@ -20,6 +24,8 @@ pub struct MainWindow {
     trash: gtk::ListBox,
     status: gtk::Label,
     repository: SqliteNoteRepository,
+    results: gtk::Label,
+    refresh_generation: Rc<Cell<u64>>,
     autosave: AutosaveQueue,
     controller: Arc<dyn WindowController>,
     app: adw::Application,
@@ -45,23 +51,29 @@ impl MainWindow {
         let title = adw::WindowTitle::new("Noor Notes", "Private notes, available offline");
         header.set_title_widget(Some(&title));
         let new_button = gtk::Button::builder()
+            .label("New Note")
             .icon_name("list-add-symbolic")
-            .tooltip_text("New note")
+            .tooltip_text("Create a new private note (Ctrl+N)")
             .build();
+        new_button.add_css_class("suggested-action");
         new_button.set_action_name(Some("app.new-note"));
         header.pack_start(&new_button);
-        let import_button = gtk::Button::builder()
-            .icon_name("document-open-symbolic")
-            .tooltip_text("Import Xpad notes")
+        let search_button = gtk::Button::builder()
+            .icon_name("system-search-symbolic")
+            .tooltip_text("Search notes (Ctrl+F)")
+            .action_name("app.search")
             .build();
-        import_button.set_action_name(Some("app.import-xpad"));
-        header.pack_end(&import_button);
-        let shortcuts_button = gtk::Button::builder()
-            .icon_name("help-keyboard-shortcuts-symbolic")
-            .tooltip_text("Keyboard shortcuts")
-            .action_name("app.shortcuts")
+        header.pack_end(&search_button);
+        let menu = gtk::gio::Menu::new();
+        menu.append(Some("Import Xpad Notes…"), Some("app.import-xpad"));
+        menu.append(Some("Keyboard Shortcuts"), Some("app.shortcuts"));
+        menu.append(Some("Quit"), Some("app.quit"));
+        let menu_button = gtk::MenuButton::builder()
+            .icon_name("open-menu-symbolic")
+            .tooltip_text("Main menu")
+            .menu_model(&menu)
             .build();
-        header.pack_end(&shortcuts_button);
+        header.pack_end(&menu_button);
         toolbar.add_top_bar(&header);
 
         let page = gtk::Box::new(gtk::Orientation::Vertical, 12);
@@ -73,19 +85,28 @@ impl MainWindow {
             .placeholder_text("Search notes…")
             .hexpand(true)
             .build();
-        let sort =
-            gtk::DropDown::from_strings(&["Recently updated", "Title A–Z", "Newest created"]);
+        let sort = gtk::DropDown::from_strings(&[
+            "Recently updated",
+            "Recently created",
+            "Title A–Z",
+            "Title Z–A",
+        ]);
         let preferences = LibraryPreferences::for_current_user();
         sort.set_selected(match preferences.load_sort() {
             NoteSort::UpdatedDesc => 0,
-            NoteSort::TitleAsc => 1,
-            NoteSort::CreatedDesc => 2,
+            NoteSort::CreatedDesc => 1,
+            NoteSort::TitleAsc => 2,
+            NoteSort::TitleDesc => 3,
         });
         sort.set_tooltip_text(Some("Sort notes"));
         let filters = gtk::Box::new(gtk::Orientation::Horizontal, 8);
         filters.append(&search);
         filters.append(&sort);
         page.append(&filters);
+        let results = gtk::Label::new(Some("Loading notes…"));
+        results.add_css_class("dim-label");
+        results.set_halign(gtk::Align::Start);
+        page.append(&results);
 
         let stack = adw::ViewStack::new();
         let active = note_list();
@@ -99,7 +120,13 @@ impl MainWindow {
             .policy(adw::ViewSwitcherPolicy::Wide)
             .build();
         page.append(&switcher);
-        page.append(&stack);
+        stack.set_vexpand(true);
+        let scroller = gtk::ScrolledWindow::builder()
+            .vexpand(true)
+            .hscrollbar_policy(gtk::PolicyType::Never)
+            .child(&stack)
+            .build();
+        page.append(&scroller);
         let status = gtk::Label::new(Some("Local only · All changes saved offline"));
         status.add_css_class("dim-label");
         status.set_halign(gtk::Align::Start);
@@ -115,6 +142,8 @@ impl MainWindow {
             archived,
             trash,
             status,
+            results,
+            refresh_generation: Rc::new(Cell::new(0)),
             repository,
             autosave,
             controller,
@@ -131,7 +160,14 @@ impl MainWindow {
         {
             let this = this.clone();
             this.search.clone().connect_search_changed(move |_| {
-                this.refresh();
+                let generation = this.refresh_generation.get().wrapping_add(1);
+                this.refresh_generation.set(generation);
+                let this = this.clone();
+                gtk::glib::timeout_add_local_once(Duration::from_millis(220), move || {
+                    if this.refresh_generation.get() == generation {
+                        this.refresh();
+                    }
+                });
             });
         }
         this.refresh();
@@ -151,13 +187,19 @@ impl MainWindow {
     }
 
     pub fn refresh(&self) {
+        let generation = self.refresh_generation.get().wrapping_add(1);
+        self.refresh_generation.set(generation);
         let query = self.search.text().to_string();
         let sort = sort_from_selected(self.sort.selected());
         let repository = self.repository.clone();
         let this = self.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
             match repository.search_notes_sorted(&query, sort).await {
-                Ok(notes) => this.render(notes, !query.trim().is_empty()),
+                Ok(notes) => {
+                    if this.refresh_generation.get() == generation {
+                        this.render(notes, !query.trim().is_empty());
+                    }
+                }
                 Err(error) => this.set_status(&format!("Could not load notes: {error}")),
             }
         });
@@ -246,6 +288,8 @@ impl MainWindow {
     }
 
     fn render(&self, notes: Vec<Note>, searching: bool) {
+        let counts = NoteCounts::from_notes(&notes);
+        let total = notes.len();
         clear_list(&self.active);
         clear_list(&self.archived);
         clear_list(&self.trash);
@@ -255,12 +299,19 @@ impl MainWindow {
                 NoteState::Archived => &self.archived,
                 NoteState::Trashed { .. } => &self.trash,
             };
+            let subtitle = format!(
+                "{}\n{}",
+                content_preview(&note.content, 120),
+                note_subtitle(&note)
+            );
             let row = adw::ActionRow::builder()
                 .title(note.display_title())
-                .subtitle(note_subtitle(&note))
+                .subtitle(&subtitle)
                 .activatable(true)
                 .build();
             row.add_css_class(note.color.css_class());
+            row.set_tooltip_text(Some(note.display_title()));
+            row.add_css_class("note-row");
             if matches!(note.state, NoteState::Trashed { .. }) {
                 self.attach_trash_actions(&row, note.id);
             }
@@ -304,6 +355,14 @@ impl MainWindow {
                 "Trash is empty"
             },
         );
+        self.results.set_text(&if searching {
+            format!("{total} matching notes")
+        } else {
+            format!(
+                "{} notes  ·  {} archived  ·  {} in trash",
+                counts.active, counts.archived, counts.trashed
+            )
+        });
         self.set_status("Local only · All changes saved offline");
     }
 }
@@ -311,7 +370,7 @@ impl MainWindow {
 fn note_list() -> gtk::ListBox {
     let list = gtk::ListBox::new();
     list.add_css_class("boxed-list");
-    list.set_selection_mode(gtk::SelectionMode::None);
+    list.set_selection_mode(gtk::SelectionMode::Single);
     list
 }
 
@@ -323,8 +382,9 @@ fn clear_list(list: &gtk::ListBox) {
 
 fn sort_from_selected(selected: u32) -> NoteSort {
     match selected {
-        1 => NoteSort::TitleAsc,
-        2 => NoteSort::CreatedDesc,
+        1 => NoteSort::CreatedDesc,
+        2 => NoteSort::TitleAsc,
+        3 => NoteSort::TitleDesc,
         _ => NoteSort::UpdatedDesc,
     }
 }
@@ -349,9 +409,18 @@ fn note_subtitle(note: &Note) -> String {
 
 fn append_empty_state(list: &gtk::ListBox, message: &str) {
     if list.first_child().is_none() {
+        let guidance = if message.contains("matching") {
+            "Try another word or clear the search"
+        } else if message.contains("active") {
+            "Create a note with Ctrl+N to get started"
+        } else if message.contains("archived") {
+            "Archived notes will remain available here"
+        } else {
+            "Deleted notes stay recoverable until permanently removed"
+        };
         let row = adw::ActionRow::builder()
             .title(message)
-            .subtitle("Create or restore a note to see it here")
+            .subtitle(guidance)
             .activatable(false)
             .build();
         row.add_css_class("empty-state");

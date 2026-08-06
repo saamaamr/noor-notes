@@ -4,11 +4,15 @@ Noor Notes is a private, offline-first GTK4 sticky-note application for Linux. V
 
 ## Features
 
-- **Named and organized notes**: edit titles, add searchable tags, choose six accessible colours, sort the library, and duplicate notes.
+- **Modern native library**: a focused GNOME header, private/offline status, Notes/Archived/Trash navigation, note previews, section counts, useful empty states, and keyboard-selectable rows.
+- **Fast search and sorting**: Unicode-aware library search is debounced and stale results are discarded; sort by recently updated, recently created, title A–Z, or title Z–A.
+- **Named and organized notes**: edit titles, add searchable tags, choose six accessible colours, and duplicate notes.
 - **Reliable saving**: visible Saving/Saved state, retryable failures, and close-time flushing protect pending edits.
 - **Encrypted locally**: SQLCipher protects note text, titles, tags, and history using a random key held by GNOME Keyring; existing databases migrate automatically and safely.
 - **Rich text**: bold, italic, underline, strikethrough, reliable bullet and numbered lists, preset or custom positive whole-number font sizes, alignment, text and highlight colours, emoji, undo, and redo.
-- **Productivity**: Unicode-aware find-in-note, plain-text and Markdown export, keyboard shortcuts help, and polished empty states.
+- **Find and replace**: navigate matches, replace one or all matches, and optionally match case or whole words while preserving Unicode character offsets.
+- **Editor productivity**: word wrap, zoom from 50% to 300%, go to line, full screen, line/column position, line/word/character/selection counts, plain-text and Markdown export, and a keyboard-shortcut reference.
+- **Accessible appearance**: 40 px toolbar hit targets, consistent symbolic icons, visible tooltips, focusable controls, and improved dark-theme styling with optional sticky-note colours.
 - A searchable library with active, archived, and **Trash** notes.
 - Source-install Xpad import that previews the migration and leaves the source files unchanged.
 - Optional window controls, including Always on Top, all-workspaces, and opacity where the desktop supports them.
@@ -78,7 +82,18 @@ The strict Snap and Flatpak packages cannot read the host `~/.config/xpad`, so t
 
 Name a note from its title field or Rename action. Add comma-separated tags below the title and choose a note colour from Window Settings. Use the compact formatting toolbar to style selected text or insert an emoji. Repeated list-button clicks toggle the list instead of duplicating markers, and Enter continues or exits lists naturally. Preset sizes and a custom positive whole-number pixel size are available. Formatting is saved with the note; if a stored rich-text format is unsupported, Noor Notes safely displays its plain text instead.
 
-Use **Ctrl+F** inside a note to find text, **Ctrl+Z** to undo, and **Ctrl+Shift+Z** to redo. Export from the More menu as UTF-8 plain text or Markdown. Open the keyboard-shortcuts reference from the main-window keyboard icon.
+Use the grouped editor controls or these shortcuts:
+
+- **Ctrl+F** — find in the current note
+- **Ctrl+H** — open find and replace
+- **Ctrl+G** — go to line
+- **Ctrl++**, **Ctrl+-**, **Ctrl+0** — zoom in, out, or reset
+- **Ctrl+Z**, **Ctrl+Shift+Z**, or **Ctrl+Y** — undo or redo
+- **Ctrl+B**, **Ctrl+I**, **Ctrl+U** — bold, italic, or underline
+- **F11** — enter or leave full screen
+- **Escape** — close the active find panel
+
+Export from the More menu as UTF-8 plain text or Markdown. Open the keyboard-shortcuts reference from the main-window application menu.
 
 Archive notes to hide them from the active list, or move them to Trash. In Trash, restore a note to the active list or choose **Permanently Delete** and confirm the destructive action. Permanent deletion removes the note from the local database.
 

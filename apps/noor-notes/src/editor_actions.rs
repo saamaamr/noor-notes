@@ -131,7 +131,20 @@ pub fn connect(toolbar: &ModernToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
     let shortcuts = gtk::EventControllerKey::new();
     let shortcut_buffer = buffer.clone();
     let find_button = toolbar.find.clone();
+    let zoom_in = toolbar.zoom_in.clone();
+    let zoom_out = toolbar.zoom_out.clone();
+    let zoom_reset = toolbar.zoom_reset.clone();
+    let go_to_line = toolbar.go_to_line.clone();
+    let fullscreen = toolbar.fullscreen.clone();
     shortcuts.connect_key_pressed(move |_, key, _, state| {
+        if key == gtk::gdk::Key::Escape && find_button.is_active() {
+            find_button.set_active(false);
+            return gtk::glib::Propagation::Stop;
+        }
+        if key == gtk::gdk::Key::F11 {
+            fullscreen.set_active(!fullscreen.is_active());
+            return gtk::glib::Propagation::Stop;
+        }
         if key == gtk::gdk::Key::Return && !state.contains(gtk::gdk::ModifierType::SHIFT_MASK) {
             return if RichBuffer::continue_list(&shortcut_buffer) {
                 gtk::glib::Propagation::Stop
@@ -142,8 +155,20 @@ pub fn connect(toolbar: &ModernToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         if !state.contains(gtk::gdk::ModifierType::CONTROL_MASK) {
             return gtk::glib::Propagation::Proceed;
         }
-        let handled = if key == gtk::gdk::Key::f {
+        let handled = if key == gtk::gdk::Key::f || key == gtk::gdk::Key::h {
             find_button.set_active(true);
+            true
+        } else if key == gtk::gdk::Key::g {
+            go_to_line.emit_clicked();
+            true
+        } else if key == gtk::gdk::Key::plus || key == gtk::gdk::Key::equal {
+            zoom_in.emit_clicked();
+            true
+        } else if key == gtk::gdk::Key::minus {
+            zoom_out.emit_clicked();
+            true
+        } else if key == gtk::gdk::Key::_0 {
+            zoom_reset.emit_clicked();
             true
         } else if key == gtk::gdk::Key::z && state.contains(gtk::gdk::ModifierType::SHIFT_MASK) {
             RichBuffer::redo(&shortcut_buffer);

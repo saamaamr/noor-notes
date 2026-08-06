@@ -11,10 +11,11 @@ use noor_windowing::{GnomeWindowController, NativeWindowId, WindowController};
 
 use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::edit_save_gate::EditSaveGate;
+use crate::editor_status::{EditorStatistics, clamp_zoom, line_offset};
 use crate::export::{export_markdown, export_plain};
 use crate::modern_toolbar::ModernToolbar;
 use crate::note_actions;
-use crate::note_find::FindResults;
+use crate::note_find::{FindOptions, FindResults};
 use crate::rich_buffer::RichBuffer;
 use crate::safe_export::{ExportExtension, sanitize_export_name, set_owner_only};
 use crate::save_status::SaveStatusIndicator;
@@ -93,6 +94,18 @@ impl NoteWindow {
             .placeholder_text("Find in note…")
             .hexpand(true)
             .build();
+        let replace_entry = gtk::Entry::builder()
+            .placeholder_text("Replace with…")
+            .hexpand(true)
+            .build();
+        let match_case = gtk::CheckButton::with_label("Match case");
+        let whole_word = gtk::CheckButton::with_label("Whole word");
+        let replace = gtk::Button::with_label("Replace");
+        let replace_all = gtk::Button::with_label("Replace All");
+        let find_close = gtk::Button::builder()
+            .icon_name("window-close-symbolic")
+            .tooltip_text("Close find and replace (Escape)")
+            .build();
         let find_previous = gtk::Button::builder()
             .icon_name("go-up-symbolic")
             .tooltip_text("Previous match")
@@ -102,22 +115,36 @@ impl NoteWindow {
             .tooltip_text("Next match")
             .build();
         let find_count = gtk::Label::new(Some("0 of 0"));
-        let find_bar = gtk::Box::new(gtk::Orientation::Horizontal, 4);
+        let find_bar = gtk::Box::new(gtk::Orientation::Vertical, 4);
         find_bar.add_css_class("find-bar");
-        find_bar.append(&find_entry);
-        find_bar.append(&find_count);
-        find_bar.append(&find_previous);
-        find_bar.append(&find_next);
+        let find_row = gtk::Box::new(gtk::Orientation::Horizontal, 4);
+        find_row.append(&find_entry);
+        find_row.append(&find_count);
+        find_row.append(&find_previous);
+        find_row.append(&find_next);
+        find_row.append(&find_close);
+        let replace_row = gtk::Box::new(gtk::Orientation::Horizontal, 4);
+        replace_row.append(&replace_entry);
+        replace_row.append(&replace);
+        replace_row.append(&replace_all);
+        replace_row.append(&match_case);
+        replace_row.append(&whole_word);
+        find_bar.append(&find_row);
+        find_bar.append(&replace_row);
         find_bar.set_visible(false);
         layout.append(&find_bar);
         let find_results = Rc::new(RefCell::new(FindResults::default()));
+        let find_options = Rc::new(Cell::new(FindOptions::default()));
         {
             let buffer = buffer.clone();
             let results = find_results.clone();
             let count = find_count.clone();
+            let options = find_options.clone();
             find_entry.connect_search_changed(move |entry| {
                 let text = buffer.text(&buffer.start_iter(), &buffer.end_iter(), true);
-                results.borrow_mut().update(&text, &entry.text());
+                results
+                    .borrow_mut()
+                    .update_with_options(&text, &entry.text(), options.get());
                 select_find_result(&buffer, &results.borrow(), &count);
             });
         }
@@ -128,6 +155,73 @@ impl NoteWindow {
             find_next.connect_clicked(move |_| {
                 results.borrow_mut().next();
                 select_find_result(&buffer, &results.borrow(), &count);
+            });
+        }
+        for option in [&match_case, &whole_word] {
+            let buffer = buffer.clone();
+            let results = find_results.clone();
+            let count = find_count.clone();
+            let query = find_entry.clone();
+            let match_case = match_case.clone();
+            let whole_word = whole_word.clone();
+            let options = find_options.clone();
+            option.connect_toggled(move |_| {
+                options.set(FindOptions {
+                    match_case: match_case.is_active(),
+                    whole_word: whole_word.is_active(),
+                });
+                update_find(&buffer, &query, &results, &count, options.get());
+            });
+        }
+        {
+            let buffer = buffer.clone();
+            let results = find_results.clone();
+            let count = find_count.clone();
+            let query = find_entry.clone();
+            let replacement = replace_entry.clone();
+            let options = find_options.clone();
+            replace.connect_clicked(move |_| {
+                let Some((start, end)) = results.borrow().current_range() else {
+                    return;
+                };
+                let mut start = buffer.iter_at_offset(start as i32);
+                let mut end = buffer.iter_at_offset(end as i32);
+                buffer.begin_user_action();
+                buffer.delete(&mut start, &mut end);
+                buffer.insert(&mut start, &replacement.text());
+                buffer.end_user_action();
+                update_find(&buffer, &query, &results, &count, options.get());
+            });
+        }
+        {
+            let buffer = buffer.clone();
+            let results = find_results.clone();
+            let count = find_count.clone();
+            let query = find_entry.clone();
+            let replacement = replace_entry.clone();
+            let options = find_options.clone();
+            replace_all.connect_clicked(move |_| {
+                let ranges = results.borrow().ranges().to_vec();
+                if ranges.is_empty() {
+                    return;
+                }
+                buffer.begin_user_action();
+                for (start, end) in ranges.into_iter().rev() {
+                    let mut start = buffer.iter_at_offset(start as i32);
+                    let mut end = buffer.iter_at_offset(end as i32);
+                    buffer.delete(&mut start, &mut end);
+                    buffer.insert(&mut start, &replacement.text());
+                }
+                buffer.end_user_action();
+                update_find(&buffer, &query, &results, &count, options.get());
+            });
+        }
+        {
+            let find_bar = find_bar.clone();
+            let find_toggle = toolbar.find.clone();
+            find_close.connect_clicked(move |_| {
+                find_bar.set_visible(false);
+                find_toggle.set_active(false);
             });
         }
         {
@@ -156,8 +250,81 @@ impl NoteWindow {
             .child(&editor)
             .build();
         layout.append(&scroller);
+        let editor_status =
+            gtk::Label::new(Some("Ln 1, Col 1  ·  0 words  ·  0 characters  ·  100%"));
+        editor_status.add_css_class("editor-status");
+        layout.append(&editor_status);
         window.set_content(Some(&layout));
         crate::editor_actions::connect(&toolbar, &buffer, &editor);
+        let zoom = Rc::new(Cell::new(100_u16));
+        update_editor_status(&buffer, &editor_status, zoom.get());
+        {
+            let status = editor_status.clone();
+            let zoom = zoom.clone();
+            buffer.connect_changed(move |buffer| update_editor_status(buffer, &status, zoom.get()));
+        }
+        {
+            let status = editor_status.clone();
+            let zoom = zoom.clone();
+            buffer.connect_mark_set(move |buffer, _, _| {
+                update_editor_status(buffer, &status, zoom.get())
+            });
+        }
+        {
+            let editor = editor.clone();
+            toolbar.word_wrap.connect_toggled(move |button| {
+                editor.set_wrap_mode(if button.is_active() {
+                    gtk::WrapMode::WordChar
+                } else {
+                    gtk::WrapMode::None
+                });
+            });
+        }
+        connect_zoom(
+            &toolbar.zoom_in,
+            &editor,
+            &editor_status,
+            &buffer,
+            zoom.clone(),
+            10,
+        );
+        connect_zoom(
+            &toolbar.zoom_out,
+            &editor,
+            &editor_status,
+            &buffer,
+            zoom.clone(),
+            -10,
+        );
+        {
+            let editor = editor.clone();
+            let status = editor_status.clone();
+            let buffer = buffer.clone();
+            let zoom = zoom.clone();
+            toolbar.zoom_reset.connect_clicked(move |_| {
+                zoom.set(100);
+                apply_editor_zoom(&editor, 100);
+                update_editor_status(&buffer, &status, 100);
+            });
+        }
+        {
+            let window = window.clone();
+            toolbar.fullscreen.connect_toggled(move |button| {
+                if button.is_active() {
+                    window.fullscreen();
+                } else {
+                    window.unfullscreen();
+                }
+            });
+        }
+        {
+            let window = window.clone();
+            let buffer = buffer.clone();
+            let editor = editor.clone();
+            toolbar
+                .go_to_line
+                .connect_clicked(move |_| show_go_to_line(&window, &buffer, &editor));
+        }
         {
             let mut state = autosave.subscribe(current.id);
             let indicator = save_status.clone();
@@ -529,6 +696,8 @@ impl NoteWindow {
                     if autosave.flush(id).await.is_ok() {
                         allow_close.set(true);
                         window.close();
+                    } else {
+                        show_save_error(&window);
                     }
                 });
                 gtk::glib::Propagation::Stop
@@ -574,6 +743,20 @@ fn native_window_id(window: &adw::ApplicationWindow) -> Option<NativeWindowId> {
         .map(|title| NativeWindowId::Wayland(title.to_string()))
 }
 
+fn update_find(
+    buffer: &gtk::TextBuffer,
+    entry: &gtk::SearchEntry,
+    results: &Rc<RefCell<FindResults>>,
+    count: &gtk::Label,
+    options: FindOptions,
+) {
+    let text = buffer.text(&buffer.start_iter(), &buffer.end_iter(), true);
+    results
+        .borrow_mut()
+        .update_with_options(&text, &entry.text(), options);
+    select_find_result(buffer, &results.borrow(), count);
+}
+
 fn select_find_result(buffer: &gtk::TextBuffer, results: &FindResults, count: &gtk::Label) {
     if let Some((current, total)) = results.position() {
         count.set_text(&format!("{current} of {total}"));
@@ -589,6 +772,84 @@ fn select_find_result(buffer: &gtk::TextBuffer, results: &FindResults, count: &g
     }
 }
 
+fn update_editor_status(buffer: &gtk::TextBuffer, label: &gtk::Label, zoom: u16) {
+    let text = buffer.text(&buffer.start_iter(), &buffer.end_iter(), true);
+    let cursor = buffer.iter_at_mark(&buffer.get_insert()).offset().max(0) as usize;
+    let selection = buffer
+        .selection_bounds()
+        .map(|(start, end)| (start.offset().max(0) as usize, end.offset().max(0) as usize));
+    let stats = EditorStatistics::calculate(&text, cursor, selection, zoom);
+    let selection = if stats.selection > 0 {
+        format!("  ·  {} selected", stats.selection)
+    } else {
+        String::new()
+    };
+    label.set_text(&format!(
+        "Ln {}, Col {}  ·  {} lines  ·  {} words  ·  {} characters{}  ·  {}%",
+        stats.line, stats.column, stats.lines, stats.words, stats.characters, selection, stats.zoom
+    ));
+}
+
+fn connect_zoom(
+    button: &gtk::Button,
+    editor: &gtk::TextView,
+    status: &gtk::Label,
+    buffer: &gtk::TextBuffer,
+    zoom: Rc<Cell<u16>>,
+    delta: i16,
+) {
+    let editor = editor.clone();
+    let status = status.clone();
+    let buffer = buffer.clone();
+    button.connect_clicked(move |_| {
+        let next = clamp_zoom((zoom.get() as i16 + delta).max(0) as u16);
+        zoom.set(next);
+        apply_editor_zoom(&editor, next);
+        update_editor_status(&buffer, &status, next);
+    });
+}
+
+fn apply_editor_zoom(editor: &gtk::TextView, zoom: u16) {
+    for value in (50..=300).step_by(10) {
+        editor.remove_css_class(&format!("zoom-{value}"));
+    }
+    editor.add_css_class(&format!("zoom-{}", (zoom / 10) * 10));
+}
+
+fn show_go_to_line(
+    window: &adw::ApplicationWindow,
+    buffer: &gtk::TextBuffer,
+    editor: &gtk::TextView,
+) {
+    let entry = gtk::Entry::builder()
+        .placeholder_text("Line number")
+        .input_purpose(gtk::InputPurpose::Digits)
+        .activates_default(true)
+        .build();
+    let dialog = adw::AlertDialog::builder()
+        .heading("Go to line")
+        .body("Enter a line number in this note.")
+        .extra_child(&entry)
+        .build();
+    dialog.add_response("cancel", "Cancel");
+    dialog.add_response("go", "Go");
+    dialog.set_default_response(Some("go"));
+    dialog.set_close_response("cancel");
+    let window = window.clone();
+    let buffer = buffer.clone();
+    let editor = editor.clone();
+    gtk::glib::MainContext::default().spawn_local(async move {
+        if dialog.choose_future(Some(&window)).await != "go" {
+            return;
+        }
+        let requested = entry.text().parse::<usize>().unwrap_or(1);
+        let text = buffer.text(&buffer.start_iter(), &buffer.end_iter(), true);
+        let offset = line_offset(&text, requested);
+        buffer.place_cursor(&buffer.iter_at_offset(offset as i32));
+        editor.grab_focus();
+        editor.scroll_to_mark(&buffer.get_insert(), 0.15, true, 0.0, 0.5);
+    });
+}
 fn connect_export(
     button: &gtk::Button,
     window: &adw::ApplicationWindow,

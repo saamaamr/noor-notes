@@ -12,6 +12,11 @@ fn sort_preference_round_trips_and_invalid_values_fall_back() {
         LibraryPreferences::at(path.clone()).load_sort(),
         NoteSort::TitleAsc
     );
+    prefs.save_sort(NoteSort::TitleDesc).unwrap();
+    assert_eq!(
+        LibraryPreferences::at(path.clone()).load_sort(),
+        NoteSort::TitleDesc
+    );
     std::fs::write(path, "unknown").unwrap();
     assert_eq!(prefs.load_sort(), NoteSort::UpdatedDesc);
 }
