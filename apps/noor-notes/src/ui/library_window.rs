@@ -15,6 +15,7 @@ use crate::autosave::AutosaveQueue;
 use crate::library::{LibrarySection, LibraryState};
 use crate::library_preferences::LibraryPreferences;
 use crate::note_window::NoteWindow;
+use crate::services::trash_command;
 
 use super::empty_state::EmptyState;
 use super::library_sidebar::LibrarySidebar;
@@ -353,6 +354,11 @@ impl MainWindow {
     fn handle_card_action(&self, id: NoteId, action: CardAction) {
         let this = self.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
+            if action == CardAction::Trash
+                && !trash_command::confirm_move_to_trash(&this.window).await
+            {
+                return;
+            }
             if action == CardAction::DeletePermanently {
                 let dialog = adw::AlertDialog::new(
                     Some("Permanently delete this note?"),
@@ -368,6 +374,7 @@ impl MainWindow {
                 }
             }
             let result = match action {
+                CardAction::Trash => trash_command::trash_saved_note(&this.repository, id).await,
                 CardAction::Restore => this.repository.restore(id, Utc::now()).await,
                 CardAction::DeletePermanently => this.repository.delete_permanently(id).await,
             };

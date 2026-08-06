@@ -5,6 +5,7 @@ use noor_domain::{Note, NoteId, NoteState};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CardAction {
+    Trash,
     Restore,
     DeletePermanently,
 }
@@ -57,33 +58,41 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> gtk::Box {
     meta.set_ellipsize(gtk::pango::EllipsizeMode::End);
     text.append(&meta);
     card.append(&text);
-    if matches!(note.state, NoteState::Trashed { .. }) {
-        let popover_content = gtk::Box::new(gtk::Orientation::Vertical, 4);
-        popover_content.set_margin_top(6);
-        popover_content.set_margin_bottom(6);
-        popover_content.set_margin_start(6);
-        popover_content.set_margin_end(6);
-        for (label, card_action, destructive) in [
+    let actions = if matches!(note.state, NoteState::Trashed { .. }) {
+        vec![
             ("Restore", CardAction::Restore, false),
             ("Delete permanently", CardAction::DeletePermanently, true),
-        ] {
-            let button = gtk::Button::with_label(label);
-            button.set_halign(gtk::Align::Fill);
-            if destructive {
-                button.add_css_class("destructive-action");
-            }
-            let action = action.clone();
-            let id = note.id;
-            button.connect_clicked(move |_| action(id, card_action));
-            popover_content.append(&button);
+        ]
+    } else {
+        vec![("Move to Trash", CardAction::Trash, true)]
+    };
+    let popover_content = gtk::Box::new(gtk::Orientation::Vertical, 4);
+    popover_content.set_margin_top(6);
+    popover_content.set_margin_bottom(6);
+    popover_content.set_margin_start(6);
+    popover_content.set_margin_end(6);
+    for (label, card_action, destructive) in actions {
+        let button = gtk::Button::with_label(label);
+        button.set_halign(gtk::Align::Fill);
+        if destructive {
+            button.add_css_class("destructive-action");
         }
-        let popover = gtk::Popover::builder().child(&popover_content).build();
-        let menu = gtk::MenuButton::builder()
-            .icon_name("view-more-symbolic")
-            .tooltip_text("Note actions")
-            .popover(&popover)
-            .build();
-        card.append(&menu);
+        let action = action.clone();
+        let id = note.id;
+        button.connect_clicked(move |_| action(id, card_action));
+        popover_content.append(&button);
     }
+    let popover = gtk::Popover::builder().child(&popover_content).build();
+    let menu = gtk::MenuButton::builder()
+        .icon_name("view-more-symbolic")
+        .tooltip_text("Note actions")
+        .popover(&popover)
+        .build();
+    let gesture = gtk::GestureClick::new();
+    gesture.set_button(3);
+    let popover = popover.clone();
+    gesture.connect_pressed(move |_, _, _, _| popover.popup());
+    card.add_controller(gesture);
+    card.append(&menu);
     card
 }

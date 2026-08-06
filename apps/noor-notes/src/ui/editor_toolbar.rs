@@ -43,6 +43,7 @@ pub struct EditorToolbar {
     pub note_color_buttons: Vec<gtk::Button>,
     pub archive: gtk::Button,
     pub trash: gtk::Button,
+    pub header_trash: gtk::Button,
     pub restore: gtk::Button,
     pub permanent_delete: gtk::Button,
 }
@@ -229,6 +230,8 @@ impl EditorToolbar {
         let archive = icon_button("folder-symbolic", "Archive");
         let trash = icon_button("user-trash-symbolic", "Move to Trash");
         trash.add_css_class("destructive-hover");
+        let header_trash = icon_button("user-trash-symbolic", "Move to Trash");
+        header_trash.add_css_class("destructive-hover");
         let mode_label = gtk::Label::new(Some("Editor mode"));
         mode_label.add_css_class("heading");
         mode_label.set_halign(gtk::Align::Start);
@@ -324,6 +327,7 @@ impl EditorToolbar {
             note_color_buttons,
             archive,
             trash,
+            header_trash,
             restore,
             permanent_delete,
         }

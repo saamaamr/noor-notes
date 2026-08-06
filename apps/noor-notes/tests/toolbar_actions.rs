@@ -1,5 +1,6 @@
 const NOTE_WINDOW: &str = include_str!("../src/note_window.rs");
 const MANAGED_APP: &str = include_str!("../src/managed_app.rs");
+const TRASH_COMMAND: &str = include_str!("../src/services/trash_command.rs");
 
 #[test]
 fn every_primary_toolbar_button_is_wired() {
@@ -13,11 +14,12 @@ fn every_primary_toolbar_button_is_wired() {
         "Archive must persist an Archived transition"
     );
     assert!(
-        NOTE_WINDOW.contains("toolbar.trash.connect_clicked"),
+        NOTE_WINDOW.contains("connect_trash_button")
+            && NOTE_WINDOW.contains("[&toolbar.header_trash, &toolbar.trash]"),
         "Delete must open its confirmation flow"
     );
     assert!(
-        NOTE_WINDOW.contains("Move to Trash"),
+        TRASH_COMMAND.contains("Move to Trash") && TRASH_COMMAND.contains("confirm_move_to_trash"),
         "Delete must require explicit confirmation"
     );
     assert!(

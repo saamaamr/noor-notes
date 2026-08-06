@@ -56,6 +56,7 @@ impl EditorPresentation {
                 widget.set_visible(visible);
             }
             self.editor.set_editable(!self.state_forces_read_only);
+            self.editor.grab_focus();
         }
         self.view_only.set(enabled);
     }

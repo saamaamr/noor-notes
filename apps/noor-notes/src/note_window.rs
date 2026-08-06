@@ -20,7 +20,9 @@ use crate::note_find::{FindOptions, FindResults};
 use crate::rich_buffer::RichBuffer;
 use crate::safe_export::{ExportExtension, sanitize_export_name, set_owner_only};
 use crate::save_status::SaveStatusIndicator;
+use crate::services::trash_command;
 use crate::ui::appearance_button::AppearanceButton;
+use crate::ui::editor_presentation::EditorPresentation;
 use crate::ui::editor_toolbar::EditorToolbar;
 
 pub struct NoteWindow {
@@ -56,6 +58,8 @@ impl NoteWindow {
         let is_trashed = matches!(current.state, NoteState::Trashed { .. });
         toolbar.archive.set_visible(!is_trashed);
         toolbar.trash.set_visible(!is_trashed);
+        toolbar.header_trash.set_visible(!is_trashed);
+        toolbar.view_only.set_visible(!is_trashed);
         toolbar.restore.set_visible(is_trashed);
         toolbar.permanent_delete.set_visible(is_trashed);
         let title_entry = gtk::Entry::builder()
@@ -86,6 +90,7 @@ impl NoteWindow {
             .tooltip_text("Add to favorites")
             .active(current.favorite)
             .build();
+        header.pack_end(&toolbar.header_trash);
         header.pack_end(&toolbar.appearance);
         let appearance_button = AppearanceButton::new(appearance);
         header.pack_end(&appearance_button.button);
@@ -357,6 +362,74 @@ impl NoteWindow {
         status_bar.append(&mode_status);
         layout.append(&status_bar);
         window.set_content(Some(&layout));
+        let presentation = EditorPresentation::new(
+            &editor,
+            is_trashed,
+            vec![
+                title_box.clone().upcast::<gtk::Widget>(),
+                toolbar.widget.clone().upcast::<gtk::Widget>(),
+                metadata.clone().upcast::<gtk::Widget>(),
+                find_bar.clone().upcast::<gtk::Widget>(),
+                status_bar.clone().upcast::<gtk::Widget>(),
+                toolbar.appearance.clone().upcast::<gtk::Widget>(),
+                appearance_button.button.clone().upcast::<gtk::Widget>(),
+                favorite.clone().upcast::<gtk::Widget>(),
+                library_pin.clone().upcast::<gtk::Widget>(),
+                toolbar.header_trash.clone().upcast::<gtk::Widget>(),
+            ],
+        );
+        presentation.set_view_only(current.editor_preferences.view_only && !is_trashed);
+        let view_mode_busy = Rc::new(Cell::new(false));
+        let exit_view_mode: Rc<dyn Fn()> = {
+            let note = note.clone();
+            let autosave = autosave.clone();
+            let repository = repository.clone();
+            let presentation = presentation.clone();
+            let window = window.clone();
+            let busy = view_mode_busy.clone();
+            Rc::new(move || {
+                request_view_mode(
+                    note.clone(),
+                    autosave.clone(),
+                    repository.clone(),
+                    presentation.clone(),
+                    window.clone(),
+                    busy.clone(),
+                    false,
+                );
+            })
+        };
+        {
+            let note = note.clone();
+            let autosave = autosave.clone();
+            let repository = repository.clone();
+            let presentation = presentation.clone();
+            let window = window.clone();
+            let busy = view_mode_busy.clone();
+            toolbar.view_only.connect_clicked(move |_| {
+                request_view_mode(
+                    note.clone(),
+                    autosave.clone(),
+                    repository.clone(),
+                    presentation.clone(),
+                    window.clone(),
+                    busy.clone(),
+                    true,
+                );
+            });
+        }
+        {
+            let presentation = presentation.clone();
+            let exit = exit_view_mode.clone();
+            let gesture = gtk::GestureClick::new();
+            gesture.set_button(0);
+            gesture.connect_released(move |_, presses, _, _| {
+                if presses == 2 && presentation.is_view_only() {
+                    exit();
+                }
+            });
+            editor.add_controller(gesture);
+        }
         {
             let keys = gtk::EventControllerKey::new();
             let note = note.clone();
@@ -364,7 +437,13 @@ impl NoteWindow {
             let buffer = buffer.clone();
             let wrap = toolbar.word_wrap.clone();
             let app = app.clone();
+            let presentation = presentation.clone();
+            let exit_view_mode = exit_view_mode.clone();
             keys.connect_key_pressed(move |_, key, _, state| {
+                if key == gtk::gdk::Key::Escape && presentation.is_view_only() {
+                    exit_view_mode();
+                    return gtk::glib::Propagation::Stop;
+                }
                 if state.contains(gtk::gdk::ModifierType::ALT_MASK) && key == gtk::gdk::Key::z {
                     wrap.set_active(!wrap.is_active());
                     return gtk::glib::Propagation::Stop;
@@ -807,47 +886,14 @@ impl NoteWindow {
                 });
             });
         }
-        {
-            let note = note.clone();
-            let autosave = autosave.clone();
-            let window = window.clone();
-            toolbar.trash.connect_clicked(move |button| {
-                let button = button.clone();
-                let note = note.clone();
-                let autosave = autosave.clone();
-                let window = window.clone();
-                button.set_sensitive(false);
-                gtk::glib::MainContext::default().spawn_local(async move {
-                    let dialog = adw::AlertDialog::new(
-                        Some("Move this note to Trash?"),
-                        Some("The note will remain recoverable from the Trash section."),
-                    );
-                    dialog.add_response("cancel", "Cancel");
-                    dialog.add_response("trash", "Move to Trash");
-                    dialog.set_default_response(Some("cancel"));
-                    dialog.set_close_response("cancel");
-                    dialog.set_response_appearance("trash", adw::ResponseAppearance::Destructive);
-                    if dialog.choose_future(Some(&window)).await != "trash" {
-                        button.set_sensitive(true);
-                        return;
-                    }
-                    let previous = note.borrow().clone();
-                    note_actions::trash(&mut note.borrow_mut(), Utc::now());
-                    let changed = note.borrow().clone();
-                    let id = changed.id;
-                    autosave.schedule(NoteDraft::from(changed));
-                    if autosave.flush(id).await.is_ok() {
-                        if let Some(application) = window.application() {
-                            application.activate_action("refresh-notes", None);
-                        }
-                        window.close();
-                    } else {
-                        note.replace(previous);
-                        button.set_sensitive(true);
-                        show_save_error(&window);
-                    }
-                });
-            });
+        for button in [&toolbar.header_trash, &toolbar.trash] {
+            connect_trash_button(
+                button,
+                note.clone(),
+                autosave.clone(),
+                repository.clone(),
+                window.clone(),
+            );
         }
         {
             let note = note.clone();
@@ -1051,6 +1097,83 @@ fn show_go_to_line(
         editor.scroll_to_mark(&buffer.get_insert(), 0.15, true, 0.0, 0.5);
     });
 }
+fn connect_trash_button(
+    button: &gtk::Button,
+    note: Rc<RefCell<Note>>,
+    autosave: AutosaveQueue,
+    repository: SqliteNoteRepository,
+    window: adw::ApplicationWindow,
+) {
+    button.connect_clicked(move |button| {
+        let button = button.clone();
+        let note = note.clone();
+        let autosave = autosave.clone();
+        let repository = repository.clone();
+        let window = window.clone();
+        button.set_sensitive(false);
+        gtk::glib::MainContext::default().spawn_local(async move {
+            if !trash_command::confirm_move_to_trash(&window).await {
+                button.set_sensitive(true);
+                return;
+            }
+            match trash_command::trash_open_note(&note, &autosave, &repository).await {
+                Ok(()) => {
+                    if let Some(application) = window.application() {
+                        application.activate_action("refresh-notes", None);
+                    }
+                    window.close();
+                }
+                Err(_) => {
+                    button.set_sensitive(true);
+                    show_save_error(&window);
+                }
+            }
+        });
+    });
+}
+
+fn request_view_mode(
+    note: Rc<RefCell<Note>>,
+    autosave: AutosaveQueue,
+    repository: SqliteNoteRepository,
+    presentation: EditorPresentation,
+    window: adw::ApplicationWindow,
+    busy: Rc<Cell<bool>>,
+    enabled: bool,
+) {
+    if busy.replace(true) {
+        return;
+    }
+    gtk::glib::MainContext::default().spawn_local(async move {
+        let id = note.borrow().id;
+        if autosave.flush(id).await.is_err() {
+            busy.set(false);
+            show_save_error(&window);
+            return;
+        }
+        let mut changed = note.borrow().clone();
+        if changed.editor_preferences.view_only == enabled {
+            presentation.set_view_only(enabled);
+            busy.set(false);
+            return;
+        }
+        changed.editor_preferences.view_only = enabled;
+        changed.updated_at = Utc::now();
+        changed.revision = changed.revision.next();
+        match repository.save_note(&changed).await {
+            Ok(()) => {
+                note.replace(changed);
+                presentation.set_view_only(enabled);
+                if let Some(application) = window.application() {
+                    application.activate_action("refresh-notes", None);
+                }
+            }
+            Err(_) => show_save_error(&window),
+        }
+        busy.set(false);
+    });
+}
+
 #[derive(Clone)]
 struct ModeSwitchContext {
     window: adw::ApplicationWindow,
