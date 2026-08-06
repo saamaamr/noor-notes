@@ -1,0 +1,95 @@
+/* Semantic tokens: --nn-bg --nn-surface --nn-surface-raised --nn-border
+ * --nn-text --nn-text-secondary --nn-accent --nn-success --nn-warning --nn-error */
+@define-color nn_bg #f5f5f4;
+@define-color nn_surface #ffffff;
+@define-color nn_surface_raised #ffffff;
+@define-color nn_border rgba(28, 28, 30, 0.12);
+@define-color nn_text #202124;
+@define-color nn_text_secondary #686a70;
+@define-color nn_accent #4d6fdc;
+@define-color nn_success #287a4b;
+@define-color nn_warning #9a6400;
+@define-color nn_error #c43d3d;
+
+window { background: @nn_bg; color: @nn_text; }
+headerbar { min-height: 44px; background: @nn_surface; border-bottom: 1px solid @nn_border; box-shadow: none; }
+button { border-radius: 8px; transition: 140ms ease; }
+button:hover { background: alpha(@nn_accent, .09); }
+button:checked, button:selected { background: alpha(@nn_accent, .16); }
+button:disabled, entry:disabled { opacity: .48; }
+button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-visible {
+  outline: 2px solid @nn_accent;
+  outline-offset: 2px;
+}
+
+.nn-sidebar { background: shade(@nn_bg, .97); border-right: 1px solid @nn_border; padding: 12px 8px; }
+.nn-sidebar-row { min-height: 38px; margin: 2px 0; padding: 0 12px; border-radius: 8px; }
+.nn-sidebar-row:selected, .nn-sidebar-row:checked { background: @nn_accent; color: white; font-weight: 700; }
+.nn-note-list { background: @nn_bg; padding: 12px 8px; }
+.nn-note-card {
+  min-height: 88px;
+  margin: 4px 6px;
+  padding: 12px;
+  background: @nn_surface;
+  border: 1px solid @nn_border;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  transition: 150ms ease;
+}
+.nn-note-card:hover { background: mix(@nn_surface, @nn_accent, .96); }
+.nn-note-card:selected { border-color: @nn_accent; background: mix(@nn_surface, @nn_accent, .91); }
+.nn-preview { background: @nn_surface; padding: 32px 40px; }
+.nn-editor-toolbar { min-height: 38px; padding: 0 12px; background: shade(@nn_surface, .985); border-bottom: 1px solid @nn_border; }
+.nn-writing-canvas { background: @nn_surface; color: @nn_text; padding: 32px 48px; font-size: 16px; }
+.nn-statusbar { min-height: 30px; padding: 0 12px; background: shade(@nn_bg, .98); border-top: 1px solid @nn_border; font-size: 12px; color: @nn_text_secondary; }
+.nn-display-title { font-size: 28px; font-weight: 700; }
+.nn-section-title { font-size: 20px; font-weight: 700; }
+.nn-note-title { font-size: 18px; font-weight: 650; }
+.nn-body { font-size: 16px; }
+.nn-metadata { font-size: 13px; color: @nn_text_secondary; }
+.nn-caption { font-size: 12px; color: @nn_text_secondary; }
+.paper-warm-white { background: #fffefa; color: #222222; }
+.paper-cream { background: #fff8e8; color: #29251f; }
+.paper-light-yellow { background: #fff9cf; color: #292619; }
+.paper-light-blue { background: #edf5ff; color: #202832; }
+.paper-light-green { background: #eef8ee; color: #202820; }
+.paper-light-pink { background: #fff1f3; color: #302326; }
+.paper-light-purple { background: #f6f1ff; color: #282331; }
+.paper-dark-slate { background: #25282d; color: #f2f3f5; }
+.destructive-action { color: @nn_error; }
+.success { color: @nn_success; }
+.warning { color: @nn_warning; }
+.error { color: @nn_error; }
+
+/* Existing widgets remain readable while their layouts are replaced. */
+.main-window list { background: @nn_bg; }
+.library-sidebar { background: shade(@nn_bg, .97); }
+.sidebar-row { min-height: 38px; border-radius: 8px; }
+.sidebar-row:checked { background: @nn_accent; color: white; }
+.note-row { margin: 4px; border-radius: 12px; background: @nn_surface; }
+.note-preview { background: @nn_surface; }
+.noor-note { background: @nn_bg; }
+.modern-toolbar { min-height: 38px; background: @nn_surface; border-bottom: 1px solid @nn_border; }
+.toolbar-button, .format-choice, .emoji-choice { min-width: 36px; min-height: 36px; border-radius: 8px; }
+.note-title-entry { background: transparent; border: 0; box-shadow: none; font-size: 18px; font-weight: 700; }
+.note-tags-entry { background: transparent; border: 0; box-shadow: none; }
+.note-editor { background: @nn_surface; color: @nn_text; font-size: 16px; caret-color: @nn_accent; }
+.editor-status { min-height: 30px; padding: 0 12px; background: @nn_bg; border-top: 1px solid @nn_border; }
+.find-bar { padding: 8px 12px; background: @nn_surface; border-bottom: 1px solid @nn_border; }
+.empty-state { padding: 32px; color: @nn_text_secondary; }
+
+.theme-dark, .dark {
+  --nn-bg: #1f2023;
+  --nn-surface: #27292d;
+  --nn-surface-raised: #303238;
+  --nn-border: rgba(255,255,255,.12);
+  --nn-text: #f2f3f5;
+  --nn-text-secondary: #a9abb2;
+  --nn-accent: #8da5ff;
+}
+.dark window, .dark .main-window, .dark .noor-note { background: #1f2023; color: #f2f3f5; }
+.dark headerbar, .dark .modern-toolbar { background: #27292d; color: #f2f3f5; }
+.dark .note-editor, .dark .note-preview { background: #27292d; color: #f2f3f5; }
+
+/* prefers-reduced-motion: GTK follows the desktop animation setting; component
+ * transitions remain below 180 ms and are omitted by libadwaita when disabled. */
