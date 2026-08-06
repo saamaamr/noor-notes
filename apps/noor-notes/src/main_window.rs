@@ -20,8 +20,12 @@ pub struct MainWindow {
     search: gtk::SearchEntry,
     sort: gtk::DropDown,
     active: gtk::ListBox,
+    pinned: gtk::ListBox,
+    favorites: gtk::ListBox,
     archived: gtk::ListBox,
     trash: gtk::ListBox,
+    preview_title: gtk::Label,
+    preview_body: gtk::Label,
     status: gtk::Label,
     repository: SqliteNoteRepository,
     results: gtk::Label,
@@ -41,14 +45,15 @@ impl MainWindow {
         let window = adw::ApplicationWindow::builder()
             .application(app)
             .title("Noor Notes")
-            .default_width(780)
-            .default_height(560)
+            .default_width(1080)
+            .default_height(680)
             .build();
         window.add_css_class("main-window");
 
         let toolbar = adw::ToolbarView::new();
         let header = adw::HeaderBar::new();
-        let title = adw::WindowTitle::new("Noor Notes", "Private notes, available offline");
+        let title = gtk::Label::new(Some("Noor Notes"));
+        title.add_css_class("title");
         header.set_title_widget(Some(&title));
         let new_button = gtk::Button::builder()
             .label("New Note")
@@ -76,13 +81,14 @@ impl MainWindow {
         header.pack_end(&menu_button);
         toolbar.add_top_bar(&header);
 
-        let page = gtk::Box::new(gtk::Orientation::Vertical, 12);
-        page.set_margin_top(12);
-        page.set_margin_bottom(12);
-        page.set_margin_start(18);
-        page.set_margin_end(18);
+        let page = gtk::Box::new(gtk::Orientation::Vertical, 0);
+        let filters = gtk::Box::new(gtk::Orientation::Horizontal, 12);
+        filters.set_margin_top(12);
+        filters.set_margin_bottom(12);
+        filters.set_margin_start(18);
+        filters.set_margin_end(18);
         let search = gtk::SearchEntry::builder()
-            .placeholder_text("Search notes…")
+            .placeholder_text("Search titles, text, and tags…")
             .hexpand(true)
             .build();
         let sort = gtk::DropDown::from_strings(&[
@@ -99,38 +105,130 @@ impl MainWindow {
             NoteSort::TitleDesc => 3,
         });
         sort.set_tooltip_text(Some("Sort notes"));
-        let filters = gtk::Box::new(gtk::Orientation::Horizontal, 8);
         filters.append(&search);
         filters.append(&sort);
         page.append(&filters);
         let results = gtk::Label::new(Some("Loading notes…"));
         results.add_css_class("dim-label");
         results.set_halign(gtk::Align::Start);
-        page.append(&results);
 
         let stack = adw::ViewStack::new();
         let active = note_list();
+        let pinned = note_list();
+        let favorites = note_list();
         let archived = note_list();
         let trash = note_list();
         stack.add_titled_with_icon(&active, Some("active"), "Notes", "note-symbolic");
+        stack.add_titled_with_icon(&pinned, Some("pinned"), "Pinned", "view-pin-symbolic");
+        stack.add_titled_with_icon(
+            &favorites,
+            Some("favorites"),
+            "Favorites",
+            "starred-symbolic",
+        );
         stack.add_titled_with_icon(&archived, Some("archived"), "Archived", "folder-symbolic");
         stack.add_titled_with_icon(&trash, Some("trash"), "Trash", "user-trash-symbolic");
-        let switcher = adw::ViewSwitcher::builder()
-            .stack(&stack)
-            .policy(adw::ViewSwitcherPolicy::Wide)
-            .build();
-        page.append(&switcher);
+
+        let sidebar = gtk::Box::new(gtk::Orientation::Vertical, 6);
+        sidebar.add_css_class("library-sidebar");
+        sidebar.set_width_request(180);
+        sidebar.set_margin_top(12);
+        sidebar.set_margin_bottom(12);
+        sidebar.set_margin_start(12);
+        sidebar.set_margin_end(12);
+        let nav_group = gtk::ToggleButton::new();
+        for (name, label, icon) in [
+            ("active", "All Notes", "note-symbolic"),
+            ("pinned", "Pinned", "view-pin-symbolic"),
+            ("favorites", "Favorites", "starred-symbolic"),
+            ("archived", "Archived", "folder-symbolic"),
+            ("trash", "Trash", "user-trash-symbolic"),
+        ] {
+            let button = gtk::ToggleButton::builder()
+                .label(label)
+                .icon_name(icon)
+                .halign(gtk::Align::Fill)
+                .build();
+            button.add_css_class("flat");
+            button.add_css_class("sidebar-row");
+            button.set_group(Some(&nav_group));
+            if name == "active" {
+                button.set_active(true);
+            }
+            let stack = stack.clone();
+            button.connect_toggled(move |button| {
+                if button.is_active() {
+                    stack.set_visible_child_name(name);
+                }
+            });
+            sidebar.append(&button);
+        }
+        let privacy = gtk::Label::new(Some("Private · Stored locally"));
+        privacy.add_css_class("dim-label");
+        privacy.set_margin_top(18);
+        sidebar.append(&privacy);
+
         stack.set_vexpand(true);
         let scroller = gtk::ScrolledWindow::builder()
             .vexpand(true)
             .hscrollbar_policy(gtk::PolicyType::Never)
             .child(&stack)
             .build();
-        page.append(&scroller);
-        let status = gtk::Label::new(Some("Local only · All changes saved offline"));
+        scroller.set_width_request(380);
+
+        let preview_title = gtk::Label::new(Some("Select a note"));
+        preview_title.add_css_class("title-1");
+        preview_title.set_xalign(0.0);
+        preview_title.set_wrap(true);
+        let preview_body = gtk::Label::new(Some("A quiet preview appears here."));
+        preview_body.set_xalign(0.0);
+        preview_body.set_yalign(0.0);
+        preview_body.set_wrap(true);
+        preview_body.set_selectable(true);
+        let preview = gtk::Box::new(gtk::Orientation::Vertical, 12);
+        preview.add_css_class("note-preview");
+        preview.set_margin_top(24);
+        preview.set_margin_bottom(24);
+        preview.set_margin_start(24);
+        preview.set_margin_end(24);
+        preview.append(&preview_title);
+        preview.append(&preview_body);
+        let preview_scroll = gtk::ScrolledWindow::builder()
+            .hexpand(true)
+            .vexpand(true)
+            .child(&preview)
+            .build();
+
+        let navigation = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+        navigation.append(&sidebar);
+        navigation.append(&gtk::Separator::new(gtk::Orientation::Vertical));
+        navigation.append(&scroller);
+        let content = gtk::Paned::new(gtk::Orientation::Horizontal);
+        content.set_start_child(Some(&navigation));
+        content.set_end_child(Some(&preview_scroll));
+        content.set_position(580);
+        content.set_vexpand(true);
+        {
+            let preview = preview_scroll.clone();
+            window.connect_notify_local(Some("width"), move |window, _| {
+                preview.set_visible(window.width() >= 900);
+            });
+        }
+
+        page.append(&content);
+
+        let status = gtk::Label::new(Some("All changes saved offline"));
         status.add_css_class("dim-label");
-        status.set_halign(gtk::Align::Start);
-        page.append(&status);
+        status.set_halign(gtk::Align::End);
+        status.set_hexpand(true);
+        let footer = gtk::Box::new(gtk::Orientation::Horizontal, 12);
+        footer.set_margin_start(18);
+        footer.set_margin_end(18);
+        footer.set_margin_top(6);
+        footer.set_margin_bottom(6);
+        footer.append(&results);
+        footer.append(&status);
+        page.append(&footer);
         toolbar.set_content(Some(&page));
         window.set_content(Some(&toolbar));
 
@@ -139,8 +237,12 @@ impl MainWindow {
             search,
             sort,
             active,
+            pinned,
+            favorites,
             archived,
             trash,
+            preview_title,
+            preview_body,
             status,
             results,
             refresh_generation: Rc::new(Cell::new(0)),
@@ -257,14 +359,11 @@ impl MainWindow {
 
     fn attach_trash_actions(&self, row: &adw::ActionRow, id: NoteId) {
         let actions = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-        let restore = gtk::Button::with_label("Restore");
+        let restore = gtk::Button::from_icon_name("edit-undo-symbolic");
+        restore.set_tooltip_text(Some("Restore note"));
         restore.add_css_class("suggested-action");
-        let delete = gtk::Button::with_label("Permanently Delete");
-        delete.add_css_class("destructive-action");
         self.connect_restore(&restore, id);
-        self.connect_permanent_delete(&delete, id);
         actions.append(&restore);
-        actions.append(&delete);
         row.add_suffix(&actions);
 
         let menu_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
@@ -291,6 +390,8 @@ impl MainWindow {
         let counts = NoteCounts::from_notes(&notes);
         let total = notes.len();
         clear_list(&self.active);
+        clear_list(&self.pinned);
+        clear_list(&self.favorites);
         clear_list(&self.archived);
         clear_list(&self.trash);
         for note in notes {
@@ -315,20 +416,55 @@ impl MainWindow {
             if matches!(note.state, NoteState::Trashed { .. }) {
                 self.attach_trash_actions(&row, note.id);
             }
+            let preview_title = self.preview_title.clone();
+            let preview_body = self.preview_body.clone();
+            let preview_note = note.clone();
+            let preview_gesture = gtk::GestureClick::new();
+            preview_gesture.set_button(1);
+            preview_gesture.connect_released(move |_, _, _, _| {
+                preview_title.set_text(preview_note.display_title());
+                preview_body.set_text(&preview_note.content);
+            });
+            row.add_controller(preview_gesture);
             let app = self.app.clone();
             let autosave = self.autosave.clone();
             let controller = self.controller.clone();
             let repository = self.repository.clone();
+            let open_note = note.clone();
             row.connect_activated(move |_| {
                 NoteWindow::new(
                     &app,
-                    note.clone(),
+                    open_note.clone(),
                     autosave.clone(),
                     repository.clone(),
                     controller.clone(),
                 )
                 .present();
             });
+            if note.pinned && matches!(note.state, NoteState::Active) {
+                let pinned_row = compact_filtered_row(&note, "view-pin-symbolic");
+                connect_open_row(
+                    &pinned_row,
+                    &note,
+                    &self.app,
+                    &self.autosave,
+                    &self.repository,
+                    &self.controller,
+                );
+                self.pinned.append(&pinned_row);
+            }
+            if note.favorite && matches!(note.state, NoteState::Active) {
+                let favorite_row = compact_filtered_row(&note, "starred-symbolic");
+                connect_open_row(
+                    &favorite_row,
+                    &note,
+                    &self.app,
+                    &self.autosave,
+                    &self.repository,
+                    &self.controller,
+                );
+                self.favorites.append(&favorite_row);
+            }
             target.append(&row);
         }
         append_empty_state(
@@ -355,6 +491,8 @@ impl MainWindow {
                 "Trash is empty"
             },
         );
+        append_empty_state(&self.pinned, "No pinned notes");
+        append_empty_state(&self.favorites, "No favorite notes");
         self.results.set_text(&if searching {
             format!("{total} matching notes")
         } else {
@@ -365,6 +503,42 @@ impl MainWindow {
         });
         self.set_status("Local only · All changes saved offline");
     }
+}
+
+fn compact_filtered_row(note: &Note, icon: &str) -> adw::ActionRow {
+    let row = adw::ActionRow::builder()
+        .title(note.display_title())
+        .subtitle(content_preview(&note.content, 120))
+        .activatable(true)
+        .build();
+    row.add_prefix(&gtk::Image::from_icon_name(icon));
+    row.add_css_class("note-row");
+    row
+}
+
+fn connect_open_row(
+    row: &adw::ActionRow,
+    note: &Note,
+    app: &adw::Application,
+    autosave: &AutosaveQueue,
+    repository: &SqliteNoteRepository,
+    controller: &Arc<dyn WindowController>,
+) {
+    let app = app.clone();
+    let note = note.clone();
+    let autosave = autosave.clone();
+    let repository = repository.clone();
+    let controller = controller.clone();
+    row.connect_activated(move |_| {
+        NoteWindow::new(
+            &app,
+            note.clone(),
+            autosave.clone(),
+            repository.clone(),
+            controller.clone(),
+        )
+        .present();
+    });
 }
 
 fn note_list() -> gtk::ListBox {

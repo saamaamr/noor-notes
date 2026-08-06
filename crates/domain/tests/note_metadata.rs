@@ -1,5 +1,5 @@
 use chrono::{TimeZone, Utc};
-use noor_domain::{Note, NoteColor, NoteState};
+use noor_domain::{EditorPreferences, Note, NoteColor, NoteState};
 
 #[test]
 fn metadata_defaults_and_legacy_json_are_safe() {
@@ -11,9 +11,33 @@ fn metadata_defaults_and_legacy_json_are_safe() {
     let object = value.as_object_mut().unwrap();
     object.remove("color");
     object.remove("tags");
+    object.remove("pinned");
+    object.remove("favorite");
+    object.remove("editor_preferences");
     let restored: Note = serde_json::from_value(value).unwrap();
     assert_eq!(restored.color, NoteColor::Yellow);
     assert!(restored.tags.is_empty());
+    assert!(!restored.pinned);
+    assert!(!restored.favorite);
+    assert_eq!(restored.editor_preferences, EditorPreferences::default());
+}
+
+#[test]
+fn editor_preferences_are_clamped_and_round_trip_with_note_metadata() {
+    let now = Utc.with_ymd_and_hms(2026, 8, 5, 10, 0, 0).unwrap();
+    let mut note = Note::new(now);
+    note.pinned = true;
+    note.favorite = true;
+    note.editor_preferences.word_wrap = false;
+    note.editor_preferences.set_zoom_percent(425);
+
+    assert_eq!(note.editor_preferences.zoom_percent, 300);
+
+    let restored: Note = serde_json::from_str(&serde_json::to_string(&note).unwrap()).unwrap();
+    assert!(restored.pinned);
+    assert!(restored.favorite);
+    assert!(!restored.editor_preferences.word_wrap);
+    assert_eq!(restored.editor_preferences.zoom_percent, 300);
 }
 
 #[test]

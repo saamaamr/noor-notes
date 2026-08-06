@@ -46,6 +46,37 @@ impl Revision {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EditorPreferences {
+    #[serde(default = "default_zoom_percent")]
+    pub zoom_percent: u16,
+    #[serde(default = "default_word_wrap")]
+    pub word_wrap: bool,
+}
+
+const fn default_zoom_percent() -> u16 {
+    100
+}
+
+const fn default_word_wrap() -> bool {
+    true
+}
+
+impl Default for EditorPreferences {
+    fn default() -> Self {
+        Self {
+            zoom_percent: default_zoom_percent(),
+            word_wrap: default_word_wrap(),
+        }
+    }
+}
+
+impl EditorPreferences {
+    pub fn set_zoom_percent(&mut self, value: u16) {
+        self.zoom_percent = value.clamp(50, 300);
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum NoteState {
     Active,
@@ -60,6 +91,9 @@ pub struct Note {
     pub color: NoteColor,
     pub tags: Vec<String>,
     pub content: String,
+    pub pinned: bool,
+    pub favorite: bool,
+    pub editor_preferences: EditorPreferences,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rich_content: Option<RichDocument>,
     pub style: NoteStyle,
@@ -82,6 +116,12 @@ struct NoteWire {
     #[serde(default)]
     tags: Vec<String>,
     content: String,
+    #[serde(default)]
+    pinned: bool,
+    #[serde(default)]
+    favorite: bool,
+    #[serde(default)]
+    editor_preferences: EditorPreferences,
     #[serde(default)]
     rich_content: Option<RichDocument>,
     style: NoteStyle,
@@ -107,6 +147,9 @@ impl<'de> Deserialize<'de> for Note {
             color: wire.color,
             tags: wire.tags,
             content: wire.content,
+            pinned: wire.pinned,
+            favorite: wire.favorite,
+            editor_preferences: wire.editor_preferences,
             rich_content: wire.rich_content,
             style: wire.style,
             geometry: wire.geometry,
@@ -159,6 +202,7 @@ impl Note {
         copy.color = self.color;
         copy.tags = self.tags.clone();
         copy.content = self.content.clone();
+        copy.editor_preferences = self.editor_preferences;
         copy.rich_content = self.rich_content.clone();
         copy.style = self.style.clone();
         copy
@@ -171,6 +215,9 @@ impl Note {
             color: NoteColor::default(),
             tags: Vec::new(),
             content: String::new(),
+            pinned: false,
+            favorite: false,
+            editor_preferences: EditorPreferences::default(),
             rich_content: None,
             style: NoteStyle::default(),
             geometry: WindowGeometry::default(),

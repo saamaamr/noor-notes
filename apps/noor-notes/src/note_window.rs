@@ -47,15 +47,12 @@ impl NoteWindow {
 
         let layout = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let header = adw::HeaderBar::new();
-        header.add_css_class("flat");
         let toolbar = ModernToolbar::new();
         let is_trashed = matches!(current.state, NoteState::Trashed { .. });
         toolbar.archive.set_visible(!is_trashed);
         toolbar.trash.set_visible(!is_trashed);
         toolbar.restore.set_visible(is_trashed);
         toolbar.permanent_delete.set_visible(is_trashed);
-        header.pack_end(&toolbar.widget);
-        layout.append(&header);
         let title_entry = gtk::Entry::builder()
             .text(current.display_title())
             .placeholder_text("Untitled note")
@@ -63,25 +60,58 @@ impl NoteWindow {
             .build();
         title_entry.add_css_class("note-title-entry");
         title_entry.set_hexpand(true);
+        title_entry.set_width_chars(32);
         let save_status = SaveStatusIndicator::new();
-        let title_row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-        title_row.add_css_class("note-title-row");
-        title_row.append(&title_entry);
-        title_row.append(&save_status.widget);
-        layout.append(&title_row);
+        let title_box = gtk::Box::new(gtk::Orientation::Horizontal, 12);
+        title_box.add_css_class("editor-title-box");
+        title_box.append(&title_entry);
+        title_box.append(&save_status.widget);
+        header.set_title_widget(Some(&title_box));
+        let library_pin = gtk::ToggleButton::builder()
+            .icon_name("view-pin-symbolic")
+            .tooltip_text("Pin note in the library")
+            .active(current.pinned)
+            .build();
+        let favorite = gtk::ToggleButton::builder()
+            .icon_name(if current.favorite {
+                "starred-symbolic"
+            } else {
+                "non-starred-symbolic"
+            })
+            .tooltip_text("Add to favorites")
+            .active(current.favorite)
+            .build();
+        header.pack_start(&library_pin);
+        header.pack_start(&favorite);
+        layout.append(&header);
+        layout.append(&toolbar.widget);
+
+        let metadata = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+        metadata.add_css_class("note-metadata");
+        metadata.append(&gtk::Image::from_icon_name("tag-symbolic"));
         let tags_entry = gtk::Entry::builder()
             .text(current.tags.join(", "))
-            .placeholder_text("Tags, separated by commas")
+            .placeholder_text("Add tags, separated by commas")
             .editable(!is_trashed)
             .build();
         tags_entry.add_css_class("note-tags-entry");
-        layout.append(&tags_entry);
+        tags_entry.set_hexpand(true);
+        metadata.append(&tags_entry);
+        layout.append(&metadata);
 
         let buffer = gtk::TextBuffer::new(None);
         RichBuffer::load(&buffer, &current.content, current.rich_content.as_ref());
+        toolbar
+            .word_wrap
+            .set_active(current.editor_preferences.word_wrap);
+        let initial_wrap = if current.editor_preferences.word_wrap {
+            gtk::WrapMode::WordChar
+        } else {
+            gtk::WrapMode::None
+        };
         let editor = gtk::TextView::builder()
             .buffer(&buffer)
-            .wrap_mode(gtk::WrapMode::WordChar)
+            .wrap_mode(initial_wrap)
             .left_margin(22)
             .right_margin(22)
             .top_margin(18)
@@ -156,6 +186,33 @@ impl NoteWindow {
                 results.borrow_mut().next();
                 select_find_result(&buffer, &results.borrow(), &count);
             });
+        }
+        {
+            let buffer = buffer.clone();
+            let results = find_results.clone();
+            let count = find_count.clone();
+            find_entry.connect_activate(move |_| {
+                results.borrow_mut().next();
+                select_find_result(&buffer, &results.borrow(), &count);
+            });
+        }
+        {
+            let buffer = buffer.clone();
+            let results = find_results.clone();
+            let count = find_count.clone();
+            let keys = gtk::EventControllerKey::new();
+            keys.connect_key_pressed(move |_, key, _, state| {
+                if key == gtk::gdk::Key::Return
+                    && state.contains(gtk::gdk::ModifierType::SHIFT_MASK)
+                {
+                    results.borrow_mut().previous();
+                    select_find_result(&buffer, &results.borrow(), &count);
+                    gtk::glib::Propagation::Stop
+                } else {
+                    gtk::glib::Propagation::Proceed
+                }
+            });
+            find_entry.add_controller(keys);
         }
         for option in [&match_case, &whole_word] {
             let buffer = buffer.clone();
@@ -255,8 +312,41 @@ impl NoteWindow {
         editor_status.add_css_class("editor-status");
         layout.append(&editor_status);
         window.set_content(Some(&layout));
+        {
+            let keys = gtk::EventControllerKey::new();
+            let note = note.clone();
+            let autosave = autosave.clone();
+            let buffer = buffer.clone();
+            let wrap = toolbar.word_wrap.clone();
+            let app = app.clone();
+            keys.connect_key_pressed(move |_, key, _, state| {
+                if state.contains(gtk::gdk::ModifierType::ALT_MASK) && key == gtk::gdk::Key::z {
+                    wrap.set_active(!wrap.is_active());
+                    return gtk::glib::Propagation::Stop;
+                }
+                if !state.contains(gtk::gdk::ModifierType::CONTROL_MASK) {
+                    return gtk::glib::Propagation::Proceed;
+                }
+                if key == gtk::gdk::Key::s {
+                    save_editor_snapshot(&buffer, &note, &autosave);
+                    let autosave = autosave.clone();
+                    let id = note.borrow().id;
+                    gtk::glib::MainContext::default().spawn_local(async move {
+                        let _ = autosave.flush(id).await;
+                    });
+                    gtk::glib::Propagation::Stop
+                } else if key == gtk::gdk::Key::n {
+                    app.activate_action("new-note", None);
+                    gtk::glib::Propagation::Stop
+                } else {
+                    gtk::glib::Propagation::Proceed
+                }
+            });
+            window.add_controller(keys);
+        }
         crate::editor_actions::connect(&toolbar, &buffer, &editor);
-        let zoom = Rc::new(Cell::new(100_u16));
+        let zoom = Rc::new(Cell::new(current.editor_preferences.zoom_percent));
+        apply_editor_zoom(&editor, zoom.get());
         update_editor_status(&buffer, &editor_status, zoom.get());
         {
             let status = editor_status.clone();
@@ -272,12 +362,17 @@ impl NoteWindow {
         }
         {
             let editor = editor.clone();
+            let note = note.clone();
+            let autosave = autosave.clone();
             toolbar.word_wrap.connect_toggled(move |button| {
+                let enabled = button.is_active();
                 editor.set_wrap_mode(if button.is_active() {
                     gtk::WrapMode::WordChar
                 } else {
                     gtk::WrapMode::None
                 });
+                note.borrow_mut().editor_preferences.word_wrap = enabled;
+                autosave.schedule(NoteDraft::from(note.borrow().clone()));
             });
         }
         connect_zoom(
@@ -297,12 +392,27 @@ impl NoteWindow {
             -10,
         );
         {
+            let note = note.clone();
+            for button in [&toolbar.zoom_in, &toolbar.zoom_out] {
+                let note = note.clone();
+                let autosave = autosave.clone();
+                let zoom = zoom.clone();
+                button.connect_clicked(move |_| {
+                    note.borrow_mut()
+                        .editor_preferences
+                        .set_zoom_percent(zoom.get());
+                    autosave.schedule(NoteDraft::from(note.borrow().clone()));
+                });
+            }
+            let autosave = autosave.clone();
             let editor = editor.clone();
             let status = editor_status.clone();
             let buffer = buffer.clone();
             let zoom = zoom.clone();
             toolbar.zoom_reset.connect_clicked(move |_| {
                 zoom.set(100);
+                note.borrow_mut().editor_preferences.set_zoom_percent(100);
+                autosave.schedule(NoteDraft::from(note.borrow().clone()));
                 apply_editor_zoom(&editor, 100);
                 update_editor_status(&buffer, &status, 100);
             });
@@ -426,6 +536,28 @@ impl NoteWindow {
             });
         }
         {
+            {
+                let note = note.clone();
+                let autosave = autosave.clone();
+                library_pin.connect_toggled(move |button| {
+                    note.borrow_mut().pinned = button.is_active();
+                    autosave.schedule(NoteDraft::from(note.borrow().clone()));
+                });
+            }
+            {
+                let note = note.clone();
+                let autosave = autosave.clone();
+                favorite.connect_toggled(move |button| {
+                    let enabled = button.is_active();
+                    note.borrow_mut().favorite = enabled;
+                    button.set_icon_name(if enabled {
+                        "starred-symbolic"
+                    } else {
+                        "non-starred-symbolic"
+                    });
+                    autosave.schedule(NoteDraft::from(note.borrow().clone()));
+                });
+            }
             let note = note.clone();
             let autosave = autosave.clone();
             title_entry.connect_changed(move |entry| {

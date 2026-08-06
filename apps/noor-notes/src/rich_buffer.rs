@@ -254,6 +254,23 @@ impl RichBuffer {
         replace_selection_tag(buffer, "noor-bg-", &format!("noor-bg-{color}"));
     }
 
+    pub fn clear_formatting(buffer: &gtk::TextBuffer) {
+        let Some((start, end)) = buffer.selection_bounds() else {
+            return;
+        };
+        let mut names = Vec::new();
+        buffer.tag_table().foreach(|tag| {
+            if let Some(name) = tag.name().filter(|name| name.starts_with("noor-")) {
+                names.push(name.to_string());
+            }
+        });
+        buffer.begin_user_action();
+        for name in names {
+            buffer.remove_tag_by_name(&name, &start, &end);
+        }
+        buffer.end_user_action();
+    }
+
     pub fn toggle_list(buffer: &gtk::TextBuffer, kind: ListKind) {
         let (first, last) = selected_lines(buffer);
         let all_match = (first..=last).all(|line| {

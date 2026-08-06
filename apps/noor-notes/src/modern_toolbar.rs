@@ -14,6 +14,7 @@ pub struct ModernToolbar {
     pub bullets: gtk::ToggleButton,
     pub numbered: gtk::ToggleButton,
     pub font_size: gtk::DropDown,
+    pub clear_formatting: gtk::Button,
     pub custom_font_size: gtk::Entry,
     pub apply_font_size: gtk::Button,
     pub rename: gtk::Button,
@@ -44,6 +45,10 @@ impl ModernToolbar {
     pub fn new() -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Horizontal, 8);
         widget.add_css_class("modern-toolbar");
+        widget.set_margin_start(12);
+        widget.set_margin_end(12);
+        widget.set_margin_top(6);
+        widget.set_margin_bottom(6);
 
         let new_note = icon_button("list-add-symbolic", "New note");
         let undo = icon_button("edit-undo-symbolic", "Undo (Ctrl+Z)");
@@ -52,8 +57,6 @@ impl ModernToolbar {
         redo.set_sensitive(false);
         let pin = toggle_button("view-pin-symbolic", "Always on Top");
         let left = group();
-        left.append(&pin);
-        left.append(&new_note);
         left.append(&undo);
         left.append(&redo);
 
@@ -108,6 +111,10 @@ impl ModernToolbar {
         let foreground_buttons = color_buttons(&format_grid, 5, "Text", "text-color");
         let highlight_buttons = color_buttons(&format_grid, 4, "Highlight", "highlight-color");
         let format_popover = gtk::Popover::builder().child(&format_grid).build();
+        let clear_formatting = gtk::Button::with_label("Clear Formatting");
+        clear_formatting.set_tooltip_text(Some("Remove formatting from the selection"));
+        clear_formatting.add_css_class("flat");
+        format_grid.attach(&clear_formatting, 0, 6, 4, 1);
         let format = gtk::MenuButton::builder()
             .icon_name("format-text-rich-symbolic")
             .tooltip_text("Formatting")
@@ -141,6 +148,8 @@ impl ModernToolbar {
             .build();
         emoji.add_css_class("toolbar-button");
         let center = group();
+        let find = toggle_button("edit-find-symbolic", "Find in note (Ctrl+F)");
+        center.append(&find);
         center.append(&format);
         center.append(&emoji);
 
@@ -176,7 +185,6 @@ impl ModernToolbar {
             .popover(&settings_popover)
             .build();
         settings.add_css_class("toolbar-button");
-        let find = toggle_button("edit-find-symbolic", "Find in note (Ctrl+F)");
         let word_wrap = toggle_button("format-justify-left-symbolic", "Word wrap");
         word_wrap.set_active(true);
         let zoom_in = icon_button("zoom-in-symbolic", "Zoom in (Ctrl++)");
@@ -219,8 +227,18 @@ impl ModernToolbar {
         let permanent_delete = icon_button("edit-delete-symbolic", "Permanently Delete");
         permanent_delete.add_css_class("destructive-hover");
         let more_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
+        more_box.set_margin_top(6);
+        more_box.set_margin_bottom(6);
+        more_box.set_margin_start(6);
+        more_box.set_margin_end(6);
+        more_box.append(&new_note);
         more_box.append(&rename);
         more_box.append(&duplicate);
+        more_box.append(&pin);
+        more_box.append(&archive);
+        more_box.append(&trash);
+        more_box.append(&restore);
+        more_box.append(&permanent_delete);
         more_box.append(&export);
         more_box.append(&view);
         more_box.append(&settings);
@@ -232,11 +250,6 @@ impl ModernToolbar {
             .build();
         more.add_css_class("toolbar-button");
         let right = group();
-        right.append(&find);
-        right.append(&archive);
-        right.append(&trash);
-        right.append(&restore);
-        right.append(&permanent_delete);
         right.append(&more);
 
         widget.append(&left);
@@ -258,6 +271,7 @@ impl ModernToolbar {
             custom_font_size,
             apply_font_size,
             rename,
+            clear_formatting,
             find,
             word_wrap,
             zoom_in,

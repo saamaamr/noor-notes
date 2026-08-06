@@ -56,4 +56,17 @@ fn rich_buffer_round_trip_preserves_bold_selection_and_emoji() {
             .as_str(),
         "safe plain text"
     );
+    let clear_buffer = gtk::TextBuffer::new(None);
+    RichBuffer::load(
+        &clear_buffer,
+        "Formatted",
+        Some(&RichDocument::from_plain_text("Formatted")),
+    );
+    clear_buffer.select_range(&clear_buffer.start_iter(), &clear_buffer.end_iter());
+    RichBuffer::bold(&clear_buffer);
+    RichBuffer::foreground(&clear_buffer, "blue");
+    RichBuffer::highlight(&clear_buffer, "green");
+    RichBuffer::clear_formatting(&clear_buffer);
+    let (_, cleared) = RichBuffer::snapshot(&clear_buffer);
+    assert_eq!(cleared.blocks[0].spans[0].marks, TextMarks::default());
 }

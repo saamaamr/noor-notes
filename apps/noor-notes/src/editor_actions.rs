@@ -128,6 +128,15 @@ pub fn connect(toolbar: &ModernToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         });
     }
 
+    {
+        let buffer = buffer.clone();
+        let editor = editor.clone();
+        toolbar.clear_formatting.connect_clicked(move |_| {
+            RichBuffer::clear_formatting(&buffer);
+            editor.grab_focus();
+        });
+    }
+
     let shortcuts = gtk::EventControllerKey::new();
     let shortcut_buffer = buffer.clone();
     let find_button = toolbar.find.clone();
