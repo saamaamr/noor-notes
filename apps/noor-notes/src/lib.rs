@@ -1,6 +1,7 @@
 pub mod account;
 pub mod actions;
 pub mod app;
+pub mod appearance;
 pub mod autosave;
 pub mod edit_save_gate;
 pub mod editor;
