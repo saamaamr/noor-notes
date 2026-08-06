@@ -4,23 +4,22 @@ Noor Notes is a private, offline-first GTK4/libadwaita notes application for Lin
 
 ## Features
 
-- **Modern native library**: a focused GNOME header, private/offline status, Notes/Archived/Trash navigation, note previews, section counts, useful empty states, and keyboard-selectable rows.
-- **Completely redesigned library**: adaptive sidebar, virtualized note cards, selected-note preview, seven navigation sections, responsive empty states, and a compact native header.
-- **Dual editor modes**: existing rich notes remain compatible, while Markdown, plain-text, and code notes use GtkSourceView with line numbers, current-line highlighting, regex search, bookmarks, and syntax languages.
-- **Premium appearance modes**: follow GNOME automatically or choose Light, Graphite, Midnight, or OLED; every palette updates open windows, editor surfaces, paper colors, and symbolic icon colors together.
-- **Fast search and sorting**: Unicode-aware library search is debounced and stale results are discarded; sort by recently updated, recently created, title A–Z, or title Z–A.
-- **Named and organized notes**: edit titles, add searchable tags, choose six accessible colours, and duplicate notes.
-- **Reliable saving**: visible Saving/Saved state, retryable failures, and close-time flushing protect pending edits.
-- **Encrypted locally**: SQLCipher protects note text, titles, tags, and history using a random key held by GNOME Keyring; existing databases migrate automatically and safely.
-- **Rich text**: bold, italic, underline, strikethrough, reliable bullet and numbered lists, preset or custom positive whole-number font sizes, alignment, text and highlight colours, emoji, undo, and redo.
-- **Find and replace**: navigate matches, replace one or all matches, and optionally match case or whole words while preserving Unicode character offsets.
-- **Editor productivity**: word wrap, zoom from 50% to 300%, go to line, full screen, line/column position, line/word/character/selection counts, plain-text and Markdown export, and a keyboard-shortcut reference.
-- **Accessible appearance**: compact consistent controls, symbolic icons, visible tooltips and focus states, semantic light/dark palettes, and optional readable paper colours.
-- A searchable library with active, archived, and **Trash** notes.
-- Source-install Xpad import that previews the migration and leaves the source files unchanged.
-- Optional window controls, including Always on Top, all-workspaces, and opacity where the desktop supports them.
+- **Native notes library**: a compact GNOME header, adaptive navigation sidebar, virtualized note cards, selected-note preview, responsive empty states, keyboard navigation, and views for All Notes, Pinned, Favorites, Recent, Archived, Trash, and Tags.
+- **Fast organization**: Unicode-aware debounced search, stable sorting, editable titles, searchable tags, pinned and favorite states, note colours, duplication, archive, restore, and confirmed permanent deletion.
+- **Focused editor**: a spacious writing canvas with a compact toolbar and live status bar. Find and replace, undo and redo, word wrap, zoom, go to line, full screen, line and column position, word and character counts, and keyboard shortcuts work end to end.
+- **Rich and source modes**: rich notes support persistent bold, italic, underline, strikethrough, lists, alignment, font sizes, text and highlight colours, and emoji. Markdown, plain-text, and code notes use GtkSourceView capabilities including line numbers, current-line highlighting, regex search, bookmarks, and syntax languages.
+- **Reliable saving**: debounced autosave exposes Unsaved, Saving, Saved, and retryable failure states; close-time flushing protects pending edits, and rich formatting survives save and reopen.
+- **Premium appearance**: follow the GNOME system theme or choose Light, Graphite, Midnight, or OLED. The selection persists and updates library windows, editors, paper colours, controls, and symbolic icon colours together.
+- **Private local storage**: SQLCipher encrypts note text, titles, tags, and history with a random key held by GNOME Keyring. Existing databases migrate safely, and Noor Notes adds no analytics, advertising, or tracking.
+- **Linux desktop integration**: source installs can preview and import Xpad notes without modifying the originals. Always on Top, all-workspaces, opacity, and other window controls are available where the active desktop backend supports them.
 
 ## Installation
+
+Choose one installation method:
+
+- **Snap or Flatpak release** for a packaged v0.1.1 installation.
+- **Ubuntu source installer** for the current repository version and host Xpad import.
+- **Local rebuild** when this repository and its dependencies are already installed.
 
 ### Release packages
 
@@ -51,7 +50,9 @@ cd noor-notes
 ./scripts/install-ubuntu.sh
 ```
 
-It installs the required system packages, installs Rust only if it is missing, builds the app, and installs it for the current user. From an existing checkout with the dependencies already available, use `./scripts/install-local.sh`. Launch Noor Notes from the application grid or run `~/.local/bin/noor-notes` (or the equivalent `XDG_BIN_HOME` location).
+The Ubuntu installer installs required system packages, installs Rust only when it is missing, builds Noor Notes, installs the desktop launcher and icon, and installs the optional GNOME Shell integration for the current user.
+
+From an existing checkout with dependencies already available, rebuild and reinstall with `./scripts/install-local.sh`. Launch Noor Notes from the application grid or run `~/.local/bin/noor-notes` directly (or the equivalent `XDG_BIN_HOME` location) to see startup diagnostics in a terminal.
 
 ## Verify release artifacts
 
@@ -73,21 +74,19 @@ test "$(grep -Fc "  $artifact" SHA256SUMS.txt)" = 1
 grep -F "  $artifact" SHA256SUMS.txt | sha256sum -c -
 ```
 
-Choose **Editor mode** from the note's More menu to switch between Rich Text,
+The final command must report `OK` for the selected artifact before installation.
+
+## Editor modes
+
+Choose **Editor mode** from the note More menu to switch between Rich Text, Markdown, Plain Text, and Code. Existing rich notes remain compatible. Noor Notes previews conversions before applying them and creates a recovery copy whenever rich styling would be lost.
+
+Markdown, Plain Text, and Code use the source editor with optional line numbers, current-line highlighting, bookmarks, regular-expression search, syntax highlighting, word wrap, and zoom. Rich Text retains persistent formatting and the compact formatting controls described below.
+
 ## Appearance and dark palettes
 
-Use the moon button in a library or editor header to cycle quickly between
-Graphite, Midnight, and OLED. For a direct choice, open the main menu's
-**Appearance** submenu. **Appearance Settings** shows all five modes with
-visual swatches. System follows GNOME while remembering the last preferred
-dark palette.
+Use the moon button in a library or editor header to cycle quickly between Graphite, Midnight, and OLED. For a direct choice, open the main menu **Appearance** submenu. **Appearance Settings** provides System, Light, Graphite, Midnight, and OLED with visual swatches.
 
-Native symbolic icons automatically adopt the selected palette: neutral icons
-follow foreground text, active icons use the accent, and destructive icons
-Markdown, Plain Text, and Code. Noor Notes previews conversions first and creates
-a recovery copy whenever rich styling would be lost.
-
-The final command must report `OK` for the selected artifact before installation.
+System follows the current GNOME preference while remembering the last preferred dark palette. Explicit selections persist across restarts and update every open library, editor, and settings window. Native symbolic icons adapt with the palette: neutral icons follow the foreground colour, active icons use the accent colour, and success, warning, and destructive icons retain accessible semantic colours.
 
 ## First use and Xpad import
 
@@ -139,6 +138,8 @@ Back up the encrypted database together with a working GNOME Keyring backup. If 
 - If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v0.1.1.
 - If Sync says it is not configured, that is the current v0.1.1 limitation; there is no supported account or Supabase setup path yet.
 - If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
+- After pulling source changes, run `./scripts/install-local.sh` to rebuild and replace the user-installed binary and desktop resources. Fully quit any older Noor Notes process before reopening it.
+- If Noor Notes does not open from the application grid, run `~/.local/bin/noor-notes` in a terminal and include the displayed error in a bug report. Reinstall first if that path is missing or older than the checkout. Do not delete the notes database or GNOME Keyring entry while diagnosing launch problems.
 - If an Xpad note is skipped, inspect the import preview; it identifies entries that cannot be parsed before any import is committed.
 
 ## Development and build verification
