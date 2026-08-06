@@ -2,7 +2,8 @@ use adw::prelude::*;
 
 #[derive(Clone)]
 pub struct EditorToolbar {
-    pub widget: gtk::Box,
+    pub widget: gtk::FlowBox,
+    pub more: gtk::MenuButton,
     pub new_note: gtk::Button,
     pub undo: gtk::Button,
     pub redo: gtk::Button,
@@ -50,7 +51,14 @@ pub struct EditorToolbar {
 
 impl EditorToolbar {
     pub fn new() -> Self {
-        let widget = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        let widget = gtk::FlowBox::builder()
+            .selection_mode(gtk::SelectionMode::None)
+            .min_children_per_line(1)
+            .max_children_per_line(9)
+            .column_spacing(2)
+            .row_spacing(2)
+            .hexpand(true)
+            .build();
         widget.add_css_class("nn-editor-toolbar");
 
         let new_note = icon_button("list-add-symbolic", "New note");
@@ -59,9 +67,6 @@ impl EditorToolbar {
         undo.set_sensitive(false);
         redo.set_sensitive(false);
         let pin = toggle_button("view-pin-symbolic", "Always on Top");
-        let left = group();
-        left.append(&undo);
-        left.append(&redo);
 
         let bold = text_toggle("B", "Bold (Ctrl+B)", "format-bold");
         let italic = text_toggle("I", "Italic (Ctrl+I)", "format-italic");
@@ -146,16 +151,7 @@ impl EditorToolbar {
             .popover(&emoji_popover)
             .build();
         emoji.add_css_class("toolbar-button");
-        let center = group();
         let find = toggle_button("edit-find-symbolic", "Find in note (Ctrl+F)");
-        center.append(&find);
-        center.append(&gtk::Separator::new(gtk::Orientation::Vertical));
-        center.append(&bold);
-        center.append(&italic);
-        center.append(&bullets);
-        center.append(&format);
-        center.append(&gtk::Separator::new(gtk::Orientation::Vertical));
-        center.append(&emoji);
 
         let all_workspaces = toggle_button("focus-windows-symbolic", "Show on all workspaces");
         let opacity = gtk::Scale::with_range(gtk::Orientation::Horizontal, 0.35, 1.0, 0.05);
@@ -275,18 +271,22 @@ impl EditorToolbar {
             .popover(&more_popover)
             .build();
         more.add_css_class("toolbar-button");
-        let right = group();
-        right.append(&more);
-
-        widget.append(&left);
-        widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
-        widget.append(&center);
-        let spacer = gtk::Box::new(gtk::Orientation::Horizontal, 0);
-        spacer.set_hexpand(true);
-        widget.append(&spacer);
-        widget.append(&right);
+        for action in [
+            undo.upcast_ref::<gtk::Widget>(),
+            redo.upcast_ref(),
+            find.upcast_ref(),
+            bold.upcast_ref(),
+            italic.upcast_ref(),
+            bullets.upcast_ref(),
+            format.upcast_ref(),
+            emoji.upcast_ref(),
+            more.upcast_ref(),
+        ] {
+            widget.insert(action, -1);
+        }
         Self {
             widget,
+            more,
             new_note,
             undo,
             redo,
@@ -351,12 +351,6 @@ fn color_buttons(grid: &gtk::Grid, row: i32, label: &str, class: &str) -> Vec<gt
             button
         })
         .collect()
-}
-
-fn group() -> gtk::Box {
-    let group = gtk::Box::new(gtk::Orientation::Horizontal, 2);
-    group.add_css_class("toolbar-group");
-    group
 }
 
 fn icon_button(icon: &str, tooltip: &str) -> gtk::Button {
