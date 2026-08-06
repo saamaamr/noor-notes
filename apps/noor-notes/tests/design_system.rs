@@ -60,3 +60,31 @@ fn source_canvas_layout_does_not_override_sourceview_palette_colors() {
     assert!(rich_canvas.contains("color:"));
     assert!(rich_canvas.contains("caret-color:"));
 }
+
+#[test]
+fn rich_color_swatches_define_every_professional_light_and_dark_preset() {
+    for (role, colors) in [
+        (
+            "text",
+            &["slate", "blue", "teal", "green", "amber", "red", "purple"][..],
+        ),
+        (
+            "highlight",
+            &[
+                "yellow", "blue", "mint", "green", "peach", "pink", "lavender",
+            ][..],
+        ),
+    ] {
+        for color in colors {
+            let selector = format!(".nn-{role}-swatch.nn-color-{color}");
+            assert!(
+                CSS.contains(&selector),
+                "missing swatch selector: {selector}"
+            );
+            for theme in ["graphite", "midnight", "oled"] {
+                let dark = format!(".nn-theme-{theme} {selector}");
+                assert!(CSS.contains(&dark), "missing dark swatch selector: {dark}");
+            }
+        }
+    }
+}

@@ -21,4 +21,22 @@ fn primary_controls_have_accessible_descriptions_and_colour_choices() {
     for button in &toolbar.note_color_buttons {
         assert!(button.tooltip_text().is_some());
     }
+    toolbar.set_rich_formatting_enabled(false);
+    assert!(!toolbar.format.is_sensitive());
+    assert!(!toolbar.foreground_palette.widget.is_sensitive());
+    assert!(!toolbar.highlight_palette.widget.is_sensitive());
+    assert!(!toolbar.font_size.is_sensitive());
+    assert!(!toolbar.custom_font_size.is_sensitive());
+    assert!(!toolbar.clear_formatting.is_sensitive());
+
+    for palette in [&toolbar.foreground_palette, &toolbar.highlight_palette] {
+        assert!(palette.reset.can_focus());
+        assert!(palette.reset.tooltip_text().is_some());
+        assert!(palette.custom.can_focus());
+        assert!(palette.custom.tooltip_text().is_some());
+        for button in &palette.preset_buttons {
+            assert!(button.can_focus());
+            assert!(button.tooltip_text().is_some());
+        }
+    }
 }

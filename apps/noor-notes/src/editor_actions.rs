@@ -2,7 +2,9 @@ use adw::prelude::*;
 use noor_domain::{Alignment, ListKind};
 
 use crate::rich_buffer::RichBuffer;
+use crate::rich_color::{ColorRole, presets};
 use crate::ui::editor_toolbar::EditorToolbar;
+use crate::ui::rich_color_palette::RichColorPalette;
 
 pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::TextView) {
     {
@@ -89,30 +91,8 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
             }
         });
     }
-    for (button, color) in toolbar
-        .foreground_buttons
-        .iter()
-        .zip(["charcoal", "blue", "green", "red"])
-    {
-        let buffer = buffer.clone();
-        let editor = editor.clone();
-        button.connect_clicked(move |_| {
-            RichBuffer::foreground(&buffer, color);
-            editor.grab_focus();
-        });
-    }
-    for (button, color) in toolbar
-        .highlight_buttons
-        .iter()
-        .zip(["charcoal", "blue", "green", "red"])
-    {
-        let buffer = buffer.clone();
-        let editor = editor.clone();
-        button.connect_clicked(move |_| {
-            RichBuffer::highlight(&buffer, color);
-            editor.grab_focus();
-        });
-    }
+    connect_color_palette(&toolbar.foreground_palette, buffer, editor);
+    connect_color_palette(&toolbar.highlight_palette, buffer, editor);
     for (button, alignment) in toolbar.alignment_buttons.iter().zip([
         Alignment::Start,
         Alignment::Center,
@@ -215,6 +195,82 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
             if let Some(emoji) = button.label() {
                 RichBuffer::insert_emoji(&buffer, &emoji);
             }
+            editor.grab_focus();
+        });
+    }
+}
+
+fn connect_color_palette(
+    palette: &RichColorPalette,
+    buffer: &gtk::TextBuffer,
+    editor: &gtk::TextView,
+) {
+    for (index, (button, preset)) in palette
+        .preset_buttons
+        .iter()
+        .zip(presets(palette.role))
+        .enumerate()
+    {
+        let buffer = buffer.clone();
+        let editor = editor.clone();
+        let palette = palette.clone();
+        let color = preset.id;
+        button.connect_clicked(move |_| {
+            if buffer.selection_bounds().is_none() {
+                palette.clear_selection();
+                editor.grab_focus();
+                return;
+            }
+            match palette.role {
+                ColorRole::Foreground => RichBuffer::foreground(&buffer, color),
+                ColorRole::Highlight => RichBuffer::highlight(&buffer, color),
+            }
+            palette.select_preset(Some(index));
+            editor.grab_focus();
+        });
+    }
+
+    {
+        let buffer = buffer.clone();
+        let editor = editor.clone();
+        let palette = palette.clone();
+        palette.reset.clone().connect_clicked(move |_| {
+            if buffer.selection_bounds().is_none() {
+                palette.clear_selection();
+                editor.grab_focus();
+                return;
+            }
+            match palette.role {
+                ColorRole::Foreground => RichBuffer::clear_foreground(&buffer),
+                ColorRole::Highlight => RichBuffer::clear_highlight(&buffer),
+            }
+            palette.select_preset(None);
+            editor.grab_focus();
+        });
+    }
+
+    {
+        let buffer = buffer.clone();
+        let editor = editor.clone();
+        let palette = palette.clone();
+        palette.custom.clone().connect_rgba_notify(move |button| {
+            if buffer.selection_bounds().is_none() {
+                editor.grab_focus();
+                return;
+            }
+            let rgba = button.rgba();
+            let component = |value: f32| (value.clamp(0.0, 1.0) * 255.0).round() as u8;
+            let color = format!(
+                "#{:02X}{:02X}{:02X}",
+                component(rgba.red()),
+                component(rgba.green()),
+                component(rgba.blue())
+            );
+            match palette.role {
+                ColorRole::Foreground => RichBuffer::foreground(&buffer, &color),
+                ColorRole::Highlight => RichBuffer::highlight(&buffer, &color),
+            }
+            palette.clear_selection();
             editor.grab_focus();
         });
     }

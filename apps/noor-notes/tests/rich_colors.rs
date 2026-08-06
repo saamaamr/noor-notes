@@ -1,5 +1,7 @@
+use gtk::prelude::*;
 use noor_notes::{
     appearance::EffectiveTheme,
+    rich_buffer::RichBuffer,
     rich_color::{
         ColorRole, normalize_stored, presets, rendered_color, stored_value_from_tag, tag_name,
     },
@@ -45,4 +47,24 @@ fn tag_encoding_round_trips_without_embedding_untrusted_input() {
         Some("#1A2B3C")
     );
     assert!(tag_name(ColorRole::Highlight, "invalid value").is_none());
+}
+
+#[test]
+fn rich_buffer_preset_tags_follow_the_active_theme() {
+    gtk::init().unwrap();
+    let buffer = gtk::TextBuffer::new(None);
+    RichBuffer::prepare(&buffer);
+    let tag = buffer.tag_table().lookup("noor-fg-blue").unwrap();
+
+    RichBuffer::apply_color_theme(&buffer, EffectiveTheme::Light);
+    let light = tag.foreground_rgba().unwrap();
+    assert!((light.red() - 0x1D as f32 / 255.0).abs() < 0.001);
+    assert!((light.green() - 0x4E as f32 / 255.0).abs() < 0.001);
+    assert!((light.blue() - 0xD8 as f32 / 255.0).abs() < 0.001);
+
+    RichBuffer::apply_color_theme(&buffer, EffectiveTheme::Graphite);
+    let dark = tag.foreground_rgba().unwrap();
+    assert!((dark.red() - 0x93 as f32 / 255.0).abs() < 0.001);
+    assert!((dark.green() - 0xC5 as f32 / 255.0).abs() < 0.001);
+    assert!((dark.blue() - 0xFD as f32 / 255.0).abs() < 0.001);
 }

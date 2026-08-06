@@ -1,10 +1,14 @@
 use adw::prelude::*;
 
+use crate::rich_color::ColorRole;
+use crate::ui::rich_color_palette::RichColorPalette;
+
 #[derive(Clone)]
 pub struct EditorToolbar {
     pub widget: gtk::FlowBox,
     pub more: gtk::MenuButton,
     pub more_actions: gtk::FlowBox,
+    pub format: gtk::MenuButton,
     pub new_note: gtk::Button,
     pub undo: gtk::Button,
     pub redo: gtk::Button,
@@ -36,9 +40,9 @@ pub struct EditorToolbar {
     pub mode_plain: gtk::Button,
     pub mode_code: gtk::Button,
     pub alignment_buttons: Vec<gtk::ToggleButton>,
-    pub foreground_buttons: Vec<gtk::Button>,
+    pub foreground_palette: RichColorPalette,
     pub appearance: gtk::MenuButton,
-    pub highlight_buttons: Vec<gtk::Button>,
+    pub highlight_palette: RichColorPalette,
     pub emoji_buttons: Vec<gtk::Button>,
     pub all_workspaces: gtk::ToggleButton,
     pub opacity: gtk::Scale,
@@ -113,8 +117,10 @@ impl EditorToolbar {
         for (index, button) in alignment_buttons.iter().enumerate() {
             format_grid.attach(button, index as i32, 3, 1, 1);
         }
-        let foreground_buttons = color_buttons(&format_grid, 5, "Text", "text-color");
-        let highlight_buttons = color_buttons(&format_grid, 4, "Highlight", "highlight-color");
+        let foreground_palette = RichColorPalette::new(ColorRole::Foreground);
+        let highlight_palette = RichColorPalette::new(ColorRole::Highlight);
+        format_grid.attach(&foreground_palette.widget, 0, 4, 4, 1);
+        format_grid.attach(&highlight_palette.widget, 0, 5, 4, 1);
         let format_popover = gtk::Popover::builder().child(&format_grid).build();
         let clear_formatting = gtk::Button::with_label("Clear Formatting");
         clear_formatting.set_tooltip_text(Some("Remove formatting from the selection"));
@@ -317,6 +323,7 @@ impl EditorToolbar {
             widget,
             more,
             more_actions,
+            format,
             new_note,
             undo,
             redo,
@@ -348,8 +355,8 @@ impl EditorToolbar {
             export_text,
             export_markdown,
             alignment_buttons,
-            foreground_buttons,
-            highlight_buttons,
+            foreground_palette,
+            highlight_palette,
             emoji_buttons,
             appearance,
             all_workspaces,
@@ -362,25 +369,29 @@ impl EditorToolbar {
             permanent_delete,
         }
     }
-}
 
-fn color_buttons(grid: &gtk::Grid, row: i32, label: &str, class: &str) -> Vec<gtk::Button> {
-    let title = gtk::Label::new(Some(label));
-    title.set_xalign(0.0);
-    grid.attach(&title, 0, row, 1, 1);
-    ["charcoal", "blue", "green", "red"]
-        .iter()
-        .enumerate()
-        .map(|(index, color)| {
-            let button = gtk::Button::new();
-            button.set_tooltip_text(Some(&format!("{label}: {color}")));
-            button.add_css_class("color-choice");
-            button.add_css_class(class);
-            button.add_css_class(color);
-            grid.attach(&button, index as i32, row, 1, 1);
-            button
-        })
-        .collect()
+    pub fn set_rich_formatting_enabled(&self, enabled: bool) {
+        for control in [
+            self.format.upcast_ref::<gtk::Widget>(),
+            self.bold.upcast_ref::<gtk::Widget>(),
+            self.italic.upcast_ref(),
+            self.underline.upcast_ref(),
+            self.strikethrough.upcast_ref(),
+            self.bullets.upcast_ref(),
+            self.numbered.upcast_ref(),
+            self.font_size.upcast_ref(),
+            self.custom_font_size.upcast_ref(),
+            self.apply_font_size.upcast_ref(),
+            self.clear_formatting.upcast_ref(),
+            self.foreground_palette.widget.upcast_ref(),
+            self.highlight_palette.widget.upcast_ref(),
+        ] {
+            control.set_sensitive(enabled);
+        }
+        for button in &self.alignment_buttons {
+            button.set_sensitive(enabled);
+        }
+    }
 }
 
 fn icon_button(icon: &str, tooltip: &str) -> gtk::Button {

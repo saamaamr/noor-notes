@@ -28,4 +28,30 @@ fn compact_toolbar_exposes_only_frequent_actions_at_top_level() {
     ] {
         assert!(button.tooltip_text().is_some());
     }
+    assert_eq!(toolbar.foreground_palette.preset_buttons.len(), 7);
+    assert_eq!(toolbar.highlight_palette.preset_buttons.len(), 7);
+    assert!(toolbar.foreground_palette.custom.can_focus());
+    assert!(toolbar.highlight_palette.custom.can_focus());
+    assert!(toolbar.foreground_palette.reset.tooltip_text().is_some());
+    assert!(toolbar.highlight_palette.reset.tooltip_text().is_some());
+    assert_eq!(
+        toolbar.foreground_palette.preset_buttons[1]
+            .tooltip_text()
+            .as_deref(),
+        Some("Blue text")
+    );
+    assert_eq!(
+        toolbar.highlight_palette.preset_buttons[0]
+            .tooltip_text()
+            .as_deref(),
+        Some("Yellow highlight")
+    );
+    assert_eq!(
+        toolbar.foreground_palette.custom.tooltip_text().as_deref(),
+        Some("Custom text color")
+    );
+    assert_eq!(
+        toolbar.highlight_palette.custom.tooltip_text().as_deref(),
+        Some("Custom highlight color")
+    );
 }

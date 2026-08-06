@@ -8,3 +8,4 @@ pub mod library_window;
 pub mod note_card;
 pub mod note_collection;
 pub mod note_preview;
+pub mod rich_color_palette;

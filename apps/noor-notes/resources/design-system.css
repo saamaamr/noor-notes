@@ -53,6 +53,40 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-editor-toolbar button { min-width: 32px; min-height: 32px; padding: 0 8px; border-radius: 7px; }
 .nn-editor-toolbar separator { margin: 7px 3px; }
 .nn-editor-toolbar > flowboxchild { padding: 0; }
+.nn-rich-color-palette { margin-top: 4px; }
+.nn-color-choices > flowboxchild { padding: 0; }
+.nn-color-button, .nn-custom-color-button { min-width: 30px; min-height: 30px; padding: 5px; border-radius: 7px; }
+.nn-color-button:checked { box-shadow: inset 0 0 0 2px @accent_color; }
+.nn-color-swatch { min-width: 18px; min-height: 18px; border-radius: 9px; border: 1px solid alpha(currentColor, .22); }
+.nn-color-check { color: white; -gtk-icon-shadow: 0 1px 2px rgba(0,0,0,.65); }
+.nn-text-swatch.nn-color-slate { background: #334155; }
+.nn-text-swatch.nn-color-blue { background: #1D4ED8; }
+.nn-text-swatch.nn-color-teal { background: #0F766E; }
+.nn-text-swatch.nn-color-green { background: #15803D; }
+.nn-text-swatch.nn-color-amber { background: #A16207; }
+.nn-text-swatch.nn-color-red { background: #B91C1C; }
+.nn-text-swatch.nn-color-purple { background: #7E22CE; }
+.nn-highlight-swatch.nn-color-yellow { background: #FEF3C7; }
+.nn-highlight-swatch.nn-color-blue { background: #DBEAFE; }
+.nn-highlight-swatch.nn-color-mint { background: #CCFBF1; }
+.nn-highlight-swatch.nn-color-green { background: #DCFCE7; }
+.nn-highlight-swatch.nn-color-peach { background: #FFEDD5; }
+.nn-highlight-swatch.nn-color-pink { background: #FCE7F3; }
+.nn-highlight-swatch.nn-color-lavender { background: #EDE9FE; }
+.nn-theme-graphite .nn-text-swatch.nn-color-slate, .nn-theme-midnight .nn-text-swatch.nn-color-slate, .nn-theme-oled .nn-text-swatch.nn-color-slate { background: #E2E8F0; }
+.nn-theme-graphite .nn-text-swatch.nn-color-blue, .nn-theme-midnight .nn-text-swatch.nn-color-blue, .nn-theme-oled .nn-text-swatch.nn-color-blue { background: #93C5FD; }
+.nn-theme-graphite .nn-text-swatch.nn-color-teal, .nn-theme-midnight .nn-text-swatch.nn-color-teal, .nn-theme-oled .nn-text-swatch.nn-color-teal { background: #5EEAD4; }
+.nn-theme-graphite .nn-text-swatch.nn-color-green, .nn-theme-midnight .nn-text-swatch.nn-color-green, .nn-theme-oled .nn-text-swatch.nn-color-green { background: #86EFAC; }
+.nn-theme-graphite .nn-text-swatch.nn-color-amber, .nn-theme-midnight .nn-text-swatch.nn-color-amber, .nn-theme-oled .nn-text-swatch.nn-color-amber { background: #FCD34D; }
+.nn-theme-graphite .nn-text-swatch.nn-color-red, .nn-theme-midnight .nn-text-swatch.nn-color-red, .nn-theme-oled .nn-text-swatch.nn-color-red { background: #FCA5A5; }
+.nn-theme-graphite .nn-text-swatch.nn-color-purple, .nn-theme-midnight .nn-text-swatch.nn-color-purple, .nn-theme-oled .nn-text-swatch.nn-color-purple { background: #D8B4FE; }
+.nn-theme-graphite .nn-highlight-swatch.nn-color-yellow, .nn-theme-midnight .nn-highlight-swatch.nn-color-yellow, .nn-theme-oled .nn-highlight-swatch.nn-color-yellow { background: #5F4B16; }
+.nn-theme-graphite .nn-highlight-swatch.nn-color-blue, .nn-theme-midnight .nn-highlight-swatch.nn-color-blue, .nn-theme-oled .nn-highlight-swatch.nn-color-blue { background: #1E3A5F; }
+.nn-theme-graphite .nn-highlight-swatch.nn-color-mint, .nn-theme-midnight .nn-highlight-swatch.nn-color-mint, .nn-theme-oled .nn-highlight-swatch.nn-color-mint { background: #134E4A; }
+.nn-theme-graphite .nn-highlight-swatch.nn-color-green, .nn-theme-midnight .nn-highlight-swatch.nn-color-green, .nn-theme-oled .nn-highlight-swatch.nn-color-green { background: #14532D; }
+.nn-theme-graphite .nn-highlight-swatch.nn-color-peach, .nn-theme-midnight .nn-highlight-swatch.nn-color-peach, .nn-theme-oled .nn-highlight-swatch.nn-color-peach { background: #7C2D12; }
+.nn-theme-graphite .nn-highlight-swatch.nn-color-pink, .nn-theme-midnight .nn-highlight-swatch.nn-color-pink, .nn-theme-oled .nn-highlight-swatch.nn-color-pink { background: #6B214B; }
+.nn-theme-graphite .nn-highlight-swatch.nn-color-lavender, .nn-theme-midnight .nn-highlight-swatch.nn-color-lavender, .nn-theme-oled .nn-highlight-swatch.nn-color-lavender { background: #4C3575; }
 .nn-more-actions { padding: 6px; }
 .nn-more-actions > flowboxchild { padding: 0; }
 .nn-more-actions button { min-width: 36px; min-height: 32px; }

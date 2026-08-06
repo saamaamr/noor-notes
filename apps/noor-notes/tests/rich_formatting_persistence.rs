@@ -18,7 +18,8 @@ async fn rich_formatting_persists_after_database_save_and_reopen() {
     RichBuffer::bold(&buffer);
     RichBuffer::italic(&buffer);
     RichBuffer::underline(&buffer);
-    RichBuffer::foreground(&buffer, "blue");
+    RichBuffer::foreground(&buffer, "#1A2B3C");
+    RichBuffer::highlight(&buffer, "#F1E2D3");
     buffer.place_cursor(&buffer.iter_at_offset(8));
     RichBuffer::toggle_list(&buffer, noor_domain::ListKind::Bullet);
     let (content, document) = RichBuffer::snapshot(&buffer);
@@ -39,7 +40,8 @@ async fn rich_formatting_persists_after_database_save_and_reopen() {
             bold: true,
             italic: true,
             underline: true,
-            foreground: Some("blue".into()),
+            foreground: Some("#1A2B3C".into()),
+            highlight: Some("#F1E2D3".into()),
             ..TextMarks::default()
         }
     );

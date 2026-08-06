@@ -145,18 +145,16 @@ impl NoteWindow {
                     source_palette::apply(&buffer, theme);
                 }
             });
+        } else {
+            let rich_buffer = buffer.downgrade();
+            appearance.subscribe(move |_, theme| {
+                if let Some(buffer) = rich_buffer.upgrade() {
+                    RichBuffer::apply_color_theme(&buffer, theme);
+                }
+            });
         }
         let rich_mode = current.editor_mode == EditorMode::Rich;
-        for control in [
-            &toolbar.bold,
-            &toolbar.italic,
-            &toolbar.underline,
-            &toolbar.strikethrough,
-            &toolbar.bullets,
-            &toolbar.numbered,
-        ] {
-            control.set_sensitive(rich_mode);
-        }
+        toolbar.set_rich_formatting_enabled(rich_mode);
         toolbar
             .word_wrap
             .set_active(current.editor_preferences.word_wrap);
