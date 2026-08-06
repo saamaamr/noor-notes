@@ -52,6 +52,10 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-editor-toolbar { min-height: 38px; padding: 0 12px; background: shade(@nn_surface, .985); border-bottom: 1px solid @nn_border; }
 .nn-editor-toolbar button { min-width: 32px; min-height: 32px; padding: 0 8px; border-radius: 7px; }
 .nn-editor-toolbar separator { margin: 7px 3px; }
+.nn-editor-toolbar > flowboxchild { padding: 0; }
+.nn-more-actions { padding: 6px; }
+.nn-more-actions > flowboxchild { padding: 0; }
+.nn-more-actions button { min-width: 36px; min-height: 32px; }
 .nn-editor-title {
   background: transparent;
   border: 0;
