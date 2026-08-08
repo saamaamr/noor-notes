@@ -1,7 +1,7 @@
 # Lightweight Lock-Screen Motion Design
 
 Date: 2026-08-08
-Status: Approved concept; implementation pending
+Status: Implemented; real GNOME lock-screen verification pending
 
 ## Goal
 

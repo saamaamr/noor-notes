@@ -123,6 +123,24 @@ Choose **View Only** from the editor More menu for a minimal reading window cont
 
 On X11, Noor Notes uses native window-manager support. A source checkout can also install the included, narrowly scoped GNOME Shell extension. Sandboxed Snap and Flatpak packages do not install that extension or receive host Xpad-directory access. On GNOME Wayland, Always on Top can therefore remain unavailable unless it is installed separately outside the sandbox. Unsupported Wayland compositors keep note editing available while disabling unsupported window controls.
 
+## Optional GNOME lock-screen motion
+
+Source installations on GNOME Shell 50 can install the separate `noor-lockscreen-motion@saamaamr.github.io` companion extension. It adds a restrained one-time wallpaper fade and zoom, a short clock rise and fade, and a subtle ambient antique-gold glow to the existing Noor lock-screen artwork. It does not change the wallpaper quotation, clock format, password field, authentication flow, or the installed WACK lock-screen extension.
+
+The companion follows GNOME accessibility and power preferences. Disabling system animations disables all motion; Power Saver keeps only the one-time wallpaper fade. It uses compositor property transitions rather than video or a JavaScript frame loop, and it removes its temporary glow and restores touched actors on unlock.
+
+Install both repository-owned GNOME extensions for the current user with:
+
+```bash
+./scripts/install-gnome-extension.sh
+```
+
+Log out and back in once, then press **Super+L** to test it. The extension only adds motion; it does not enable or control automatic day/night theme switching. To troubleshoot without affecting Noor Notes window controls or WACK, disable only the motion companion:
+
+```bash
+gnome-extensions disable noor-lockscreen-motion@saamaamr.github.io
+```
+
 ## Encrypted sync
 
 Encrypted synchronization is not available to v0.1.1 users: the released app has no account, vault, or Supabase-project configuration flow, and its Sync action reports that cloud sync is not configured. Notes remain encrypted locally until a future release integrates that workflow.
@@ -141,6 +159,7 @@ Back up the encrypted database together with a working GNOME Keyring backup. If 
 
 - If a release package will not install, re-download it and `SHA256SUMS.txt`, then use the selected-artifact checksum commands above. Confirm that the exact package reports `OK`.
 - If Always on Top is disabled on GNOME Wayland, use a source installation with the separately installed GNOME Shell extension, or use a supported window environment.
+- If lock-screen motion is missing after a source update, run `./scripts/install-gnome-extension.sh`, log out and back in, and confirm `gnome-extensions info noor-lockscreen-motion@saamaamr.github.io` reports the extension. The motion safely becomes a no-op if the compatible WACK/GNOME clock actors are unavailable.
 - If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v0.1.1.
 - If Sync says it is not configured, that is the current v0.1.1 limitation; there is no supported account or Supabase setup path yet.
 - If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
@@ -166,6 +185,11 @@ cargo audit
 cargo deny check
 xvfb-run -a cargo test -p noor-windowing
 gjs -m extensions/gnome/tests/test-policy.js
+gjs -m extensions/lockscreen-motion/tests/test-policy.js
+gjs -m extensions/lockscreen-motion/tests/test-actor-discovery.js
+gjs -m extensions/lockscreen-motion/tests/test-session-state.js
+gjs -m extensions/lockscreen-motion/tests/test-contract.js
+bash tests/lockscreen_motion_install.sh
 bash tests/e2e/two_device_sync.sh
 ```
 
