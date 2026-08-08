@@ -1,0 +1,9 @@
+{
+  "uuid": "noor-lockscreen-motion@saamaamr.github.io",
+  "name": "Noor Lockscreen Motion",
+  "description": "Adds restrained, power-aware motion to the Noor GNOME lock screen.",
+  "shell-version": ["50"],
+  "session-modes": ["user", "unlock-dialog"],
+  "url": "https://github.com/saamaamr/noor-notes",
+  "version": 1
+}
