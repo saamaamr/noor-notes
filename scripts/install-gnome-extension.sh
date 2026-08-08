@@ -2,18 +2,34 @@
 set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
-uuid="noor-notes-windowing@saamaamr.github.io"
 data_root=${XDG_DATA_HOME:-"$HOME/.local/share"}
-target="$data_root/gnome-shell/extensions/$uuid"
+extension_root="$data_root/gnome-shell/extensions"
+windowing_uuid="noor-notes-windowing@saamaamr.github.io"
+motion_uuid="noor-lockscreen-motion@saamaamr.github.io"
 
-mkdir -p "$target"
-for file in metadata.json extension.js policy.js dbus.xml stylesheet.css; do
-    install -m 0644 "$repo_root/extensions/gnome/$file" "$target/$file"
-done
+install_extension() {
+    local source_dir=$1
+    local uuid=$2
+    shift 2
+    local target="$extension_root/$uuid"
 
-if command -v gnome-extensions >/dev/null 2>&1; then
-    gnome-extensions enable "$uuid" || true
-fi
+    mkdir -p "$target"
+    for file in "$@"; do
+        install -m 0644 "$source_dir/$file" "$target/$file"
+    done
 
-printf 'Installed GNOME extension at %s\n' "$target"
-printf 'If the pin control stays disabled, log out and back in once.\n'
+    if command -v gnome-extensions >/dev/null 2>&1; then
+        gnome-extensions enable "$uuid" || true
+    fi
+
+    printf 'Installed GNOME extension at %s\n' "$target"
+}
+
+install_extension "$repo_root/extensions/gnome" "$windowing_uuid" \
+    metadata.json extension.js policy.js dbus.xml stylesheet.css
+
+install_extension "$repo_root/extensions/lockscreen-motion" "$motion_uuid" \
+    metadata.json extension.js policy.js actorDiscovery.js motionSession.js stylesheet.css
+
+printf 'Log out and back in once so GNOME Shell loads newly installed extensions.\n'
+printf 'Then press Super+L to verify the lightweight lock-screen motion.\n'

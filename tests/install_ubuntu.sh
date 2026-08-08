@@ -16,4 +16,6 @@ fi
 grep -Fq 'This installer supports Ubuntu and other APT-based systems only.' \
     <<<"$unsupported_output"
 
+/bin/bash "$repo_root/tests/lockscreen_motion_install.sh"
+
 printf 'Ubuntu installer contract checks passed.\n'
