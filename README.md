@@ -1,6 +1,24 @@
 # Noor Notes
 
-Noor Notes is a private, offline-first GTK4/libadwaita notes application for Linux, combining a fast sticky-note workflow with a modern three-pane library and focused writing editor.
+Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
+
+**Current release:** v0.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
+
+## Product overview
+
+Noor Notes is both a usable desktop application and evidence of production-oriented Linux engineering. The repository demonstrates native GTK interface work, a multi-crate Rust architecture, SQLCipher storage, GNOME Keyring integration, safe migration and recovery paths, cross-environment window handling, packaging, accessibility work, and a broad automated test suite.
+
+| Library | Editor |
+| --- | --- |
+| ![Noor Notes library with navigation, note cards, and selected-note preview](data/screenshots/noor-notes-library.png) | ![Noor Notes focused editor with formatting controls](data/screenshots/noor-notes-editor.png) |
+
+## Engineering highlights
+
+- Workspace boundaries separate the GTK application from domain, crypto, storage, synchronization, windowing, and Xpad-import concerns.
+- Security-sensitive behavior fails closed: missing encryption keys and failed plaintext migrations never silently fall back to unencrypted storage.
+- Autosave, close-time flushing, import/export, recovery, trash, rich formatting, source modes, appearance, and window behavior have focused integration coverage.
+- Snap, Flatpak, local, and Ubuntu installation paths are documented without claiming unsupported store availability.
+- Known sandbox, Wayland, encrypted-sync, recovery, and release limitations remain explicit below.
 
 ## Features
 
