@@ -10,6 +10,7 @@ use noor_domain::{Note, NoteId};
 use noor_storage::{NoteSort, SqliteNoteRepository, StorageError};
 use noor_windowing::WindowController;
 
+use super::adaptive_layout::LibraryLayoutMode;
 use super::appearance_button::AppearanceButton;
 use crate::autosave::AutosaveQueue;
 use crate::library::{LibrarySection, LibraryState};
@@ -32,6 +33,9 @@ pub struct MainWindow {
     search: gtk::SearchEntry,
     sort: gtk::DropDown,
     sidebar: LibrarySidebar,
+    panes: gtk::Paned,
+    sidebar_separator: gtk::Separator,
+    back: gtk::Button,
     collection: NoteCollection,
     collection_stack: gtk::Stack,
     empty: EmptyState,
@@ -44,6 +48,7 @@ pub struct MainWindow {
     app: adw::Application,
     notes: Rc<RefCell<Vec<Note>>>,
     section: Rc<Cell<LibrarySection>>,
+    showing_content: Rc<Cell<bool>>,
     refresh_generation: Rc<Cell<u64>>,
 }
 
@@ -70,6 +75,14 @@ impl MainWindow {
         let header = adw::HeaderBar::new();
         let title = adw::WindowTitle::new("Noor Notes", "Private notebook");
         header.set_title_widget(Some(&title));
+        let back = gtk::Button::builder()
+            .icon_name("go-previous-symbolic")
+            .tooltip_text("Back to notes")
+            .visible(false)
+            .build();
+        back.add_css_class("flat");
+        back.add_css_class("nn-icon-neutral");
+        header.pack_start(&back);
         let new_button = gtk::Button::builder()
             .label("New Note")
             .icon_name("list-add-symbolic")
@@ -171,7 +184,8 @@ impl MainWindow {
         let panes = gtk::Paned::new(gtk::Orientation::Horizontal);
         let navigation = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         navigation.append(&sidebar.widget);
-        navigation.append(&gtk::Separator::new(gtk::Orientation::Vertical));
+        let sidebar_separator = gtk::Separator::new(gtk::Orientation::Vertical);
+        navigation.append(&sidebar_separator);
         navigation.append(&collection_stack);
         panes.set_start_child(Some(&navigation));
         panes.set_end_child(Some(&preview.widget));
@@ -201,6 +215,9 @@ impl MainWindow {
             search,
             sort,
             sidebar,
+            panes,
+            sidebar_separator,
+            back,
             collection,
             collection_stack,
             empty,
@@ -213,6 +230,7 @@ impl MainWindow {
             app: app.clone(),
             notes: Rc::new(RefCell::new(Vec::new())),
             section: Rc::new(Cell::new(LibrarySection::AllNotes)),
+            showing_content: Rc::new(Cell::new(false)),
             refresh_generation: Rc::new(Cell::new(0)),
         };
         {
@@ -231,9 +249,15 @@ impl MainWindow {
         }
         {
             let this = this.clone();
-            this.collection.connect_selected(move |note| {
+            this.collection.clone().connect_selected(move |note| {
                 if let Some(note) = note {
                     this.preview.show_note(&note);
+                    if LibraryLayoutMode::for_width(this.window.width())
+                        == LibraryLayoutMode::Narrow
+                    {
+                        this.showing_content.set(true);
+                        this.apply_layout();
+                    }
                 }
             });
         }
@@ -264,14 +288,36 @@ impl MainWindow {
             });
         }
         {
-            let preview = this.preview.widget.clone();
+            let this = this.clone();
             this.window
-                .connect_notify_local(Some("width"), move |window, _| {
-                    preview.set_visible(window.width() >= 920);
-                });
+                .clone()
+                .connect_notify_local(Some("width"), move |_, _| this.apply_layout());
         }
+        {
+            let this = this.clone();
+            this.back.clone().connect_clicked(move |_| {
+                this.showing_content.set(false);
+                this.apply_layout();
+            });
+        }
+        this.apply_layout();
         this.refresh();
         this
+    }
+
+    fn apply_layout(&self) {
+        let mode = LibraryLayoutMode::for_width(self.window.width());
+        let visibility = mode.visibility(self.showing_content.get());
+        self.sidebar.widget.set_visible(visibility.sidebar);
+        self.sidebar_separator.set_visible(visibility.sidebar);
+        self.collection_stack.set_visible(visibility.collection);
+        self.preview.widget.set_visible(visibility.content);
+        self.back.set_visible(visibility.back);
+        self.panes.set_position(match mode {
+            LibraryLayoutMode::Wide => 570,
+            LibraryLayoutMode::Medium => 360,
+            LibraryLayoutMode::Narrow => self.window.width(),
+        });
     }
 
     pub fn present(&self) {
