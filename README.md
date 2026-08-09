@@ -8,6 +8,8 @@ Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application f
 
 Noor Notes is both a usable desktop application and evidence of production-oriented Linux engineering. The repository demonstrates native GTK interface work, a multi-crate Rust architecture, SQLCipher storage, GNOME Keyring integration, safe migration and recovery paths, cross-environment window handling, packaging, accessibility work, and a broad automated test suite.
 
+Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximized and compact layouts, editor modes, View-Only presentation, themes, menus, search, Trash, formatting, and settings.
+
 | Library and preview | Focused rich editor |
 | --- | --- |
 | ![Noor Notes library with navigation, note cards, and selected-note preview](data/screenshots/noor-notes-library.png) | ![Noor Notes rich editor with compact toolbar, writing canvas, and status bar](data/screenshots/noor-notes-editor.png) |
