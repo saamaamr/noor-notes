@@ -19,10 +19,11 @@ use crate::note_actions;
 use crate::note_find::{FindOptions, FindResults};
 use crate::rich_buffer::RichBuffer;
 use crate::safe_export::{ExportExtension, sanitize_export_name, set_owner_only};
-use crate::save_status::SaveStatusIndicator;
 use crate::services::trash_command;
 use crate::ui::appearance_button::AppearanceButton;
+use crate::ui::editor_header::EditorHeader;
 use crate::ui::editor_presentation::EditorPresentation;
+use crate::ui::editor_status_bar::EditorStatusBar;
 use crate::ui::editor_toolbar::EditorToolbar;
 
 pub struct NoteWindow {
@@ -53,7 +54,6 @@ impl NoteWindow {
         appearance.register_window(&window);
 
         let layout = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        let header = adw::HeaderBar::new();
         let toolbar = EditorToolbar::new();
         let is_active = matches!(current.state, NoteState::Active);
         let is_trashed = matches!(current.state, NoteState::Trashed { .. });
@@ -64,42 +64,19 @@ impl NoteWindow {
         toolbar.view_only.set_visible(!is_trashed);
         toolbar.restore.set_visible(is_trashed);
         toolbar.permanent_delete.set_visible(is_trashed);
-        let title_entry = gtk::Entry::builder()
-            .text(current.display_title())
-            .placeholder_text("Untitled note")
-            .editable(!is_trashed)
-            .build();
-        title_entry.add_css_class("nn-editor-title");
-        title_entry.set_hexpand(true);
-        title_entry.set_width_chars(32);
-        let save_status = SaveStatusIndicator::new();
-        let title_box = gtk::Box::new(gtk::Orientation::Horizontal, 12);
-        title_box.add_css_class("editor-title-box");
-        title_box.append(&title_entry);
-        title_box.append(&save_status.widget);
-        header.set_title_widget(Some(&title_box));
-        let library_pin = gtk::ToggleButton::builder()
-            .icon_name("view-pin-symbolic")
-            .tooltip_text("Pin note in the library")
-            .active(current.pinned)
-            .build();
-        let favorite = gtk::ToggleButton::builder()
-            .icon_name(if current.favorite {
-                "starred-symbolic"
-            } else {
-                "non-starred-symbolic"
-            })
-            .tooltip_text("Add to favorites")
-            .active(current.favorite)
-            .build();
-        header.pack_end(&toolbar.header_trash);
-        header.pack_end(&toolbar.header_archive);
-        header.pack_end(&toolbar.appearance);
         let appearance_button = AppearanceButton::new(appearance.clone());
-        header.pack_end(&appearance_button.button);
-        header.pack_end(&favorite);
-        header.pack_end(&library_pin);
-        layout.append(&header);
+        let editor_header = EditorHeader::new(
+            &current,
+            &toolbar,
+            &appearance_button.button,
+            is_trashed,
+        );
+        let title_entry = editor_header.title_entry.clone();
+        let title_box = editor_header.title_box.clone();
+        let save_status = editor_header.save_status.clone();
+        let library_pin = editor_header.library_pin.clone();
+        let favorite = editor_header.favorite.clone();
+        layout.append(&editor_header.widget);
         layout.append(&toolbar.widget);
 
         let metadata = gtk::Box::new(gtk::Orientation::Horizontal, 6);
@@ -115,6 +92,8 @@ impl NoteWindow {
             .editable(!is_trashed)
             .build();
         tags_entry.add_css_class("nn-tag-entry");
+        tags_entry.set_tooltip_text(Some("Note tags"));
+        tags_entry.update_property(&[gtk::accessible::Property::Label("Note tags")]);
         tags_entry.set_hexpand(true);
         metadata.append(&tags_entry);
         layout.append(&metadata);
@@ -174,6 +153,8 @@ impl NoteWindow {
         editor.set_bottom_margin(48);
         editor.set_accepts_tab(true);
         editor.add_css_class("nn-writing-canvas");
+        editor.set_tooltip_text(Some("Note body"));
+        editor.update_property(&[gtk::accessible::Property::Label("Note body")]);
         if rich_mode {
             editor.add_css_class("nn-rich-writing-canvas");
         }
@@ -366,23 +347,15 @@ impl NoteWindow {
             .build();
         scroller.add_css_class("nn-canvas-scroller");
         layout.append(&scroller);
-        let editor_status =
-            gtk::Label::new(Some("Ln 1, Col 1  ·  0 words  ·  0 characters  ·  100%"));
-        editor_status.set_halign(gtk::Align::Start);
         let mode_name = match current.editor_mode {
             EditorMode::Rich => "Rich Text",
             EditorMode::Markdown => "Markdown",
             EditorMode::PlainText => "Plain Text",
             EditorMode::Code => current.source_language.as_str(),
         };
-        let mode_status = gtk::Label::new(Some(&format!("{mode_name}  ·  UTF-8")));
-        mode_status.set_halign(gtk::Align::End);
-        mode_status.set_hexpand(true);
-        let status_bar = gtk::Box::new(gtk::Orientation::Horizontal, 12);
-        status_bar.add_css_class("nn-statusbar");
-        status_bar.append(&editor_status);
-        status_bar.append(&mode_status);
-        layout.append(&status_bar);
+        let status_bar = EditorStatusBar::new(mode_name);
+        let editor_status = status_bar.statistics.clone();
+        layout.append(&status_bar.widget);
         window.set_content(Some(&layout));
         let presentation = EditorPresentation::new(
             &editor,
@@ -392,7 +365,7 @@ impl NoteWindow {
                 toolbar.widget.clone().upcast::<gtk::Widget>(),
                 metadata.clone().upcast::<gtk::Widget>(),
                 find_bar.clone().upcast::<gtk::Widget>(),
-                status_bar.clone().upcast::<gtk::Widget>(),
+                status_bar.widget.clone().upcast::<gtk::Widget>(),
                 toolbar.appearance.clone().upcast::<gtk::Widget>(),
                 appearance_button.button.clone().upcast::<gtk::Widget>(),
                 favorite.clone().upcast::<gtk::Widget>(),

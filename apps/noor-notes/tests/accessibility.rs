@@ -1,10 +1,20 @@
 use gtk::prelude::*;
+use chrono::Utc;
+use noor_domain::Note;
+use noor_notes::ui::editor_header::EditorHeader;
 use noor_notes::ui::editor_toolbar::EditorToolbar;
 
 #[test]
 fn primary_controls_have_accessible_descriptions_and_colour_choices() {
     gtk::init().unwrap();
     let toolbar = EditorToolbar::new();
+    let appearance = gtk::Button::new();
+    let note = Note::new(Utc::now());
+    let header = EditorHeader::new(&note, &toolbar, &appearance, false);
+    assert!(header.title_entry.hexpands());
+    assert_eq!(header.title_entry.tooltip_text().as_deref(), Some("Note title"));
+    assert_eq!(header.library_pin.tooltip_text().as_deref(), Some("Pin note in the library"));
+    assert_eq!(header.favorite.tooltip_text().as_deref(), Some("Add to favorites"));
     for button in [
         &toolbar.new_note,
         &toolbar.undo,
