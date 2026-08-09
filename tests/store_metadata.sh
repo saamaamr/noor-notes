@@ -5,8 +5,13 @@ set -eu
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 metadata="$repo_root/data/io.github.saamaamr.NoorNotes.metainfo.xml"
 desktop="$repo_root/data/io.github.saamaamr.NoorNotes.desktop"
-editor_screenshot="$repo_root/data/screenshots/noor-notes-editor.png"
-library_screenshot="$repo_root/data/screenshots/noor-notes-library.png"
+screenshots='noor-notes-editor.png
+noor-notes-library.png
+noor-notes-dark.png
+noor-notes-formatting.png
+noor-notes-find-replace.png
+noor-notes-trash.png
+noor-notes-responsive.png'
 
 require() {
     needle=$1
@@ -25,15 +30,15 @@ require '<url type="homepage">https://github.com/saamaamr/noor-notes</url>' "$me
 require '<url type="bugtracker">https://github.com/saamaamr/noor-notes/issues</url>' "$metadata"
 require '<url type="vcs-browser">https://github.com/saamaamr/noor-notes</url>' "$metadata"
 require '<release version="0.1.1" date="2026-08-05" type="stable">' "$metadata"
-require '<image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-editor.png</image>' "$metadata"
-require '<image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-library.png</image>' "$metadata"
-require '<caption>Browse notes in the library.</caption>' "$metadata"
+require '<caption>Browse and preview private notes.</caption>' "$metadata"
 
 require 'Exec=noor-notes' "$desktop"
 require 'Icon=io.github.saamaamr.NoorNotes' "$desktop"
 require 'Categories=Utility;Office;' "$desktop"
 
-for screenshot in "$editor_screenshot" "$library_screenshot"; do
+for name in $screenshots; do
+    require "https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/$name" "$metadata"
+    screenshot="$repo_root/data/screenshots/$name"
     if [ ! -s "$screenshot" ]; then
         printf 'Missing required screenshot: %s\n' "$screenshot" >&2
         exit 1

@@ -23,8 +23,28 @@
       <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-editor.png</image>
     </screenshot>
     <screenshot>
-      <caption>Browse notes in the library.</caption>
+      <caption>Browse and preview private notes.</caption>
       <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-library.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Use a focused dark appearance.</caption>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-dark.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Apply persistent rich text and colours.</caption>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-formatting.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Find and replace text inside a note.</caption>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-find-replace.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Restore notes safely from Trash.</caption>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-trash.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Work comfortably in a narrow window.</caption>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-responsive.png</image>
     </screenshot>
   </screenshots>
   <releases>
