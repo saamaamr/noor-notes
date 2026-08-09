@@ -17,6 +17,11 @@ fn primary_controls_have_accessible_descriptions_and_colour_choices() {
         assert!(button.tooltip_text().is_some());
         assert!(button.can_focus());
     }
+    assert_eq!(
+        toolbar.header_archive.tooltip_text().as_deref(),
+        Some("Archive note")
+    );
+    assert!(toolbar.header_archive.can_focus());
     assert_eq!(toolbar.note_color_buttons.len(), 6);
     for button in &toolbar.note_color_buttons {
         assert!(button.tooltip_text().is_some());

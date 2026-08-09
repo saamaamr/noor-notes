@@ -48,6 +48,7 @@ pub struct EditorToolbar {
     pub opacity: gtk::Scale,
     pub note_color_buttons: Vec<gtk::Button>,
     pub archive: gtk::Button,
+    pub header_archive: gtk::Button,
     pub trash: gtk::Button,
     pub header_trash: gtk::Button,
     pub restore: gtk::Button,
@@ -229,7 +230,8 @@ impl EditorToolbar {
             .build();
         export.add_css_class("toolbar-button");
         let rename = icon_button("document-edit-symbolic", "Rename note");
-        let archive = icon_button("folder-symbolic", "Archive");
+        let archive = icon_button("folder-symbolic", "Archive note");
+        let header_archive = icon_button("folder-symbolic", "Archive note");
         let trash = icon_button("user-trash-symbolic", "Move to Trash");
         trash.add_css_class("destructive-hover");
         let header_trash = icon_button("user-trash-symbolic", "Move to Trash");
@@ -363,6 +365,7 @@ impl EditorToolbar {
             opacity,
             note_color_buttons,
             archive,
+            header_archive,
             trash,
             header_trash,
             restore,

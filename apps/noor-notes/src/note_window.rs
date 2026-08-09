@@ -55,8 +55,10 @@ impl NoteWindow {
         let layout = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let header = adw::HeaderBar::new();
         let toolbar = EditorToolbar::new();
+        let is_active = matches!(current.state, NoteState::Active);
         let is_trashed = matches!(current.state, NoteState::Trashed { .. });
-        toolbar.archive.set_visible(!is_trashed);
+        toolbar.archive.set_visible(is_active);
+        toolbar.header_archive.set_visible(is_active);
         toolbar.trash.set_visible(!is_trashed);
         toolbar.header_trash.set_visible(!is_trashed);
         toolbar.view_only.set_visible(!is_trashed);
@@ -91,6 +93,7 @@ impl NoteWindow {
             .active(current.favorite)
             .build();
         header.pack_end(&toolbar.header_trash);
+        header.pack_end(&toolbar.header_archive);
         header.pack_end(&toolbar.appearance);
         let appearance_button = AppearanceButton::new(appearance.clone());
         header.pack_end(&appearance_button.button);
@@ -395,6 +398,7 @@ impl NoteWindow {
                 favorite.clone().upcast::<gtk::Widget>(),
                 library_pin.clone().upcast::<gtk::Widget>(),
                 toolbar.header_trash.clone().upcast::<gtk::Widget>(),
+                toolbar.header_archive.clone().upcast::<gtk::Widget>(),
             ],
         );
         presentation.set_view_only(current.editor_preferences.view_only && !is_trashed);
@@ -876,34 +880,14 @@ impl NoteWindow {
                 });
             });
         }
-        {
-            let note = note.clone();
-            let autosave = autosave.clone();
-            let window = window.clone();
-            toolbar.archive.connect_clicked(move |button| {
-                let button = button.clone();
-                let previous = note.borrow().clone();
-                note_actions::archive(&mut note.borrow_mut(), Utc::now());
-                let changed = note.borrow().clone();
-                let id = changed.id;
-                autosave.schedule(NoteDraft::from(changed));
-                let note = note.clone();
-                let autosave = autosave.clone();
-                let window = window.clone();
-                button.set_sensitive(false);
-                gtk::glib::MainContext::default().spawn_local(async move {
-                    if autosave.flush(id).await.is_ok() {
-                        if let Some(application) = window.application() {
-                            application.activate_action("refresh-notes", None);
-                        }
-                        window.close();
-                    } else {
-                        note.replace(previous);
-                        button.set_sensitive(true);
-                        show_save_error(&window);
-                    }
-                });
-            });
+        for button in [&toolbar.header_archive, &toolbar.archive] {
+            connect_archive_button(
+                button,
+                &buffer,
+                note.clone(),
+                autosave.clone(),
+                window.clone(),
+            );
         }
         for button in [&toolbar.header_trash, &toolbar.trash] {
             connect_trash_button(
@@ -1116,6 +1100,42 @@ fn show_go_to_line(
         editor.scroll_to_mark(&buffer.get_insert(), 0.15, true, 0.0, 0.5);
     });
 }
+
+fn connect_archive_button(
+    button: &gtk::Button,
+    buffer: &gtk::TextBuffer,
+    note: Rc<RefCell<Note>>,
+    autosave: AutosaveQueue,
+    window: adw::ApplicationWindow,
+) {
+    let buffer = buffer.clone();
+    button.connect_clicked(move |button| {
+        save_editor_snapshot(&buffer, &note, &autosave);
+        let button = button.clone();
+        let previous = note.borrow().clone();
+        note_actions::archive(&mut note.borrow_mut(), Utc::now());
+        let changed = note.borrow().clone();
+        let id = changed.id;
+        autosave.schedule(NoteDraft::from(changed));
+        let note = note.clone();
+        let autosave = autosave.clone();
+        let window = window.clone();
+        button.set_sensitive(false);
+        gtk::glib::MainContext::default().spawn_local(async move {
+            if autosave.flush(id).await.is_ok() {
+                if let Some(application) = window.application() {
+                    application.activate_action("refresh-notes", None);
+                }
+                window.close();
+            } else {
+                note.replace(previous);
+                button.set_sensitive(true);
+                show_save_error(&window);
+            }
+        });
+    });
+}
+
 fn connect_trash_button(
     button: &gtk::Button,
     note: Rc<RefCell<Note>>,
