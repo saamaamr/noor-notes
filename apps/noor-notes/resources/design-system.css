@@ -70,6 +70,8 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-editor-toolbar button { min-width: 32px; min-height: 32px; padding: 0 8px; border-radius: 7px; }
 .nn-editor-toolbar separator { margin: 7px 3px; }
 .nn-editor-toolbar > flowboxchild { padding: 0; }
+.nn-formatting-popover { min-width: 320px; }
+.nn-format-section-label { margin-top: 2px; font-size: 12px; font-weight: 700; color: @nn_text_secondary; }
 .nn-rich-color-palette { margin-top: 4px; }
 .nn-color-choices > flowboxchild { padding: 0; }
 .nn-color-button, .nn-custom-color-button { min-width: 30px; min-height: 30px; padding: 5px; border-radius: 7px; }

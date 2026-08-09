@@ -1,14 +1,15 @@
 use adw::prelude::*;
 
-use crate::rich_color::ColorRole;
+use crate::ui::formatting_popover::FormattingPopover;
 use crate::ui::rich_color_palette::RichColorPalette;
 
 #[derive(Clone)]
 pub struct EditorToolbar {
-    pub widget: gtk::FlowBox,
+    pub widget: gtk::Box,
     pub more: gtk::MenuButton,
     pub more_actions: gtk::FlowBox,
     pub format: gtk::MenuButton,
+    pub formatting: FormattingPopover,
     pub new_note: gtk::Button,
     pub undo: gtk::Button,
     pub redo: gtk::Button,
@@ -57,14 +58,8 @@ pub struct EditorToolbar {
 
 impl EditorToolbar {
     pub fn new() -> Self {
-        let widget = gtk::FlowBox::builder()
-            .selection_mode(gtk::SelectionMode::None)
-            .min_children_per_line(1)
-            .max_children_per_line(9)
-            .column_spacing(2)
-            .row_spacing(2)
-            .hexpand(true)
-            .build();
+        let widget = gtk::Box::new(gtk::Orientation::Horizontal, 4);
+        widget.set_hexpand(true);
         widget.add_css_class("nn-editor-toolbar");
 
         let new_note = icon_button("list-add-symbolic", "New note");
@@ -76,61 +71,22 @@ impl EditorToolbar {
 
         let bold = text_toggle("B", "Bold (Ctrl+B)", "format-bold");
         let italic = text_toggle("I", "Italic (Ctrl+I)", "format-italic");
-        let underline = text_toggle("U", "Underline (Ctrl+U)", "format-underline");
-        let strikethrough = text_toggle("S", "Strikethrough", "format-strike");
         let bullets = icon_toggle("view-list-bullet-symbolic", "Bullet list");
-        let numbered = icon_toggle("view-list-ordered-symbolic", "Numbered list");
-        let format_grid = gtk::Grid::builder()
-            .column_spacing(6)
-            .row_spacing(6)
-            .margin_top(12)
-            .margin_bottom(12)
-            .margin_start(12)
-            .margin_end(12)
-            .build();
-        for (index, button) in [&underline, &strikethrough].iter().enumerate() {
-            format_grid.attach(*button, index as i32, 0, 1, 1);
-        }
-        format_grid.attach(&numbered, 0, 1, 1, 1);
-        let font_size = gtk::DropDown::from_strings(&["12 px", "14 px", "16 px", "18 px", "24 px"]);
-        font_size.set_selected(2);
-        font_size.set_tooltip_text(Some("Font size"));
-        format_grid.attach(&font_size, 2, 1, 2, 1);
-        let custom_font_size = gtk::Entry::builder()
-            .placeholder_text("Custom px")
-            .input_purpose(gtk::InputPurpose::Digits)
-            .width_chars(8)
-            .tooltip_text("Custom positive whole-number font size")
-            .build();
-        let apply_font_size = gtk::Button::with_label("Apply");
-        apply_font_size.set_tooltip_text(Some("Apply custom font size"));
-        format_grid.attach(&custom_font_size, 0, 2, 3, 1);
-        format_grid.attach(&apply_font_size, 3, 2, 1, 1);
-        let alignment_buttons = [
-            ("format-justify-left-symbolic", "Align left"),
-            ("format-justify-center-symbolic", "Align center"),
-            ("format-justify-right-symbolic", "Align right"),
-            ("format-justify-fill-symbolic", "Justify"),
-        ]
-        .iter()
-        .map(|(icon, tooltip)| icon_toggle(icon, tooltip))
-        .collect::<Vec<_>>();
-        for (index, button) in alignment_buttons.iter().enumerate() {
-            format_grid.attach(button, index as i32, 3, 1, 1);
-        }
-        let foreground_palette = RichColorPalette::new(ColorRole::Foreground);
-        let highlight_palette = RichColorPalette::new(ColorRole::Highlight);
-        format_grid.attach(&foreground_palette.widget, 0, 4, 4, 1);
-        format_grid.attach(&highlight_palette.widget, 0, 5, 4, 1);
-        let format_popover = gtk::Popover::builder().child(&format_grid).build();
-        let clear_formatting = gtk::Button::with_label("Clear Formatting");
-        clear_formatting.set_tooltip_text(Some("Remove formatting from the selection"));
-        clear_formatting.add_css_class("flat");
-        format_grid.attach(&clear_formatting, 0, 6, 4, 1);
+        let formatting = FormattingPopover::new();
+        let underline = formatting.underline.clone();
+        let strikethrough = formatting.strikethrough.clone();
+        let numbered = formatting.numbered.clone();
+        let font_size = formatting.font_size.clone();
+        let custom_font_size = formatting.custom_font_size.clone();
+        let apply_font_size = formatting.apply_font_size.clone();
+        let clear_formatting = formatting.clear_formatting.clone();
+        let alignment_buttons = formatting.alignment_buttons.clone();
+        let foreground_palette = formatting.foreground_palette.clone();
+        let highlight_palette = formatting.highlight_palette.clone();
         let format = gtk::MenuButton::builder()
             .icon_name("format-text-rich-symbolic")
             .tooltip_text("Formatting")
-            .popover(&format_popover)
+            .popover(&formatting.widget)
             .build();
         format.add_css_class("toolbar-button");
 
@@ -308,24 +264,24 @@ impl EditorToolbar {
             .popover(&more_popover)
             .build();
         more.add_css_class("toolbar-button");
-        for action in [
-            undo.upcast_ref::<gtk::Widget>(),
-            redo.upcast_ref(),
-            find.upcast_ref(),
-            bold.upcast_ref(),
-            italic.upcast_ref(),
-            bullets.upcast_ref(),
-            format.upcast_ref(),
-            emoji.upcast_ref(),
-            more.upcast_ref(),
-        ] {
-            widget.insert(action, -1);
-        }
+        widget.append(&undo);
+        widget.append(&redo);
+        widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
+        widget.append(&find);
+        widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
+        widget.append(&bold);
+        widget.append(&italic);
+        widget.append(&bullets);
+        widget.append(&format);
+        widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
+        widget.append(&emoji);
+        widget.append(&more);
         Self {
             widget,
             more,
             more_actions,
             format,
+            formatting,
             new_note,
             undo,
             redo,
@@ -403,6 +359,7 @@ fn icon_button(icon: &str, tooltip: &str) -> gtk::Button {
         .tooltip_text(tooltip)
         .build();
     button.add_css_class("toolbar-button");
+    button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
     button
 }
 
@@ -412,6 +369,7 @@ fn toggle_button(icon: &str, tooltip: &str) -> gtk::ToggleButton {
         .tooltip_text(tooltip)
         .build();
     button.add_css_class("toolbar-button");
+    button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
     button
 }
 
@@ -426,6 +384,7 @@ fn text_toggle(label: &str, tooltip: &str, class: &str) -> gtk::ToggleButton {
         .build();
     button.add_css_class("format-choice");
     button.add_css_class(class);
+    button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
     button
 }
 impl Default for EditorToolbar {
