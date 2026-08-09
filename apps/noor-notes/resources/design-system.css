@@ -62,7 +62,8 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .note-green .nn-color-strip { background: #55a36c; }
 .note-rose .nn-color-strip { background: #cc6c7f; }
 .note-lavender .nn-color-strip { background: #8f76bf; }
-.nn-preview { background: @nn_surface; padding: 32px 40px; }
+.nn-preview-surface { background: @nn_surface; }
+.nn-preview { background: @nn_surface; padding: 48px 40px; }
 .nn-empty-state { padding: 48px 32px; color: @nn_text_secondary; }
 .nn-editor-window { background: @nn_bg; color: @nn_text; }
 .nn-editor-toolbar { min-height: 38px; padding: 0 12px; background: shade(@nn_surface, .985); border-bottom: 1px solid @nn_border; }
@@ -180,7 +181,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-graphite .nn-note-card { background: #282a2f; color: #f5f6f8; border-color: rgba(255,255,255,.10); box-shadow: 0 1px 3px rgba(0,0,0,.32); }
 .nn-theme-graphite .nn-note-card:hover { background: #2e3137; }
 .nn-theme-graphite .nn-note-list row:selected .nn-note-card { background: #30364a; border-color: #9aafff; }
-.nn-theme-graphite .nn-preview { background: #24262a; color: #f3f4f6; }
+.nn-theme-graphite .nn-preview-surface, .nn-theme-graphite .nn-preview { background: #24262a; color: #f3f4f6; }
 .nn-theme-graphite .nn-editor-toolbar { background: #222428; color: #e8e9ed; border-color: rgba(255,255,255,.09); }
 .nn-theme-graphite .nn-rich-writing-canvas { background: #282a2f; color: #f5f6f8; caret-color: #9aafff; }
 .nn-theme-graphite .nn-canvas-scroller { background: #1c1d20; }
@@ -200,7 +201,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-midnight .nn-note-card { background: #1a2638; color: #f2f7ff; border-color: rgba(168,205,255,.12); box-shadow: 0 1px 4px rgba(0,5,14,.40); }
 .nn-theme-midnight .nn-note-card:hover { background: #203049; }
 .nn-theme-midnight .nn-note-list row:selected .nn-note-card { background: #203858; border-color: #73b7ff; }
-.nn-theme-midnight .nn-preview { background: #172131; color: #edf5ff; }
+.nn-theme-midnight .nn-preview-surface, .nn-theme-midnight .nn-preview { background: #172131; color: #edf5ff; }
 .nn-theme-midnight .nn-editor-toolbar { background: #141e2c; color: #e4efff; border-color: rgba(168,205,255,.10); }
 .nn-theme-midnight .nn-rich-writing-canvas { background: #1a2638; color: #f2f7ff; caret-color: #73b7ff; }
 .nn-theme-midnight .nn-canvas-scroller { background: #101722; }
@@ -220,7 +221,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-oled .nn-note-card { background: #121216; color: #fafaff; border-color: rgba(255,255,255,.13); box-shadow: 0 1px 4px rgba(0,0,0,.65); }
 .nn-theme-oled .nn-note-card:hover { background: #19191f; }
 .nn-theme-oled .nn-note-list row:selected .nn-note-card { background: #211d38; border-color: #b1a0ff; }
-.nn-theme-oled .nn-preview { background: #0d0d0f; color: #f7f7fa; }
+.nn-theme-oled .nn-preview-surface, .nn-theme-oled .nn-preview { background: #0d0d0f; color: #f7f7fa; }
 .nn-theme-oled .nn-editor-toolbar { background: #0a0a0c; color: #eeeeF4; border-color: rgba(255,255,255,.11); }
 .nn-theme-oled .nn-rich-writing-canvas { background: #121216; color: #fafaff; caret-color: #b1a0ff; }
 .nn-theme-oled .nn-canvas-scroller { background: #050506; }

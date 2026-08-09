@@ -374,6 +374,7 @@ impl MainWindow {
         if visible.is_empty() {
             self.empty.update(section, searching);
             self.collection_stack.set_visible_child_name("empty");
+            self.preview.clear();
         } else {
             self.collection_stack.set_visible_child_name("notes");
             self.preview.show_note(&visible[0]);

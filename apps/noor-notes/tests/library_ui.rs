@@ -4,9 +4,11 @@ use adw::prelude::*;
 use chrono::Utc;
 use noor_domain::Note;
 use noor_notes::library::LibrarySection;
+use noor_notes::ui::empty_state::EmptyState;
 use noor_notes::ui::library_sidebar::LibrarySidebar;
 use noor_notes::ui::note_card;
 use noor_notes::ui::note_collection::NoteCollection;
+use noor_notes::ui::note_preview::NotePreview;
 
 #[test]
 fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
@@ -65,6 +67,38 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     let descendants = descendants(card.widget.clone().upcast());
     assert!(descendants.iter().any(|widget| widget.has_css_class("nn-note-card-tags")));
     assert!(descendants.iter().any(|widget| widget.has_css_class("nn-note-card-meta")));
+
+    let preview = NotePreview::new();
+    assert!(preview.widget.has_css_class("nn-preview-surface"));
+    preview.show_note(&note);
+    preview.clear();
+    let preview_text = label_texts(preview.widget.clone().upcast());
+    assert!(preview_text.iter().any(|text| text == "Select a note"));
+    assert!(preview_text.iter().any(|text| text.contains("Choose a note")));
+
+    let empty = EmptyState::new();
+    for (section, expected) in [
+        (LibrarySection::AllNotes, "No notes yet"),
+        (LibrarySection::Pinned, "No pinned notes"),
+        (LibrarySection::Favorites, "No favorite notes"),
+        (LibrarySection::Tags, "No tagged notes"),
+        (LibrarySection::Archived, "Archive is empty"),
+        (LibrarySection::Trash, "Trash is empty"),
+        (LibrarySection::Recent, "No recent notes"),
+    ] {
+        empty.update(section, false);
+        assert!(label_texts(empty.widget.clone().upcast()).iter().any(|text| text == expected));
+    }
+    empty.update(LibrarySection::AllNotes, true);
+    assert!(label_texts(empty.widget.clone().upcast()).iter().any(|text| text == "No notes found"));
+}
+
+fn label_texts(root: gtk::Widget) -> Vec<String> {
+    descendants(root)
+        .into_iter()
+        .filter_map(|widget| widget.downcast::<gtk::Label>().ok())
+        .map(|label| label.text().to_string())
+        .collect()
 }
 
 fn descendants(root: gtk::Widget) -> Vec<gtk::Widget> {

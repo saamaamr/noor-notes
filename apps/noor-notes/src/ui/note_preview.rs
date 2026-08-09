@@ -33,18 +33,33 @@ impl NotePreview {
         body.set_wrap(true);
         body.set_selectable(true);
         document.append(&body);
+        let clamp = adw::Clamp::builder()
+            .maximum_size(860)
+            .tightening_threshold(720)
+            .child(&document)
+            .build();
+        clamp.set_hexpand(true);
         let widget = gtk::ScrolledWindow::builder()
             .hexpand(true)
             .vexpand(true)
             .hscrollbar_policy(gtk::PolicyType::Never)
-            .child(&document)
+            .child(&clamp)
             .build();
+        widget.add_css_class("nn-preview-surface");
         Self {
             widget,
             title,
             metadata,
             body,
         }
+    }
+
+    pub fn clear(&self) {
+        self.title.set_text("Select a note");
+        self.metadata.set_text("Your note preview will appear here");
+        self.body.set_text(
+            "Choose a note from the library to read it without opening another window.",
+        );
     }
 
     pub fn show_note(&self, note: &Note) {

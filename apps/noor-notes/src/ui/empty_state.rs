@@ -35,17 +35,17 @@ impl EmptyState {
 
     pub fn update(&self, section: LibrarySection, searching: bool) {
         if searching {
-            self.title.set_text("No matching notes");
+            self.title.set_text("No notes found");
             self.description
                 .set_text("Try another word or clear the search.");
             return;
         }
         let (title, description) = match section {
             LibrarySection::AllNotes => {
-                ("Your library is ready", "Create a note to begin writing.")
+                ("No notes yet", "Create a note to begin writing.")
             }
-            LibrarySection::Pinned => ("Nothing pinned", "Pin important notes for quick access."),
-            LibrarySection::Favorites => ("No favorites", "Favorite notes you want to revisit."),
+            LibrarySection::Pinned => ("No pinned notes", "Pin important notes for quick access."),
+            LibrarySection::Favorites => ("No favorite notes", "Favorite notes you want to revisit."),
             LibrarySection::Tags => ("No tagged notes", "Add tags to organize your library."),
             LibrarySection::Archived => {
                 ("Archive is empty", "Archived notes remain available here.")
