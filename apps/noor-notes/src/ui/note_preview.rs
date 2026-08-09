@@ -57,9 +57,8 @@ impl NotePreview {
     pub fn clear(&self) {
         self.title.set_text("Select a note");
         self.metadata.set_text("Your note preview will appear here");
-        self.body.set_text(
-            "Choose a note from the library to read it without opening another window.",
-        );
+        self.body
+            .set_text("Choose a note from the library to read it without opening another window.");
     }
 
     pub fn show_note(&self, note: &Note) {

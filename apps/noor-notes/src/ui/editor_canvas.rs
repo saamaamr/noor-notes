@@ -1,7 +1,11 @@
 use adw::prelude::*;
 
 pub fn configure_editor_canvas(editor: &gtk::TextView, rich_mode: bool) {
-    let (horizontal, top, bottom) = if rich_mode { (40, 28, 40) } else { (16, 16, 24) };
+    let (horizontal, top, bottom) = if rich_mode {
+        (40, 28, 40)
+    } else {
+        (16, 16, 24)
+    };
     editor.set_left_margin(horizontal);
     editor.set_right_margin(horizontal);
     editor.set_top_margin(top);

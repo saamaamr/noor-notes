@@ -52,13 +52,26 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     preview.set_ellipsize(gtk::pango::EllipsizeMode::End);
     preview.set_wrap(true);
     text.append(&preview);
-    let tags = gtk::Label::new(Some(&note.tags.iter().take(2).map(|tag| format!("#{tag}")).collect::<Vec<_>>().join("   ")));
+    let tags = gtk::Label::new(Some(
+        &note
+            .tags
+            .iter()
+            .take(2)
+            .map(|tag| format!("#{tag}"))
+            .collect::<Vec<_>>()
+            .join("   "),
+    ));
     tags.add_css_class("nn-note-card-tags");
     tags.set_xalign(0.0);
     tags.set_ellipsize(gtk::pango::EllipsizeMode::End);
     tags.set_visible(!note.tags.is_empty());
     text.append(&tags);
-    let meta = gtk::Label::new(Some(&note.updated_at.format("Edited %d %b · %I:%M %p").to_string()));
+    let meta = gtk::Label::new(Some(
+        &note
+            .updated_at
+            .format("Edited %d %b · %I:%M %p")
+            .to_string(),
+    ));
     meta.add_css_class("nn-caption");
     meta.add_css_class("nn-note-card-meta");
     meta.set_xalign(0.0);

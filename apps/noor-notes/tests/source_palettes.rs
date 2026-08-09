@@ -2,8 +2,8 @@ use adw::prelude::*;
 use noor_domain::SourceLanguage;
 use noor_notes::appearance::EffectiveTheme;
 use noor_notes::editor::SourceEditorAdapter;
-use sourceview5::prelude::BufferExt;
 use noor_notes::editor::source_palette;
+use sourceview5::prelude::BufferExt;
 
 #[test]
 fn embedded_palettes_are_discoverable_complete_and_readable() {

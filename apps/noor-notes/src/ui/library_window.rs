@@ -252,8 +252,10 @@ impl MainWindow {
             this.collection.clone().connect_selected(move |note| {
                 if let Some(note) = note {
                     this.preview.show_note(&note);
-                    if LibraryLayoutMode::for_width(this.window.width())
-                        == LibraryLayoutMode::Narrow
+                    if LibraryLayoutMode::for_window_width(
+                        this.window.width(),
+                        this.window.default_width(),
+                    ) == LibraryLayoutMode::Narrow
                     {
                         this.showing_content.set(true);
                         this.apply_layout();
@@ -295,6 +297,12 @@ impl MainWindow {
         }
         {
             let this = this.clone();
+            this.window
+                .clone()
+                .connect_map(move |_| this.apply_layout());
+        }
+        {
+            let this = this.clone();
             this.back.clone().connect_clicked(move |_| {
                 this.showing_content.set(false);
                 this.apply_layout();
@@ -306,7 +314,8 @@ impl MainWindow {
     }
 
     fn apply_layout(&self) {
-        let mode = LibraryLayoutMode::for_width(self.window.width());
+        let mode =
+            LibraryLayoutMode::for_window_width(self.window.width(), self.window.default_width());
         let visibility = mode.visibility(self.showing_content.get());
         self.sidebar.widget.set_visible(visibility.sidebar);
         self.sidebar_separator.set_visible(visibility.sidebar);

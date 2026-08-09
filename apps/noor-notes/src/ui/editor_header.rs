@@ -50,9 +50,7 @@ impl EditorHeader {
             .tooltip_text("Pin note in the library")
             .active(note.pinned)
             .build();
-        library_pin.update_property(&[gtk::accessible::Property::Label(
-            "Pin note in the library",
-        )]);
+        library_pin.update_property(&[gtk::accessible::Property::Label("Pin note in the library")]);
         let favorite = gtk::ToggleButton::builder()
             .icon_name(if note.favorite {
                 "starred-symbolic"

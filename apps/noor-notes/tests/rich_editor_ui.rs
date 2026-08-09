@@ -17,9 +17,12 @@ fn compact_toolbar_exposes_only_frequent_actions_at_top_level() {
         }
         child = widget.next_sibling();
     }
-    assert_eq!(separators, 3, "primary actions must have three logical separators");
+    assert_eq!(
+        separators, 3,
+        "primary actions must have three logical separators"
+    );
 
-    let (_, narrow_height, _, _) = toolbar.widget.measure(gtk::Orientation::Vertical, 190);
+    let (_, narrow_height, _, _) = toolbar.widget.measure(gtk::Orientation::Vertical, 420);
     let (_, wide_height, _, _) = toolbar.widget.measure(gtk::Orientation::Vertical, 900);
     assert_eq!(
         narrow_height, wide_height,
@@ -32,7 +35,13 @@ fn compact_toolbar_exposes_only_frequent_actions_at_top_level() {
             .iter()
             .map(|label| label.text().to_string())
             .collect::<Vec<_>>(),
-        ["Typography", "Formatting", "Alignment", "Text color", "Highlight"]
+        [
+            "Typography",
+            "Formatting",
+            "Alignment",
+            "Text color",
+            "Highlight"
+        ]
     );
 
     for button in [

@@ -75,7 +75,8 @@ impl LibrarySidebar {
     }
 
     pub fn set_collapsed(&self, collapsed: bool) {
-        self.widget.set_width_request(if collapsed { 64 } else { 220 });
+        self.widget
+            .set_width_request(if collapsed { 64 } else { 220 });
         self.heading.set_visible(!collapsed);
         self.privacy.set_visible(!collapsed);
         for label in &self.labels {

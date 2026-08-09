@@ -26,6 +26,7 @@ use crate::ui::editor_header::EditorHeader;
 use crate::ui::editor_presentation::EditorPresentation;
 use crate::ui::editor_status_bar::EditorStatusBar;
 use crate::ui::editor_toolbar::EditorToolbar;
+use crate::ui::find_replace_panel::FindReplacePanel;
 
 pub struct NoteWindow {
     pub window: adw::ApplicationWindow,
@@ -66,12 +67,8 @@ impl NoteWindow {
         toolbar.restore.set_visible(is_trashed);
         toolbar.permanent_delete.set_visible(is_trashed);
         let appearance_button = AppearanceButton::new(appearance.clone());
-        let editor_header = EditorHeader::new(
-            &current,
-            &toolbar,
-            &appearance_button.button,
-            is_trashed,
-        );
+        let editor_header =
+            EditorHeader::new(&current, &toolbar, &appearance_button.button, is_trashed);
         let title_entry = editor_header.title_entry.clone();
         let title_box = editor_header.title_box.clone();
         let save_status = editor_header.save_status.clone();
@@ -151,48 +148,18 @@ impl NoteWindow {
         configure_editor_canvas(&editor, rich_mode);
         editor.set_accepts_tab(true);
         editor.set_editable(!is_trashed);
-        let find_entry = gtk::SearchEntry::builder()
-            .placeholder_text("Find in note…")
-            .hexpand(true)
-            .build();
-        let replace_entry = gtk::Entry::builder()
-            .placeholder_text("Replace with…")
-            .hexpand(true)
-            .build();
-        let match_case = gtk::CheckButton::with_label("Match case");
-        let whole_word = gtk::CheckButton::with_label("Whole word");
-        let replace = gtk::Button::with_label("Replace");
-        let replace_all = gtk::Button::with_label("Replace All");
-        let find_close = gtk::Button::builder()
-            .icon_name("window-close-symbolic")
-            .tooltip_text("Close find and replace (Escape)")
-            .build();
-        let find_previous = gtk::Button::builder()
-            .icon_name("go-up-symbolic")
-            .tooltip_text("Previous match")
-            .build();
-        let find_next = gtk::Button::builder()
-            .icon_name("go-down-symbolic")
-            .tooltip_text("Next match")
-            .build();
-        let find_count = gtk::Label::new(Some("0 of 0"));
-        let find_bar = gtk::Box::new(gtk::Orientation::Vertical, 4);
-        find_bar.add_css_class("nn-find-panel");
-        let find_row = gtk::Box::new(gtk::Orientation::Horizontal, 4);
-        find_row.append(&find_entry);
-        find_row.append(&find_count);
-        find_row.append(&find_previous);
-        find_row.append(&find_next);
-        find_row.append(&find_close);
-        let replace_row = gtk::Box::new(gtk::Orientation::Horizontal, 4);
-        replace_row.append(&replace_entry);
-        replace_row.append(&replace);
-        replace_row.append(&replace_all);
-        replace_row.append(&match_case);
-        replace_row.append(&whole_word);
-        find_bar.append(&find_row);
-        find_bar.append(&replace_row);
-        find_bar.set_visible(false);
+        let find_panel = FindReplacePanel::new();
+        let find_entry = find_panel.find_entry.clone();
+        let replace_entry = find_panel.replace_entry.clone();
+        let match_case = find_panel.match_case.clone();
+        let whole_word = find_panel.whole_word.clone();
+        let replace = find_panel.replace.clone();
+        let replace_all = find_panel.replace_all.clone();
+        let find_close = find_panel.close.clone();
+        let find_previous = find_panel.previous.clone();
+        let find_next = find_panel.next.clone();
+        let find_count = find_panel.count.clone();
+        let find_bar = find_panel.widget.clone();
         layout.append(&find_bar);
         let find_results = Rc::new(RefCell::new(FindResults::default()));
         let find_options = Rc::new(Cell::new(FindOptions::default()));
@@ -883,6 +850,7 @@ impl NoteWindow {
 
         {
             let autosave = autosave.clone();
+            let app = app.clone();
             let id = current.id;
             let allow_close = Rc::new(Cell::new(false));
             let buffer = buffer.clone();
@@ -896,13 +864,16 @@ impl NoteWindow {
                     save_editor_snapshot(&buffer, &note, &autosave);
                 }
                 if !autosave.has_pending(id) {
+                    app.activate_action("refresh-notes", None);
                     return gtk::glib::Propagation::Proceed;
                 }
                 let autosave = autosave.clone();
                 let window = window.clone();
                 let allow_close = allow_close.clone();
+                let app = app.clone();
                 gtk::glib::MainContext::default().spawn_local(async move {
                     if autosave.flush(id).await.is_ok() {
+                        app.activate_action("refresh-notes", None);
                         allow_close.set(true);
                         window.close();
                     } else {

@@ -65,8 +65,16 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     assert!(!card.widget.has_css_class("boxed-list"));
     assert_eq!(card.menu.tooltip_text().as_deref(), Some("Note actions"));
     let descendants = descendants(card.widget.clone().upcast());
-    assert!(descendants.iter().any(|widget| widget.has_css_class("nn-note-card-tags")));
-    assert!(descendants.iter().any(|widget| widget.has_css_class("nn-note-card-meta")));
+    assert!(
+        descendants
+            .iter()
+            .any(|widget| widget.has_css_class("nn-note-card-tags"))
+    );
+    assert!(
+        descendants
+            .iter()
+            .any(|widget| widget.has_css_class("nn-note-card-meta"))
+    );
 
     let preview = NotePreview::new();
     assert!(preview.widget.has_css_class("nn-preview-surface"));
@@ -74,7 +82,11 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     preview.clear();
     let preview_text = label_texts(preview.widget.clone().upcast());
     assert!(preview_text.iter().any(|text| text == "Select a note"));
-    assert!(preview_text.iter().any(|text| text.contains("Choose a note")));
+    assert!(
+        preview_text
+            .iter()
+            .any(|text| text.contains("Choose a note"))
+    );
 
     let empty = EmptyState::new();
     for (section, expected) in [
@@ -87,10 +99,18 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
         (LibrarySection::Recent, "No recent notes"),
     ] {
         empty.update(section, false);
-        assert!(label_texts(empty.widget.clone().upcast()).iter().any(|text| text == expected));
+        assert!(
+            label_texts(empty.widget.clone().upcast())
+                .iter()
+                .any(|text| text == expected)
+        );
     }
     empty.update(LibrarySection::AllNotes, true);
-    assert!(label_texts(empty.widget.clone().upcast()).iter().any(|text| text == "No notes found"));
+    assert!(
+        label_texts(empty.widget.clone().upcast())
+            .iter()
+            .any(|text| text == "No notes found")
+    );
 }
 
 fn label_texts(root: gtk::Widget) -> Vec<String> {

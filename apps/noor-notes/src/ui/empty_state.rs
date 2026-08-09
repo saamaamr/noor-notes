@@ -41,11 +41,11 @@ impl EmptyState {
             return;
         }
         let (title, description) = match section {
-            LibrarySection::AllNotes => {
-                ("No notes yet", "Create a note to begin writing.")
-            }
+            LibrarySection::AllNotes => ("No notes yet", "Create a note to begin writing."),
             LibrarySection::Pinned => ("No pinned notes", "Pin important notes for quick access."),
-            LibrarySection::Favorites => ("No favorite notes", "Favorite notes you want to revisit."),
+            LibrarySection::Favorites => {
+                ("No favorite notes", "Favorite notes you want to revisit.")
+            }
             LibrarySection::Tags => ("No tagged notes", "Add tags to organize your library."),
             LibrarySection::Archived => {
                 ("Archive is empty", "Archived notes remain available here.")

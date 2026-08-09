@@ -2,10 +2,17 @@ use noor_notes::ui::adaptive_layout::{LibraryLayoutMode, LibraryPaneVisibility};
 
 #[test]
 fn width_breakpoints_choose_one_stable_library_mode() {
-    assert_eq!(LibraryLayoutMode::for_width(1_200), LibraryLayoutMode::Wide);
-    assert_eq!(LibraryLayoutMode::for_width(1_199), LibraryLayoutMode::Medium);
+    assert_eq!(LibraryLayoutMode::for_width(1_180), LibraryLayoutMode::Wide);
+    assert_eq!(
+        LibraryLayoutMode::for_width(1_079),
+        LibraryLayoutMode::Medium
+    );
     assert_eq!(LibraryLayoutMode::for_width(760), LibraryLayoutMode::Medium);
     assert_eq!(LibraryLayoutMode::for_width(759), LibraryLayoutMode::Narrow);
+    assert_eq!(
+        LibraryLayoutMode::for_window_width(1, 1_180),
+        LibraryLayoutMode::Wide
+    );
 }
 
 #[test]

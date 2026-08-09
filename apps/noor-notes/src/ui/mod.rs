@@ -1,12 +1,13 @@
+pub mod adaptive_layout;
 pub mod appearance_button;
 pub mod appearance_settings;
-pub mod adaptive_layout;
 pub mod editor_canvas;
 pub mod editor_header;
 pub mod editor_presentation;
 pub mod editor_status_bar;
 pub mod editor_toolbar;
 pub mod empty_state;
+pub mod find_replace_panel;
 pub mod formatting_popover;
 pub mod library_sidebar;
 pub mod library_window;
