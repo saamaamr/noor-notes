@@ -27,6 +27,20 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
         assert!(row.tooltip_text().is_some());
     }
 
+    sidebar.set_collapsed(true);
+    assert_eq!(sidebar.widget.width_request(), 64);
+    for index in 0..7 {
+        let row = list.row_at_index(index).unwrap();
+        let content = row.child().and_downcast::<gtk::Box>().unwrap();
+        let label = content.first_child().unwrap().next_sibling().unwrap();
+        let count = label.next_sibling().unwrap();
+        assert!(!label.is_visible());
+        assert!(!count.is_visible());
+        assert!(row.tooltip_text().is_some());
+    }
+    sidebar.set_collapsed(false);
+    assert_eq!(sidebar.widget.width_request(), 220);
+
     let collection = NoteCollection::new(Rc::new(|_, _| {}));
     assert!(collection.widget.has_css_class("nn-note-list"));
     assert!(
@@ -47,4 +61,18 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     let card = note_card::build(&note, Rc::new(|_, _| {}));
     assert!(card.widget.has_css_class("nn-note-card"));
     assert!(!card.widget.has_css_class("boxed-list"));
+    assert_eq!(card.menu.tooltip_text().as_deref(), Some("Note actions"));
+    let descendants = descendants(card.widget.clone().upcast());
+    assert!(descendants.iter().any(|widget| widget.has_css_class("nn-note-card-tags")));
+    assert!(descendants.iter().any(|widget| widget.has_css_class("nn-note-card-meta")));
+}
+
+fn descendants(root: gtk::Widget) -> Vec<gtk::Widget> {
+    let mut widgets = vec![root.clone()];
+    let mut child = root.first_child();
+    while let Some(current) = child {
+        widgets.extend(descendants(current.clone()));
+        child = current.next_sibling();
+    }
+    widgets
 }

@@ -9,13 +9,16 @@ pub struct LibrarySidebar {
     pub widget: gtk::Box,
     list: gtk::ListBox,
     counts: HashMap<LibrarySection, gtk::Label>,
+    labels: Vec<gtk::Label>,
+    heading: gtk::Label,
+    privacy: gtk::Label,
 }
 
 impl LibrarySidebar {
     pub fn new() -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 8);
         widget.add_css_class("nn-sidebar");
-        widget.set_width_request(184);
+        widget.set_width_request(220);
 
         let heading = gtk::Label::new(Some("Library"));
         heading.add_css_class("nn-caption");
@@ -28,6 +31,7 @@ impl LibrarySidebar {
         list.set_activate_on_single_click(true);
         list.add_css_class("navigation-sidebar");
         let mut counts = HashMap::new();
+        let mut labels = Vec::new();
         for section in LibrarySection::NAVIGATION {
             let row = gtk::ListBoxRow::new();
             row.add_css_class("nn-sidebar-row");
@@ -38,6 +42,7 @@ impl LibrarySidebar {
             label.set_halign(gtk::Align::Start);
             label.set_hexpand(true);
             content.append(&label);
+            labels.push(label.clone());
             let count = gtk::Label::new(Some("0"));
             count.add_css_class("nn-caption");
             content.append(&count);
@@ -63,6 +68,26 @@ impl LibrarySidebar {
             widget,
             list,
             counts,
+            labels,
+            heading,
+            privacy,
+        }
+    }
+
+    pub fn set_collapsed(&self, collapsed: bool) {
+        self.widget.set_width_request(if collapsed { 64 } else { 220 });
+        self.heading.set_visible(!collapsed);
+        self.privacy.set_visible(!collapsed);
+        for label in &self.labels {
+            label.set_visible(!collapsed);
+        }
+        for count in self.counts.values() {
+            count.set_visible(!collapsed);
+        }
+        if collapsed {
+            self.widget.add_css_class("collapsed");
+        } else {
+            self.widget.remove_css_class("collapsed");
         }
     }
 

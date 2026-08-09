@@ -14,6 +14,7 @@ pub enum CardAction {
 pub struct NoteCard {
     pub widget: gtk::Box,
     pub archive: Option<gtk::Button>,
+    pub menu: gtk::MenuButton,
 }
 
 pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
@@ -24,7 +25,8 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     color.add_css_class("nn-color-strip");
     color.set_width_request(4);
     card.append(&color);
-    let text = gtk::Box::new(gtk::Orientation::Vertical, 4);
+    let text = gtk::Box::new(gtk::Orientation::Vertical, 6);
+    text.add_css_class("nn-note-card-content");
     text.set_hexpand(true);
     let heading = gtk::Box::new(gtk::Orientation::Horizontal, 6);
     let title = gtk::Label::new(Some(note.display_title()));
@@ -50,16 +52,15 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     preview.set_ellipsize(gtk::pango::EllipsizeMode::End);
     preview.set_wrap(true);
     text.append(&preview);
-    let meta = gtk::Label::new(Some(&format!(
-        "{}{}",
-        note.updated_at.format("%d %b · %I:%M %p"),
-        note.tags
-            .iter()
-            .take(2)
-            .map(|tag| format!("   #{tag}"))
-            .collect::<String>()
-    )));
+    let tags = gtk::Label::new(Some(&note.tags.iter().take(2).map(|tag| format!("#{tag}")).collect::<Vec<_>>().join("   ")));
+    tags.add_css_class("nn-note-card-tags");
+    tags.set_xalign(0.0);
+    tags.set_ellipsize(gtk::pango::EllipsizeMode::End);
+    tags.set_visible(!note.tags.is_empty());
+    text.append(&tags);
+    let meta = gtk::Label::new(Some(&note.updated_at.format("Edited %d %b · %I:%M %p").to_string()));
     meta.add_css_class("nn-caption");
+    meta.add_css_class("nn-note-card-meta");
     meta.set_xalign(0.0);
     meta.set_ellipsize(gtk::pango::EllipsizeMode::End);
     text.append(&meta);
@@ -113,6 +114,7 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
         .tooltip_text("Note actions")
         .popover(&popover)
         .build();
+    menu.update_property(&[gtk::accessible::Property::Label("Note actions")]);
     let gesture = gtk::GestureClick::new();
     gesture.set_button(3);
     let popover = popover.clone();
@@ -122,5 +124,6 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     NoteCard {
         widget: card,
         archive,
+        menu,
     }
 }
