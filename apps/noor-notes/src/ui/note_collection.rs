@@ -35,7 +35,13 @@ impl NoteCollection {
                 let Some(note) = notes.get(string.string().as_str()) else {
                     return;
                 };
-                item.set_child(Some(&note_card::build(note, action.clone())));
+                let card = note_card::build(note, action.clone());
+                if let Some(archive) = card.archive.as_ref() {
+                    item.bind_property("selected", archive, "visible")
+                        .sync_create()
+                        .build();
+                }
+                item.set_child(Some(&card.widget));
             });
         }
         factory.connect_unbind(|_, object| {

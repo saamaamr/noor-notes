@@ -5,9 +5,9 @@ use std::time::Duration;
 
 use crate::appearance::global;
 use adw::prelude::*;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use noor_domain::{Note, NoteId};
-use noor_storage::{NoteSort, SqliteNoteRepository};
+use noor_storage::{NoteSort, SqliteNoteRepository, StorageError};
 use noor_windowing::WindowController;
 
 use super::appearance_button::AppearanceButton;
@@ -373,16 +373,26 @@ impl MainWindow {
                     return;
                 }
             }
-            let result = match action {
-                CardAction::Trash => trash_command::trash_saved_note(&this.repository, id).await,
-                CardAction::Restore => this.repository.restore(id, Utc::now()).await,
-                CardAction::DeletePermanently => this.repository.delete_permanently(id).await,
-            };
+            let result = apply_saved_card_action(&this.repository, id, action, Utc::now()).await;
             match result {
                 Ok(()) => this.refresh(),
                 Err(error) => this.set_status(&format!("Note action failed: {error}")),
             }
         });
+    }
+}
+
+pub async fn apply_saved_card_action(
+    repository: &SqliteNoteRepository,
+    id: NoteId,
+    action: CardAction,
+    now: DateTime<Utc>,
+) -> Result<(), StorageError> {
+    match action {
+        CardAction::Archive => repository.archive(id, now).await,
+        CardAction::Trash => repository.trash(id, now).await,
+        CardAction::Restore => repository.restore(id, now).await,
+        CardAction::DeletePermanently => repository.delete_permanently(id).await,
     }
 }
 
