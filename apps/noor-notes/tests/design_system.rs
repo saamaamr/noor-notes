@@ -4,10 +4,21 @@ const CSS: &str = include_str!("../resources/design-system.css");
 fn replacement_design_system_defines_semantic_light_dark_and_accessible_states() {
     for token in [
         "@define-color nn_bg",
+        "@define-color nn_app_bg",
         "@define-color nn_surface",
+        "@define-color nn_editor_bg",
+        "@define-color nn_sidebar_bg",
         "@define-color nn_border",
+        "@define-color nn_border_subtle",
         "@define-color nn_text",
+        "@define-color nn_text_muted",
         "@define-color nn_accent",
+        "@define-color nn_accent_hover",
+        "@define-color nn_accent_soft",
+        "@define-color nn_danger",
+        "@define-color nn_focus",
+        "@define-color nn_hover",
+        "@define-color nn_selected",
         ".nn-theme-light",
         ".nn-theme-graphite",
         ".nn-theme-midnight",
@@ -18,10 +29,31 @@ fn replacement_design_system_defines_semantic_light_dark_and_accessible_states()
         "prefers-reduced-motion",
         ".paper-warm-white",
         ".paper-dark-slate",
+        ".nn-source-canvas",
+        ".nn-focus-ring",
     ] {
         assert!(CSS.contains(token), "missing design token/state: {token}");
     }
     assert!(!CSS.contains("linear-gradient"));
+}
+
+#[test]
+fn selected_navigation_and_note_cards_use_calm_semantic_surfaces() {
+    let sidebar_selection = CSS
+        .split(".nn-sidebar-row:selected")
+        .nth(1)
+        .and_then(|rules| rules.split('}').next())
+        .expect("sidebar selected rules");
+    assert!(sidebar_selection.contains("@nn_selected"));
+    assert!(!sidebar_selection.contains("color: white"));
+
+    let card_selection = CSS
+        .split(".nn-note-list row:selected .nn-note-card")
+        .nth(1)
+        .and_then(|rules| rules.split('}').next())
+        .expect("note card selected rules");
+    assert!(card_selection.contains("@nn_selected"));
+    assert!(card_selection.contains("@nn_accent"));
 }
 
 #[test]

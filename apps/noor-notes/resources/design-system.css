@@ -1,15 +1,26 @@
 @define-color nn_bg #f5f5f4;
+@define-color nn_app_bg #f5f5f4;
 @define-color nn_surface #ffffff;
+@define-color nn_editor_bg #ffffff;
+@define-color nn_sidebar_bg #f0f0ee;
 @define-color nn_surface_raised #ffffff;
 @define-color nn_border rgba(28, 28, 30, 0.12);
+@define-color nn_border_subtle rgba(28, 28, 30, 0.07);
 @define-color nn_text #202124;
 @define-color nn_text_secondary #686a70;
+@define-color nn_text_muted #85878d;
 @define-color nn_accent #4d6fdc;
+@define-color nn_accent_hover alpha(@nn_accent, .12);
+@define-color nn_accent_soft alpha(@nn_accent, .08);
+@define-color nn_danger #c43d3d;
 @define-color nn_success #287a4b;
 @define-color nn_warning #9a6400;
 @define-color nn_error #c43d3d;
+@define-color nn_focus #4d6fdc;
+@define-color nn_hover alpha(@nn_accent, .08);
+@define-color nn_selected mix(@nn_surface, @nn_accent, .91);
 
-window { background: @nn_bg; color: @nn_text; }
+window { background: @nn_app_bg; color: @nn_text; }
 headerbar { min-height: 44px; background: @nn_surface; border-bottom: 1px solid @nn_border; box-shadow: none; }
 button { border-radius: 8px; transition: 140ms ease; }
 button:hover { background: alpha(@nn_accent, .09); }
@@ -20,14 +31,14 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
   outline-offset: 2px;
 }
 
-.nn-sidebar { background: shade(@nn_bg, .97); border-right: 1px solid @nn_border; padding: 12px 8px; }
+.nn-sidebar { background: @nn_sidebar_bg; border-right: 1px solid @nn_border; padding: 12px 8px; }
 .nn-sidebar-row { min-height: 38px; margin: 2px 0; padding: 0 12px; border-radius: 8px; transition: 140ms ease; }
-.nn-sidebar-row:hover { background: alpha(@nn_accent, .08); }
-.nn-sidebar-row:selected, .nn-sidebar-row:checked { background: @nn_accent; color: white; font-weight: 700; }
+.nn-sidebar-row:hover { background: @nn_hover; }
+.nn-sidebar-row:selected, .nn-sidebar-row:checked { background: @nn_selected; color: @nn_text; font-weight: 600; box-shadow: inset 3px 0 @nn_accent; }
 .nn-note-list { background: @nn_bg; padding: 8px; }
 .nn-note-list row { background: transparent; padding: 0; }
 .nn-note-list row:selected { background: transparent; }
-.nn-note-list row:selected .nn-note-card { border-color: @nn_accent; background: mix(@nn_surface, @nn_accent, .91); }
+.nn-note-list row:selected .nn-note-card { border-color: @nn_accent; background: @nn_selected; }
 .nn-note-card {
   min-height: 88px;
   margin: 4px 6px;
@@ -104,6 +115,8 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
   padding: 32px 48px;
   font-size: 16px;
 }
+.nn-source-canvas { background: @nn_editor_bg; color: @nn_text; }
+.nn-focus-ring:focus-visible { outline: 2px solid @nn_focus; outline-offset: 2px; }
 .nn-rich-writing-canvas {
   background: @nn_surface;
   color: @nn_text;
