@@ -36,6 +36,8 @@ impl SourceEditorAdapter {
         }
         source_palette::apply(&buffer, theme);
         let view = sourceview5::View::with_buffer(&buffer);
+        view.add_css_class("nn-writing-canvas");
+        view.add_css_class("nn-source-canvas");
         view.set_show_line_numbers(true);
         view.set_highlight_current_line(true);
         view.set_auto_indent(true);

@@ -21,6 +21,7 @@ use crate::rich_buffer::RichBuffer;
 use crate::safe_export::{ExportExtension, sanitize_export_name, set_owner_only};
 use crate::services::trash_command;
 use crate::ui::appearance_button::AppearanceButton;
+use crate::ui::editor_canvas::{build_editor_canvas, configure_editor_canvas};
 use crate::ui::editor_header::EditorHeader;
 use crate::ui::editor_presentation::EditorPresentation;
 use crate::ui::editor_status_bar::EditorStatusBar;
@@ -147,17 +148,8 @@ impl NoteWindow {
         };
         editor.set_buffer(Some(&buffer));
         editor.set_wrap_mode(initial_wrap);
-        editor.set_left_margin(48);
-        editor.set_right_margin(48);
-        editor.set_top_margin(32);
-        editor.set_bottom_margin(48);
+        configure_editor_canvas(&editor, rich_mode);
         editor.set_accepts_tab(true);
-        editor.add_css_class("nn-writing-canvas");
-        editor.set_tooltip_text(Some("Note body"));
-        editor.update_property(&[gtk::accessible::Property::Label("Note body")]);
-        if rich_mode {
-            editor.add_css_class("nn-rich-writing-canvas");
-        }
         editor.set_editable(!is_trashed);
         let find_entry = gtk::SearchEntry::builder()
             .placeholder_text("Find in note…")
@@ -340,10 +332,11 @@ impl NoteWindow {
             });
         }
 
+        let canvas = build_editor_canvas(&editor, rich_mode);
         let scroller = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never)
             .vexpand(true)
-            .child(&editor)
+            .child(&canvas)
             .build();
         scroller.add_css_class("nn-canvas-scroller");
         layout.append(&scroller);

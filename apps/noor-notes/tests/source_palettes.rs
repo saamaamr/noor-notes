@@ -1,4 +1,8 @@
+use adw::prelude::*;
+use noor_domain::SourceLanguage;
 use noor_notes::appearance::EffectiveTheme;
+use noor_notes::editor::SourceEditorAdapter;
+use sourceview5::prelude::BufferExt;
 use noor_notes::editor::source_palette;
 
 #[test]
@@ -41,6 +45,18 @@ fn embedded_palettes_are_discoverable_complete_and_readable() {
             "{expected_id} text contrast is below WCAG AA"
         );
     }
+
+    let adapter = SourceEditorAdapter::new_with_theme(
+        "fn main() {}",
+        Some(&SourceLanguage::new("rust").unwrap()),
+        EffectiveTheme::Midnight,
+    );
+    assert!(adapter.view().has_css_class("nn-source-canvas"));
+    assert!(!adapter.view().has_css_class("nn-rich-writing-canvas"));
+    assert_eq!(
+        adapter.buffer().style_scheme().unwrap().id().as_str(),
+        "noor-midnight"
+    );
 }
 
 fn contrast_ratio(foreground: &str, background: &str) -> f64 {

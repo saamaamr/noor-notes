@@ -83,6 +83,15 @@ fn source_canvas_layout_does_not_override_sourceview_palette_colors() {
     assert!(!source_canvas.contains("color:"));
     assert!(!source_canvas.contains("caret-color:"));
 
+    let source_mode = CSS
+        .split(".nn-source-canvas {")
+        .nth(1)
+        .and_then(|rules| rules.split('}').next())
+        .expect("source mode canvas rules");
+    assert!(!source_mode.contains("background:"));
+    assert!(!source_mode.contains("color:"));
+    assert!(!source_mode.contains("caret-color:"));
+
     let rich_canvas = CSS
         .split(".nn-rich-writing-canvas {")
         .nth(1)

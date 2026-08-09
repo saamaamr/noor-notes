@@ -121,11 +121,12 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-tag-strip { background: @nn_editor_bg; color: @nn_text_secondary; border-bottom: 1px solid @nn_border_subtle; }
 .nn-tag-entry { background: transparent; border: 0; box-shadow: none; color: @nn_text_secondary; }
 .nn-canvas-scroller { background: shade(@nn_bg, .985); }
+.nn-writing-clamp { background: @nn_editor_bg; }
 .nn-writing-canvas {
-  padding: 32px 48px;
+  padding: 0;
   font-size: 16px;
 }
-.nn-source-canvas { background: @nn_editor_bg; color: @nn_text; }
+.nn-source-canvas { font-family: monospace; }
 .nn-focus-ring:focus-visible { outline: 2px solid @nn_focus; outline-offset: 2px; }
 .nn-rich-writing-canvas {
   background: @nn_surface;
@@ -188,7 +189,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-graphite .nn-preview-surface, .nn-theme-graphite .nn-preview { background: #24262a; color: #f3f4f6; }
 .nn-theme-graphite .nn-editor-toolbar { background: #222428; color: #e8e9ed; border-color: rgba(255,255,255,.09); }
 .nn-theme-graphite .nn-rich-writing-canvas { background: #282a2f; color: #f5f6f8; caret-color: #9aafff; }
-.nn-theme-graphite .nn-canvas-scroller { background: #1c1d20; }
+.nn-theme-graphite .nn-canvas-scroller, .nn-theme-graphite .nn-writing-clamp { background: #1c1d20; }
 .nn-theme-graphite .nn-find-panel { background: #24262a; color: #f3f4f6; border-color: rgba(255,255,255,.10); }
 .nn-theme-graphite .nn-statusbar { background: #202226; color: #b8bbc3; border-color: rgba(255,255,255,.09); }
 .nn-theme-graphite popover { background: #303238; color: #f3f4f6; }
@@ -209,7 +210,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-midnight .nn-preview-surface, .nn-theme-midnight .nn-preview { background: #172131; color: #edf5ff; }
 .nn-theme-midnight .nn-editor-toolbar { background: #141e2c; color: #e4efff; border-color: rgba(168,205,255,.10); }
 .nn-theme-midnight .nn-rich-writing-canvas { background: #1a2638; color: #f2f7ff; caret-color: #73b7ff; }
-.nn-theme-midnight .nn-canvas-scroller { background: #101722; }
+.nn-theme-midnight .nn-canvas-scroller, .nn-theme-midnight .nn-writing-clamp { background: #101722; }
 .nn-theme-midnight .nn-find-panel { background: #172131; color: #edf5ff; border-color: rgba(168,205,255,.12); }
 .nn-theme-midnight .nn-statusbar { background: #131c2a; color: #abc0da; border-color: rgba(168,205,255,.10); }
 .nn-theme-midnight popover { background: #202d41; color: #f2f7ff; }
@@ -230,7 +231,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-oled .nn-preview-surface, .nn-theme-oled .nn-preview { background: #0d0d0f; color: #f7f7fa; }
 .nn-theme-oled .nn-editor-toolbar { background: #0a0a0c; color: #eeeeF4; border-color: rgba(255,255,255,.11); }
 .nn-theme-oled .nn-rich-writing-canvas { background: #121216; color: #fafaff; caret-color: #b1a0ff; }
-.nn-theme-oled .nn-canvas-scroller { background: #050506; }
+.nn-theme-oled .nn-canvas-scroller, .nn-theme-oled .nn-writing-clamp { background: #050506; }
 .nn-theme-oled .nn-find-panel { background: #0d0d0f; color: #f7f7fa; border-color: rgba(255,255,255,.13); }
 .nn-theme-oled .nn-statusbar { background: #09090b; color: #bdbdc7; border-color: rgba(255,255,255,.11); }
 .nn-theme-oled popover { background: #18181d; color: #fafaff; }
