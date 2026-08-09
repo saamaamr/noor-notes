@@ -45,6 +45,6 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     assert_eq!(collection.widget.model().unwrap().n_items(), 1);
 
     let card = note_card::build(&note, Rc::new(|_, _| {}));
-    assert!(card.has_css_class("nn-note-card"));
-    assert!(!card.has_css_class("boxed-list"));
+    assert!(card.widget.has_css_class("nn-note-card"));
+    assert!(!card.widget.has_css_class("boxed-list"));
 }

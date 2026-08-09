@@ -19,6 +19,12 @@
 - Failures leave the note active and visible and use existing error feedback.
 - Keep the existing More-menu Archive action as a fallback.
 
+## Execution Review
+
+- The proposed source-text assertions are replaced by real GTK widget and temporary-repository behavior tests.
+- The shared editor handler also receives the current `gtk::TextBuffer` so it snapshots pending content before archiving.
+- Library dispatch is exercised through `apply_saved_card_action`, using two real notes in a temporary database to prove only the selected note becomes Archived.
+
 ---
 
 ### Task 1: Add the editor-header Archive action

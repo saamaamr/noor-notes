@@ -10,8 +10,9 @@ fn every_primary_toolbar_button_is_wired() {
         "New Note must activate app.new-note"
     );
     assert!(
-        NOTE_WINDOW.contains("toolbar.archive.connect_clicked"),
-        "Archive must persist an Archived transition"
+        NOTE_WINDOW.contains("for button in [&toolbar.header_archive, &toolbar.archive]")
+            && NOTE_WINDOW.contains("connect_archive_button("),
+        "header and More-menu Archive controls must share one persistence path"
     );
     assert!(
         NOTE_WINDOW.contains("connect_trash_button")

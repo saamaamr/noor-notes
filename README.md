@@ -143,6 +143,8 @@ Export from the More menu as UTF-8 plain text or Markdown. Open the keyboard-sho
 
 Move an active or archived note to Trash from the visible editor-header trash button, the editor More menu, or the note card action menu (including right-click). Noor Notes confirms the action and keeps the note recoverable in Trash. In Trash, restore the note or choose **Permanently Delete** and confirm; permanent deletion removes the note and its local history.
 
+Archive an active note from the visible folder button in the editor header or on the currently selected library card. The same reversible action remains available in the note action menu. Noor Notes saves pending editor changes before moving the note, refreshes the library and sidebar counts, and keeps Archive controls hidden for notes already in Archived or Trash.
+
 Choose **View Only** from the editor More menu for a minimal reading window containing only native window controls and the formatted note body. Text remains selectable and copyable, but editing controls are hidden. View-Only Mode is remembered per note. Double-click the body or press **Escape** to return to Edit Mode.
 
 ## Window and sandbox limitations
