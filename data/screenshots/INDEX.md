@@ -4,6 +4,8 @@ A comprehensive visual reference captured from the real GTK4/libadwaita interfac
 
 All individual screenshots and gallery overviews use a stable 1248 × 702 RGB canvas. “Compact” documents the smallest visible non-maximized window; a truly minimized window cannot be screenshotted because it is not rendered.
 
+Download or print the complete 98-page collection as [noor-notes-complete-gallery.pdf](noor-notes-complete-gallery.pdf).
+
 ## Stable product overview
 
 - [noor notes library](noor-notes-library.png)
