@@ -71,6 +71,12 @@ require_equal("parts.noor-notes.source", part.get("source"), ".")
 require_equal("parts.noor-notes.after", part.get("after"), ["rust-deps"])
 require_equal("parts.noor-notes.rust-channel", part.get("rust-channel"), "none")
 require_equal("parts.noor-notes.rust-ignore-toolchain-file", part.get("rust-ignore-toolchain-file"), None)
+for package in ("libspelling-1-dev",):
+    if package not in part.get("build-packages", []):
+        raise SystemExit(f"parts.noor-notes.build-packages must include {package}")
+for package in ("libspelling-1-2", "libenchant-2-2", "hunspell-en-us"):
+    if package not in part.get("stage-packages", []):
+        raise SystemExit(f"parts.noor-notes.stage-packages must include {package}")
 require_equal(
     "parts.noor-notes.build-environment",
     part.get("build-environment"),

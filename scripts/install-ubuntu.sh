@@ -46,6 +46,9 @@ printf 'Installing Noor Notes system dependencies...\n'
     libadwaita-1-dev \
     libgtk-4-dev \
     libgtksourceview-5-dev \
+    libspelling-1-dev \
+    enchant-2 \
+    hunspell-en-us \
     libsecret-tools \
     libsqlite3-dev \
     libssl-dev \

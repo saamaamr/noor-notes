@@ -21,6 +21,10 @@ import yaml
 workflow = yaml.load(Path(sys.argv[1]).read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
 source = Path(sys.argv[1]).read_text(encoding="utf-8")
 
+for package in ("libspelling-1-dev", "libenchant-2-2", "hunspell-en-us"):
+    if package not in source:
+        raise SystemExit(f"Release workflow must install {package} before native checks")
+
 if not isinstance(workflow, dict):
     raise SystemExit("Release workflow must be a YAML mapping")
 

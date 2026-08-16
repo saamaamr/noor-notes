@@ -61,11 +61,28 @@ require_equal(
 )
 
 modules = manifest.get("modules")
-if not isinstance(modules, list) or len(modules) != 1 or not isinstance(modules[0], dict):
-    raise SystemExit("Flatpak manifest must contain exactly one application module")
+if not isinstance(modules, list) or len(modules) != 2 or not all(isinstance(item, dict) for item in modules):
+    raise SystemExit("Flatpak manifest must contain the dictionary and application modules")
 
-module = modules[0]
-require_equal("modules[0].name", module.get("name"), "noor-notes")
+dictionary = modules[0]
+require_equal("modules[0].name", dictionary.get("name"), "hunspell-en-us")
+dictionary_source = dictionary.get("sources", [{}])[0]
+require_equal(
+    "modules[0].sources[0].url",
+    dictionary_source.get("url"),
+    "https://github.com/LibreOffice/dictionaries/archive/c011d96c90cc9c6c8b6d95ec6d83d11daacce994.tar.gz",
+)
+require_equal(
+    "modules[0].sources[0].sha256",
+    dictionary_source.get("sha256"),
+    "cdbc8d6d79425b2749f7eee077c107ef96fb23c44e4f0ca450897f0a4402581a",
+)
+for path in ("/app/share/hunspell/en_US.aff", "/app/share/hunspell/en_US.dic"):
+    if not any(path in command for command in dictionary.get("build-commands", [])):
+        raise SystemExit(f"Dictionary module must install {path}")
+
+module = modules[1]
+require_equal("modules[1].name", module.get("name"), "noor-notes")
 require_equal(
     "modules[0].build-options.append-path",
     module.get("build-options", {}).get("append-path"),

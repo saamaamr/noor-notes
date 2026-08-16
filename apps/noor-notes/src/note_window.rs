@@ -389,50 +389,26 @@ impl NoteWindow {
         );
         presentation.set_view_only(current.editor_preferences.view_only && !is_trashed);
         let view_mode_busy = Rc::new(Cell::new(false));
+        let view_mode_context = ViewModeContext {
+            note: note.clone(),
+            autosave: autosave.clone(),
+            repository: repository.clone(),
+            presentation: presentation.clone(),
+            window: window.clone(),
+            busy: view_mode_busy,
+            writing_controller: writing_controller.clone(),
+            spell_session: spell_session.clone(),
+        };
         let exit_view_mode: Rc<dyn Fn()> = {
-            let note = note.clone();
-            let autosave = autosave.clone();
-            let repository = repository.clone();
-            let presentation = presentation.clone();
-            let window = window.clone();
-            let busy = view_mode_busy.clone();
-            let writing_controller = writing_controller.clone();
-            let spell_session = spell_session.clone();
+            let context = view_mode_context.clone();
             Rc::new(move || {
-                request_view_mode(
-                    note.clone(),
-                    autosave.clone(),
-                    repository.clone(),
-                    presentation.clone(),
-                    window.clone(),
-                    busy.clone(),
-                    false,
-                    writing_controller.clone(),
-                    spell_session.clone(),
-                );
+                request_view_mode(context.clone(), false);
             })
         };
         {
-            let note = note.clone();
-            let autosave = autosave.clone();
-            let repository = repository.clone();
-            let presentation = presentation.clone();
-            let window = window.clone();
-            let busy = view_mode_busy.clone();
-            let writing_controller = writing_controller.clone();
-            let spell_session = spell_session.clone();
+            let context = view_mode_context;
             toolbar.view_only.connect_clicked(move |_| {
-                request_view_mode(
-                    note.clone(),
-                    autosave.clone(),
-                    repository.clone(),
-                    presentation.clone(),
-                    window.clone(),
-                    busy.clone(),
-                    true,
-                    writing_controller.clone(),
-                    spell_session.clone(),
-                );
+                request_view_mode(context.clone(), true);
             });
         }
         {
@@ -1203,51 +1179,53 @@ fn connect_trash_button(
     });
 }
 
-fn request_view_mode(
+#[derive(Clone)]
+struct ViewModeContext {
     note: Rc<RefCell<Note>>,
     autosave: AutosaveQueue,
     repository: SqliteNoteRepository,
     presentation: EditorPresentation,
     window: adw::ApplicationWindow,
     busy: Rc<Cell<bool>>,
-    enabled: bool,
     writing_controller: WritingAssistanceController,
     spell_session: crate::writing_assistance::SpellSession,
-) {
-    if busy.replace(true) {
+}
+
+fn request_view_mode(context: ViewModeContext, enabled: bool) {
+    if context.busy.replace(true) {
         return;
     }
     gtk::glib::MainContext::default().spawn_local(async move {
-        let id = note.borrow().id;
-        if autosave.flush(id).await.is_err() {
-            busy.set(false);
-            show_save_error(&window);
+        let id = context.note.borrow().id;
+        if context.autosave.flush(id).await.is_err() {
+            context.busy.set(false);
+            show_save_error(&context.window);
             return;
         }
-        let mut changed = note.borrow().clone();
+        let mut changed = context.note.borrow().clone();
         if changed.editor_preferences.view_only == enabled {
-            presentation.set_view_only(enabled);
-            writing_controller.set_suppressed(enabled);
-            spell_session.set_enabled(!enabled);
-            busy.set(false);
+            context.presentation.set_view_only(enabled);
+            context.writing_controller.set_suppressed(enabled);
+            context.spell_session.set_enabled(!enabled);
+            context.busy.set(false);
             return;
         }
         changed.editor_preferences.view_only = enabled;
         changed.updated_at = Utc::now();
         changed.revision = changed.revision.next();
-        match repository.save_note(&changed).await {
+        match context.repository.save_note(&changed).await {
             Ok(()) => {
-                note.replace(changed);
-                presentation.set_view_only(enabled);
-                writing_controller.set_suppressed(enabled);
-                spell_session.set_enabled(!enabled);
-                if let Some(application) = window.application() {
+                context.note.replace(changed);
+                context.presentation.set_view_only(enabled);
+                context.writing_controller.set_suppressed(enabled);
+                context.spell_session.set_enabled(!enabled);
+                if let Some(application) = context.window.application() {
                     application.activate_action("refresh-notes", None);
                 }
             }
-            Err(_) => show_save_error(&window),
+            Err(_) => show_save_error(&context.window),
         }
-        busy.set(false);
+        context.busy.set(false);
     });
 }
 

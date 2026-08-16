@@ -56,6 +56,9 @@ parts:
       - rust-deps
     stage-packages:
       - libgtksourceview-5-0
+      - libspelling-1-2
+      - libenchant-2-2
+      - hunspell-en-us
     plugin: rust
     source: .
     rust-channel: none
@@ -66,6 +69,7 @@ parts:
       - libadwaita-1-dev
       - libgtk-4-dev
       - libgtksourceview-5-dev
+      - libspelling-1-dev
       - libx11-dev
       - pkg-config
     override-build: |

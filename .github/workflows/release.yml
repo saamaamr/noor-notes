@@ -15,6 +15,9 @@ jobs:
       - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
+      - name: Install native writing dependencies
+        run: sudo apt-get update && sudo apt-get install -y libspelling-1-dev libenchant-2-2 hunspell-en-us
+
       - name: Verify package version matches tag
         run: |
           tag_version="${GITHUB_REF_NAME%%-*}"

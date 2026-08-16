@@ -18,4 +18,11 @@ grep -Fq 'This installer supports Ubuntu and other APT-based systems only.' \
 
 /bin/bash "$repo_root/tests/lockscreen_motion_install.sh"
 
+for package in libspelling-1-dev enchant-2 hunspell-en-us; do
+    grep -Fq "$package" "$installer" || {
+        printf 'Ubuntu installer must install %s\n' "$package" >&2
+        exit 1
+    }
+done
+
 printf 'Ubuntu installer contract checks passed.\n'

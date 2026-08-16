@@ -32,6 +32,8 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 
 ## Features
 
+- **Private writing assistance**: spelling, offline English grammar, and learned local predictions are enabled by default. Spelling uses installed system dictionaries; predictions learn only from Active and Archived note bodies stored in the encrypted database, never Trash.
+- **Optional online assistance**: an OpenAI-compatible provider is opt-in and disabled until its connection is validated. Grammar sends only the current paragraph (maximum 2,000 Unicode characters), prediction sends only a nearby sentence (maximum 800), and the API key stays in GNOME Keyring. Titles, tags, other notes, account data, and encryption material are not sent.
 - **Native notes library**: a compact GNOME header, adaptive navigation sidebar, virtualized note cards, selected-note preview, responsive empty states, keyboard navigation, and views for All Notes, Pinned, Favorites, Recent, Archived, Trash, and Tags.
 - **Fast organization**: Unicode-aware debounced search, stable sorting, editable titles, searchable tags, pinned and favorite states, note colours, duplication, archive, restore, and confirmed permanent deletion.
 - **Focused editor**: a spacious writing canvas with a compact toolbar and live status bar. Find and replace, undo and redo, word wrap, zoom, go to line, full screen, line and column position, word and character counts, and keyboard shortcuts work end to end.
@@ -40,6 +42,12 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 - **Premium appearance**: follow the GNOME system theme or choose Light, Graphite, Midnight, or OLED. The selection persists and updates library windows, editors, paper colours, controls, and symbolic icon colours together.
 - **Private local storage**: SQLCipher encrypts note text, titles, tags, and history with a random key held by GNOME Keyring. Existing databases migrate safely, and Noor Notes adds no analytics, advertising, or tracking.
 - **Linux desktop integration**: source installs can preview and import Xpad notes without modifying the originals. Always on Top, all-workspaces, opacity, and other window controls are available where the active desktop backend supports them.
+
+### Writing assistance and privacy
+
+Open **Writing Assistance…** from the main menu to choose installed spelling dictionaries, offline English grammar, learned local predictions, or an optional provider. Local features start enabled; online AI starts disabled and cannot be enabled until **Test Connection** succeeds. Each note can inherit these choices or override all four from its More menu. View Only and Trash suppress assistance. In Code mode, checks and predictions are restricted to comments and strings.
+
+Prediction controls are keyboard accessible: **Tab** accepts visible ghost text, **Escape** dismisses it, and **Alt+Down** opens up to three alternatives; use **Up/Down** and **Enter** to choose one. Suggestions remain transient until accepted, so they are absent from autosave, export, search, character counts, and undo history.
 
 ## Installation
 

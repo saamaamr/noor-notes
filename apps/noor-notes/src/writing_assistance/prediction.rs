@@ -99,7 +99,7 @@ impl PredictionModel {
         candidates.sort_by(|left, right| {
             left.3
                 .cmp(&right.3)
-                .then_with(|| left.0.cmp(&right.0))
+                .then_with(|| left.0.cmp(right.0))
                 .then_with(|| left.1.cmp(&right.1))
                 .then_with(|| left.2.cmp(&right.2))
         });

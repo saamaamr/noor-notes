@@ -33,9 +33,9 @@ zeroize = "1"
 oo7 = { version = "0.5", default-features = false, features = ["tokio", "native_crypto"] }
 libsqlite3-sys = { version = "0.30.1", features = ["bundled-sqlcipher-vendored-openssl"] }
 libspelling = "=0.4.1"
-harper-core = { version = "=2.5.0", default-features = false, features = ["concurrent"] }
+harper-core = { version = "=0.50.0", default-features = false, features = ["concurrent"] }
 x11rb = "0.13"
-wiremock = "0.6"
+wiremock = "=0.6.4"
 zbus = { version = "5", default-features = false, features = ["tokio"] }
 url = "2"
 unicode-segmentation = "1.12"

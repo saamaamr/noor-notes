@@ -81,7 +81,7 @@ impl SourceLanguage {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WritingAssistanceOverrides {
     #[serde(default)]
     pub spelling: Option<bool>,
@@ -91,17 +91,6 @@ pub struct WritingAssistanceOverrides {
     pub offline_prediction: Option<bool>,
     #[serde(default)]
     pub cloud: Option<bool>,
-}
-
-impl Default for WritingAssistanceOverrides {
-    fn default() -> Self {
-        Self {
-            spelling: None,
-            grammar: None,
-            offline_prediction: None,
-            cloud: None,
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

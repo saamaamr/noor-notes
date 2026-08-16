@@ -12,6 +12,15 @@ finish-args:
   - --socket=wayland
   - --talk-name=org.freedesktop.secrets
 modules:
+  - name: hunspell-en-us
+    buildsystem: simple
+    sources:
+      - type: archive
+        url: https://github.com/LibreOffice/dictionaries/archive/c011d96c90cc9c6c8b6d95ec6d83d11daacce994.tar.gz
+        sha256: cdbc8d6d79425b2749f7eee077c107ef96fb23c44e4f0ca450897f0a4402581a
+    build-commands:
+      - install -Dm644 en/en_US.aff /app/share/hunspell/en_US.aff
+      - install -Dm644 en/en_US.dic /app/share/hunspell/en_US.dic
   - name: noor-notes
     buildsystem: simple
     build-options:

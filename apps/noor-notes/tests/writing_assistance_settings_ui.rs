@@ -13,6 +13,7 @@ fn settings_and_note_controls_are_safe_accessible_and_explicit() {
     let app = adw::Application::builder()
         .application_id("io.github.saamaamr.NoorNotes.SettingsTest")
         .build();
+    app.register(None::<&gtk::gio::Cancellable>).unwrap();
     let directory = tempfile::tempdir().unwrap();
     let store = WritingAssistanceStore::at(directory.path().join("writing.json"));
     let settings =

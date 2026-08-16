@@ -11,7 +11,7 @@ use url::{Host, Url};
 const MAX_ENDPOINT_LEN: usize = 2_048;
 const MAX_SHORT_VALUE_LEN: usize = 128;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ProviderConfiguration {
     pub base_url: String,
@@ -19,18 +19,6 @@ pub struct ProviderConfiguration {
     pub provider_validated: bool,
     pub validated_base_url: String,
     pub validated_model: String,
-}
-
-impl Default for ProviderConfiguration {
-    fn default() -> Self {
-        Self {
-            base_url: String::new(),
-            model: String::new(),
-            provider_validated: false,
-            validated_base_url: String::new(),
-            validated_model: String::new(),
-        }
-    }
 }
 
 impl ProviderConfiguration {

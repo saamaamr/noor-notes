@@ -6,7 +6,7 @@
 
 **Architecture:** Standardize every mode on GtkSourceView, then attach one `WritingAssistanceController` per note window. Keep checking, prediction, provider access, settings, and encrypted derived-model persistence behind focused modules; use character-indexed immutable results and a document generation counter so asynchronous work never writes stale results into the GTK buffer.
 
-**Tech Stack:** Rust 2024 (MSRV 1.85), GTK4/libadwaita/GtkSourceView 5, libspelling 0.4.1 + Enchant/Hunspell, harper-core 2.5, unicode-segmentation, Tokio, reqwest/rustls, serde, oo7 GNOME Keyring, SQLCipher/sqlx, Xvfb integration tests.
+**Tech Stack:** Rust 2024 (MSRV 1.85), GTK4/libadwaita/GtkSourceView 5, libspelling 0.4.1 + Enchant/Hunspell, harper-core 0.50, unicode-segmentation, Tokio, reqwest/rustls, serde, oo7 GNOME Keyring, SQLCipher/sqlx, Xvfb integration tests.
 
 ## Global Constraints
 
@@ -419,7 +419,7 @@ Expected: compilation fails on `GrammarService` and `AssistanceIssue`.
 
 ```toml
 # workspace
-harper-core = { version = "=2.5.0", default-features = false, features = ["concurrent"] }
+harper-core = { version = "=0.50.0", default-features = false, features = ["concurrent"] }
 
 # app
 harper-core.workspace = true
