@@ -32,6 +32,7 @@ uuid = { version = "1", features = ["v4", "serde"] }
 zeroize = "1"
 oo7 = { version = "0.5", default-features = false, features = ["tokio", "native_crypto"] }
 libsqlite3-sys = { version = "0.30.1", features = ["bundled-sqlcipher-vendored-openssl"] }
+libspelling = "=0.4.1"
 x11rb = "0.13"
 wiremock = "0.6"
 zbus = { version = "5", default-features = false, features = ["tokio"] }
