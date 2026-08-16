@@ -21,10 +21,12 @@ use crate::note_window::NoteWindow;
 use crate::security_bootstrap::open_repository;
 use crate::shortcuts::shortcuts_window;
 use crate::ui::appearance_settings::AppearanceSettings;
+use crate::ui::writing_assistance_settings::WritingAssistanceSettings;
+use crate::writing_assistance::WritingAssistanceStore;
 
 pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let keys = Arc::new(Oo7KeyStore::new().await?);
-    let repository = open_repository(&data_path(), keys).await?;
+    let repository = open_repository(&data_path(), keys.clone()).await?;
     let autosave = AutosaveQueue::new(repository.clone(), Duration::from_millis(400));
     let controller = window_controller().await;
     let app = adw::Application::builder()
@@ -50,6 +52,23 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
                 controller.clone(),
             )
             .present();
+        });
+    }
+    {
+        let app = app.clone();
+        let settings: Rc<RefCell<Option<WritingAssistanceSettings>>> = Rc::new(RefCell::new(None));
+        let keys: Arc<dyn crate::key_store::KeyStore> = keys.clone();
+        add_action(&app.clone(), "writing-assistance-settings", move |_, _| {
+            if settings.borrow().is_none() {
+                settings.replace(Some(WritingAssistanceSettings::new(
+                    &app,
+                    WritingAssistanceStore::for_current_user(),
+                    keys.clone(),
+                )));
+            }
+            if let Some(settings) = settings.borrow().as_ref() {
+                settings.present();
+            }
         });
     }
     {

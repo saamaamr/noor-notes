@@ -43,6 +43,7 @@ pub struct EditorToolbar {
     pub alignment_buttons: Vec<gtk::ToggleButton>,
     pub foreground_palette: RichColorPalette,
     pub appearance: gtk::MenuButton,
+    pub writing_assistance: gtk::MenuButton,
     pub highlight_palette: RichColorPalette,
     pub emoji_buttons: Vec<gtk::Button>,
     pub all_workspaces: gtk::ToggleButton,
@@ -207,6 +208,13 @@ impl EditorToolbar {
         let restore = icon_button("edit-undo-symbolic", "Restore");
         let permanent_delete = icon_button("edit-delete-symbolic", "Permanently Delete");
         permanent_delete.add_css_class("destructive-hover");
+        let writing_assistance = gtk::MenuButton::builder()
+            .label("Writing Assistance")
+            .tooltip_text("Writing assistance for this note")
+            .build();
+        writing_assistance.update_property(&[gtk::accessible::Property::Label(
+            "Writing assistance for this note",
+        )]);
         let more_actions = gtk::FlowBox::builder()
             .orientation(gtk::Orientation::Vertical)
             .selection_mode(gtk::SelectionMode::None)
@@ -222,6 +230,7 @@ impl EditorToolbar {
             duplicate.upcast_ref(),
             pin.upcast_ref(),
             view_only.upcast_ref(),
+            writing_assistance.upcast_ref(),
             archive.upcast_ref(),
             trash.upcast_ref(),
             restore.upcast_ref(),
@@ -317,6 +326,7 @@ impl EditorToolbar {
             highlight_palette,
             emoji_buttons,
             appearance,
+            writing_assistance,
             all_workspaces,
             opacity,
             note_color_buttons,

@@ -127,6 +127,10 @@ impl MainWindow {
             Some("Appearance Settings…"),
             Some("app.appearance-settings"),
         );
+        menu.append(
+            Some("Writing Assistance…"),
+            Some("app.writing-assistance-settings"),
+        );
         menu.append(Some("Quit"), Some("app.quit"));
         header.pack_end(
             &gtk::MenuButton::builder()

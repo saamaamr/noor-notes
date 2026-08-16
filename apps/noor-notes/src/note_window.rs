@@ -27,6 +27,7 @@ use crate::ui::editor_presentation::EditorPresentation;
 use crate::ui::editor_status_bar::EditorStatusBar;
 use crate::ui::editor_toolbar::EditorToolbar;
 use crate::ui::find_replace_panel::FindReplacePanel;
+use crate::ui::note_writing_assistance::NoteWritingAssistancePopover;
 use crate::writing_assistance::{
     GrammarService, PredictionOverlay, SpellService, WritingAssistanceController,
     WritingAssistanceStore,
@@ -346,6 +347,26 @@ impl NoteWindow {
             &writing_preferences.language,
             resolved_writing.spelling && !is_trashed && !current.editor_preferences.view_only,
         );
+        let note_writing = NoteWritingAssistancePopover::new(
+            &writing_preferences,
+            &current.editor_preferences.writing_assistance,
+            current.editor_mode.clone(),
+        );
+        toolbar
+            .writing_assistance
+            .set_popover(Some(&note_writing.widget));
+        toolbar.writing_assistance.set_visible(!is_trashed);
+        {
+            let note = note.clone();
+            let autosave = autosave.clone();
+            let writing_controller = writing_controller.clone();
+            let writing_preferences = writing_preferences.clone();
+            note_writing.connect_changed(move |overrides| {
+                note.borrow_mut().editor_preferences.writing_assistance = overrides.clone();
+                writing_controller.set_preferences(writing_preferences.resolve(&overrides));
+                autosave.schedule(NoteDraft::from(note.borrow().clone()));
+            });
+        }
         layout.append(&status_bar.widget);
         window.set_content(Some(&layout));
         let presentation = EditorPresentation::new(
