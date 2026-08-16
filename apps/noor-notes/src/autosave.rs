@@ -47,6 +47,7 @@ pub struct AutosaveQueue {
     pending: Arc<Mutex<HashMap<NoteId, PendingSave>>>,
     states: Arc<Mutex<HashMap<NoteId, watch::Sender<SaveState>>>>,
     generation: Arc<AtomicU64>,
+    on_success: Option<Arc<dyn Fn() + Send + Sync>>,
 }
 
 impl AutosaveQueue {
@@ -61,7 +62,13 @@ impl AutosaveQueue {
             pending: Arc::new(Mutex::new(HashMap::new())),
             states: Arc::new(Mutex::new(HashMap::new())),
             generation: Arc::new(AtomicU64::new(0)),
+            on_success: None,
         }
+    }
+
+    pub fn with_success_hook(mut self, hook: impl Fn() + Send + Sync + 'static) -> Self {
+        self.on_success = Some(Arc::new(hook));
+        self
     }
 
     pub fn subscribe(&self, id: NoteId) -> watch::Receiver<SaveState> {
@@ -96,6 +103,7 @@ impl AutosaveQueue {
         let delay = self.delay;
         let states = self.states.clone();
         let pending_saves = self.pending.clone();
+        let on_success = self.on_success.clone();
         let task = tokio::spawn(async move {
             tokio::time::sleep(delay).await;
             let state = match saver.save_note(&save_draft.note).await {
@@ -103,6 +111,11 @@ impl AutosaveQueue {
                 Err(error) => SaveState::Failed(error.to_string()),
             };
             let succeeded = matches!(state, SaveState::Saved);
+            if succeeded {
+                if let Some(hook) = on_success {
+                    hook();
+                }
+            }
             if let Some(sender) = states.lock().expect("save state mutex poisoned").get(&id) {
                 sender.send_replace(state);
             }
@@ -148,6 +161,9 @@ impl AutosaveQueue {
         self.publish(id, SaveState::Saving);
         match self.saver.save_note(&pending.draft.note).await {
             Ok(()) => {
+                if let Some(hook) = &self.on_success {
+                    hook();
+                }
                 self.publish(id, SaveState::Saved);
                 Ok(())
             }

@@ -29,8 +29,7 @@ use crate::ui::editor_toolbar::EditorToolbar;
 use crate::ui::find_replace_panel::FindReplacePanel;
 use crate::ui::note_writing_assistance::NoteWritingAssistancePopover;
 use crate::writing_assistance::{
-    GrammarService, PredictionOverlay, SpellService, WritingAssistanceController,
-    WritingAssistanceStore,
+    PredictionOverlay, SpellService, WritingAssistanceController, WritingAssistanceRuntime,
 };
 
 pub struct NoteWindow {
@@ -44,6 +43,7 @@ impl NoteWindow {
         autosave: AutosaveQueue,
         repository: SqliteNoteRepository,
         controller: Arc<dyn WindowController>,
+        writing_runtime: WritingAssistanceRuntime,
     ) -> Self {
         let note = Rc::new(RefCell::new(note));
         let current = note.borrow().clone();
@@ -323,9 +323,8 @@ impl NoteWindow {
         };
         let status_bar = EditorStatusBar::new(mode_name);
         let editor_status = status_bar.statistics.clone();
-        let writing_preferences = WritingAssistanceStore::for_current_user().load();
-        let resolved_writing =
-            writing_preferences.resolve(&current.editor_preferences.writing_assistance);
+        let writing_preferences = writing_runtime.preferences();
+        let resolved_writing = writing_runtime.resolved_for(&current);
         let grammar_language = if writing_preferences.language.eq_ignore_ascii_case("auto") {
             "en"
         } else {
@@ -333,12 +332,14 @@ impl NoteWindow {
         };
         let writing_controller = WritingAssistanceController::new(
             &source_buffer,
-            Arc::new(GrammarService::default()),
+            writing_runtime.grammar_service(),
             grammar_language,
             current.editor_mode.clone(),
         );
         writing_controller.set_preferences(resolved_writing);
         writing_controller.set_prediction_overlay(prediction_overlay);
+        writing_controller.set_prediction_model(writing_runtime.prediction_model());
+        writing_controller.set_cloud_client(writing_runtime.cloud_client());
         writing_controller.set_suppressed(is_trashed || current.editor_preferences.view_only);
         writing_controller.set_status_label(&status_bar.assistance);
         let spell_session = SpellService::attach(
@@ -395,6 +396,8 @@ impl NoteWindow {
             let presentation = presentation.clone();
             let window = window.clone();
             let busy = view_mode_busy.clone();
+            let writing_controller = writing_controller.clone();
+            let spell_session = spell_session.clone();
             Rc::new(move || {
                 request_view_mode(
                     note.clone(),
@@ -404,6 +407,8 @@ impl NoteWindow {
                     window.clone(),
                     busy.clone(),
                     false,
+                    writing_controller.clone(),
+                    spell_session.clone(),
                 );
             })
         };
@@ -414,6 +419,8 @@ impl NoteWindow {
             let presentation = presentation.clone();
             let window = window.clone();
             let busy = view_mode_busy.clone();
+            let writing_controller = writing_controller.clone();
+            let spell_session = spell_session.clone();
             toolbar.view_only.connect_clicked(move |_| {
                 request_view_mode(
                     note.clone(),
@@ -423,6 +430,8 @@ impl NoteWindow {
                     window.clone(),
                     busy.clone(),
                     true,
+                    writing_controller.clone(),
+                    spell_session.clone(),
                 );
             });
         }
@@ -605,15 +614,26 @@ impl NoteWindow {
             let controller = controller.clone();
             let autosave = autosave.clone();
             let source = note.clone();
+            let writing_runtime = writing_runtime.clone();
             toolbar.duplicate.connect_clicked(move |_| {
                 let app = app.clone();
                 let repository = repository.clone();
                 let controller = controller.clone();
                 let autosave = autosave.clone();
+                let writing_runtime = writing_runtime.clone();
                 let id = source.borrow().id;
                 gtk::glib::MainContext::default().spawn_local(async move {
                     if let Ok(copy) = repository.duplicate_note(id, Utc::now()).await {
-                        NoteWindow::new(&app, copy, autosave, repository, controller).present();
+                        writing_runtime.schedule_model_rebuild(Duration::from_secs(5));
+                        NoteWindow::new(
+                            &app,
+                            copy,
+                            autosave,
+                            repository,
+                            controller,
+                            writing_runtime,
+                        )
+                        .present();
                     }
                 });
             });
@@ -627,6 +647,7 @@ impl NoteWindow {
             autosave: autosave.clone(),
             repository: repository.clone(),
             controller: controller.clone(),
+            writing_runtime: writing_runtime.clone(),
         };
         for (button, target) in [
             (&toolbar.mode_rich, EditorMode::Rich),
@@ -827,14 +848,17 @@ impl NoteWindow {
         {
             let repository = repository.clone();
             let window = window.clone();
+            let writing_runtime = writing_runtime.clone();
             let id = current.id;
             toolbar.restore.connect_clicked(move |button| {
                 button.set_sensitive(false);
                 let button = button.clone();
                 let repository = repository.clone();
                 let window = window.clone();
+                let writing_runtime = writing_runtime.clone();
                 gtk::glib::MainContext::default().spawn_local(async move {
                     if repository.restore(id, Utc::now()).await.is_ok() {
+                        writing_runtime.schedule_model_rebuild(Duration::from_secs(5));
                         if let Some(application) = window.application() {
                             application.activate_action("refresh-notes", None);
                         }
@@ -849,12 +873,14 @@ impl NoteWindow {
         {
             let repository = repository.clone();
             let window = window.clone();
+            let writing_runtime = writing_runtime.clone();
             let id = current.id;
             toolbar.permanent_delete.connect_clicked(move |button| {
                 button.set_sensitive(false);
                 let button = button.clone();
                 let repository = repository.clone();
                 let window = window.clone();
+                let writing_runtime = writing_runtime.clone();
                 gtk::glib::MainContext::default().spawn_local(async move {
                     let dialog = adw::AlertDialog::new(Some("Permanently delete this note?"), Some("This cannot be undone. The note and its local history will be removed."));
                     dialog.add_response("cancel", "Cancel");
@@ -864,6 +890,7 @@ impl NoteWindow {
                     dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
                     if dialog.choose_future(Some(&window)).await != "delete" { button.set_sensitive(true); return; }
                     if repository.delete_permanently(id).await.is_ok() {
+                        writing_runtime.schedule_model_rebuild(Duration::from_secs(5));
                         if let Some(application) = window.application() { application.activate_action("refresh-notes", None); }
                         window.close();
                     } else { button.set_sensitive(true); show_save_error(&window); }
@@ -877,6 +904,7 @@ impl NoteWindow {
                 note.clone(),
                 autosave.clone(),
                 window.clone(),
+                writing_runtime.clone(),
             );
         }
         for button in [&toolbar.header_trash, &toolbar.trash] {
@@ -886,6 +914,7 @@ impl NoteWindow {
                 autosave.clone(),
                 repository.clone(),
                 window.clone(),
+                writing_runtime.clone(),
             );
         }
         {
@@ -1104,6 +1133,7 @@ fn connect_archive_button(
     note: Rc<RefCell<Note>>,
     autosave: AutosaveQueue,
     window: adw::ApplicationWindow,
+    writing_runtime: WritingAssistanceRuntime,
 ) {
     let buffer = buffer.clone();
     button.connect_clicked(move |button| {
@@ -1117,9 +1147,11 @@ fn connect_archive_button(
         let note = note.clone();
         let autosave = autosave.clone();
         let window = window.clone();
+        let writing_runtime = writing_runtime.clone();
         button.set_sensitive(false);
         gtk::glib::MainContext::default().spawn_local(async move {
             if autosave.flush(id).await.is_ok() {
+                writing_runtime.schedule_model_rebuild(Duration::from_secs(5));
                 if let Some(application) = window.application() {
                     application.activate_action("refresh-notes", None);
                 }
@@ -1139,6 +1171,7 @@ fn connect_trash_button(
     autosave: AutosaveQueue,
     repository: SqliteNoteRepository,
     window: adw::ApplicationWindow,
+    writing_runtime: WritingAssistanceRuntime,
 ) {
     button.connect_clicked(move |button| {
         let button = button.clone();
@@ -1146,6 +1179,7 @@ fn connect_trash_button(
         let autosave = autosave.clone();
         let repository = repository.clone();
         let window = window.clone();
+        let writing_runtime = writing_runtime.clone();
         button.set_sensitive(false);
         gtk::glib::MainContext::default().spawn_local(async move {
             if !trash_command::confirm_move_to_trash(&window).await {
@@ -1154,6 +1188,7 @@ fn connect_trash_button(
             }
             match trash_command::trash_open_note(&note, &autosave, &repository).await {
                 Ok(()) => {
+                    writing_runtime.schedule_model_rebuild(Duration::from_secs(5));
                     if let Some(application) = window.application() {
                         application.activate_action("refresh-notes", None);
                     }
@@ -1176,6 +1211,8 @@ fn request_view_mode(
     window: adw::ApplicationWindow,
     busy: Rc<Cell<bool>>,
     enabled: bool,
+    writing_controller: WritingAssistanceController,
+    spell_session: crate::writing_assistance::SpellSession,
 ) {
     if busy.replace(true) {
         return;
@@ -1190,6 +1227,8 @@ fn request_view_mode(
         let mut changed = note.borrow().clone();
         if changed.editor_preferences.view_only == enabled {
             presentation.set_view_only(enabled);
+            writing_controller.set_suppressed(enabled);
+            spell_session.set_enabled(!enabled);
             busy.set(false);
             return;
         }
@@ -1200,6 +1239,8 @@ fn request_view_mode(
             Ok(()) => {
                 note.replace(changed);
                 presentation.set_view_only(enabled);
+                writing_controller.set_suppressed(enabled);
+                spell_session.set_enabled(!enabled);
                 if let Some(application) = window.application() {
                     application.activate_action("refresh-notes", None);
                 }
@@ -1219,6 +1260,7 @@ struct ModeSwitchContext {
     autosave: AutosaveQueue,
     repository: SqliteNoteRepository,
     controller: Arc<dyn WindowController>,
+    writing_runtime: WritingAssistanceRuntime,
 }
 
 fn connect_editor_mode(button: &gtk::Button, target: EditorMode, context: ModeSwitchContext) {
@@ -1280,6 +1322,7 @@ fn connect_editor_mode(button: &gtk::Button, target: EditorMode, context: ModeSw
                 context.autosave.clone(),
                 context.repository.clone(),
                 context.controller.clone(),
+                context.writing_runtime.clone(),
             )
             .present();
             context.window.close();

@@ -13,11 +13,23 @@ use crate::autosave::AutosaveQueue;
 use crate::key_store::Oo7KeyStore;
 use crate::note_window::NoteWindow;
 use crate::security_bootstrap::open_repository;
+use crate::writing_assistance::{WritingAssistanceRuntime, WritingAssistanceStore};
 
 pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let keys = Arc::new(Oo7KeyStore::new().await?);
-    let repository = open_repository(&data_path(), keys).await?;
-    let autosave = AutosaveQueue::new(repository.clone(), Duration::from_millis(400));
+    let repository = open_repository(&data_path(), keys.clone()).await?;
+    let writing_runtime = WritingAssistanceRuntime::new(
+        repository.clone(),
+        WritingAssistanceStore::for_current_user(),
+        keys,
+    )
+    .await;
+    writing_runtime.rebuild_if_stale().await?;
+    let autosave_runtime = writing_runtime.clone();
+    let autosave = AutosaveQueue::new(repository.clone(), Duration::from_millis(400))
+        .with_success_hook(move || {
+            autosave_runtime.schedule_model_rebuild(Duration::from_secs(5));
+        });
     let controller: Arc<dyn WindowController> = match detect_backend(&Environment::current()) {
         BackendKind::X11 => X11WindowController::connect()
             .map(|controller| Arc::new(controller) as Arc<dyn WindowController>)
@@ -28,6 +40,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
         .application_id("io.github.saamaamr.NoorNotes")
         .build();
     app.connect_startup(|_| load_css());
+    let runtime = writing_runtime.clone();
     app.connect_activate(move |app| {
         let note = Note::new(Utc::now());
         let window = NoteWindow::new(
@@ -36,6 +49,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
             autosave.clone(),
             repository.clone(),
             controller.clone(),
+            runtime.clone(),
         );
         window.present();
     });

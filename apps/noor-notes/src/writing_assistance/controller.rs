@@ -7,8 +7,8 @@ use adw::prelude::*;
 use noor_domain::EditorMode;
 
 use super::{
-    AssistanceIssue, GrammarService, PredictionModel, PredictionOverlay, ResolvedWritingAssistance,
-    checkable_regions,
+    AssistanceIssue, CloudAssistanceClient, GrammarService, PredictionModel, PredictionOverlay,
+    ResolvedWritingAssistance, checkable_regions,
 };
 
 const GRAMMAR_DEBOUNCE: Duration = Duration::from_millis(450);
@@ -58,6 +58,7 @@ struct ControllerInner {
     shutdown: Cell<bool>,
     prediction_overlay: RefCell<Option<PredictionOverlay>>,
     prediction_model: RefCell<Option<Arc<RwLock<PredictionModel>>>>,
+    cloud_client: RefCell<Option<CloudAssistanceClient>>,
 }
 
 impl WritingAssistanceController {
@@ -90,6 +91,7 @@ impl WritingAssistanceController {
                 shutdown: Cell::new(false),
                 prediction_overlay: RefCell::new(None),
                 prediction_model: RefCell::new(None),
+                cloud_client: RefCell::new(None),
             }),
         }
     }
@@ -116,6 +118,10 @@ impl WritingAssistanceController {
 
     pub fn set_prediction_model(&self, model: Arc<RwLock<PredictionModel>>) {
         self.inner.prediction_model.replace(Some(model));
+    }
+
+    pub fn set_cloud_client(&self, client: Option<CloudAssistanceClient>) {
+        self.inner.cloud_client.replace(client);
     }
 
     pub fn set_language(&self, language: &str) {
@@ -166,7 +172,7 @@ impl WritingAssistanceController {
         } else {
             self.update_status(AssistanceStatus::Idle);
         }
-        if self.inner.preferences.get().offline_prediction {
+        if self.inner.preferences.get().offline_prediction || self.inner.preferences.get().cloud {
             let controller = self.clone();
             let source = gtk::glib::timeout_add_local_once(PREDICTION_DEBOUNCE, move || {
                 controller.inner.pending_prediction.borrow_mut().take();
@@ -245,10 +251,30 @@ impl WritingAssistanceController {
         let language = self.inner.language.borrow().clone();
         let grammar = self.inner.grammar.clone();
         let task = tokio::task::spawn_blocking(move || grammar.check(&text, &language, &regions));
+        let cloud = if self.inner.preferences.get().cloud {
+            self.inner.cloud_client.borrow().clone()
+        } else {
+            None
+        };
+        let cloud_text = buffer
+            .text(&buffer.start_iter(), &buffer.end_iter(), true)
+            .to_string();
+        let cursor = buffer.cursor_position().max(0) as usize;
+        let cloud_language = self.inner.language.borrow().clone();
         let controller = self.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
             match task.await {
-                Ok(issues) => controller.accept_result(generation, issues),
+                Ok(mut issues) => {
+                    if let Some(cloud) = cloud {
+                        if let Ok(mut cloud_issues) = cloud
+                            .check_grammar(&cloud_text, cursor, Some(&cloud_language))
+                            .await
+                        {
+                            issues.append(&mut cloud_issues);
+                        }
+                    }
+                    controller.accept_result(generation, issues)
+                }
                 Err(_) if generation == controller.inner.generation.get() => {
                     controller.update_status(AssistanceStatus::Unavailable);
                 }
@@ -339,16 +365,15 @@ impl WritingAssistanceController {
     fn show_local_prediction(&self, generation: u64) {
         if generation != self.inner.generation.get()
             || self.inner.suppressed.get()
-            || !self.inner.preferences.get().offline_prediction
+            || (!self.inner.preferences.get().offline_prediction
+                && !self.inner.preferences.get().cloud)
         {
             return;
         }
         let Some(overlay) = self.inner.prediction_overlay.borrow().clone() else {
             return;
         };
-        let Some(model) = self.inner.prediction_model.borrow().clone() else {
-            return;
-        };
+        let model = self.inner.prediction_model.borrow().clone();
         if self.inner.buffer.selection_bounds().is_some() {
             overlay.dismiss();
             return;
@@ -380,15 +405,39 @@ impl WritingAssistanceController {
         let partial = &prefix[partial_start..];
         let context = &prefix[..partial_start];
         let suggestions = model
-            .read()
-            .ok()
-            .map(|model| model.suggest(context, partial, 3))
+            .and_then(|model| {
+                model
+                    .read()
+                    .ok()
+                    .map(|model| model.suggest(context, partial, 3))
+            })
             .unwrap_or_default()
             .into_iter()
             .filter_map(|suggestion| insertion_suffix(&suggestion, partial))
             .collect::<Vec<_>>();
         if generation == self.inner.generation.get() {
             overlay.show(&suggestions);
+        }
+        if self.inner.preferences.get().cloud {
+            if let Some(cloud) = self.inner.cloud_client.borrow().clone() {
+                let controller = self.clone();
+                let overlay = overlay.clone();
+                let partial = partial.to_owned();
+                gtk::glib::MainContext::default().spawn_local(async move {
+                    if let Ok(cloud_suggestions) = cloud.predict(&text, cursor).await {
+                        if generation != controller.inner.generation.get() {
+                            return;
+                        }
+                        let mut merged = overlay.suggestions();
+                        merged.extend(
+                            cloud_suggestions
+                                .into_iter()
+                                .filter_map(|suggestion| insertion_suffix(&suggestion, &partial)),
+                        );
+                        overlay.show(&merged);
+                    }
+                });
+            }
         }
     }
 

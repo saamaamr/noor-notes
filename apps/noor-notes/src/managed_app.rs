@@ -22,12 +22,23 @@ use crate::security_bootstrap::open_repository;
 use crate::shortcuts::shortcuts_window;
 use crate::ui::appearance_settings::AppearanceSettings;
 use crate::ui::writing_assistance_settings::WritingAssistanceSettings;
-use crate::writing_assistance::WritingAssistanceStore;
+use crate::writing_assistance::{WritingAssistanceRuntime, WritingAssistanceStore};
 
 pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let keys = Arc::new(Oo7KeyStore::new().await?);
     let repository = open_repository(&data_path(), keys.clone()).await?;
-    let autosave = AutosaveQueue::new(repository.clone(), Duration::from_millis(400));
+    let writing_runtime = WritingAssistanceRuntime::new(
+        repository.clone(),
+        WritingAssistanceStore::for_current_user(),
+        keys.clone(),
+    )
+    .await;
+    writing_runtime.rebuild_if_stale().await?;
+    let autosave_runtime = writing_runtime.clone();
+    let autosave = AutosaveQueue::new(repository.clone(), Duration::from_millis(400))
+        .with_success_hook(move || {
+            autosave_runtime.schedule_model_rebuild(Duration::from_secs(5));
+        });
     let controller = window_controller().await;
     let app = adw::Application::builder()
         .application_id("io.github.saamaamr.NoorNotes")
@@ -43,6 +54,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
         let autosave = autosave.clone();
         let repository = repository.clone();
         let controller = controller.clone();
+        let writing_runtime = writing_runtime.clone();
         add_action(&app.clone(), "new-note", move |_, _| {
             NoteWindow::new(
                 &app,
@@ -50,6 +62,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
                 autosave.clone(),
                 repository.clone(),
                 controller.clone(),
+                writing_runtime.clone(),
             )
             .present();
         });
@@ -187,6 +200,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
         let repository = repository.clone();
         let autosave = autosave.clone();
         let controller = controller.clone();
+        let writing_runtime = writing_runtime.clone();
         app.connect_activate(move |app| {
             if main_window.borrow().is_none() {
                 main_window.replace(Some(MainWindow::new(
@@ -194,6 +208,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
                     repository.clone(),
                     autosave.clone(),
                     controller.clone(),
+                    writing_runtime.clone(),
                 )));
             }
             if let Some(window) = main_window.borrow().as_ref() {

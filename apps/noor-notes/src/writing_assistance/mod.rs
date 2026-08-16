@@ -6,6 +6,7 @@ mod issue_popover;
 mod prediction;
 mod prediction_overlay;
 mod preferences;
+mod runtime;
 mod scope;
 mod spelling;
 
@@ -21,5 +22,6 @@ pub use preferences::{
     WritingAssistancePreferences, WritingAssistanceStore, provider_requires_api_key,
     validate_provider_endpoint,
 };
+pub use runtime::{RuntimeError, WritingAssistanceRuntime};
 pub use scope::{CheckRegion, checkable_regions, plain_text_regions};
 pub use spelling::{SpellLanguage, SpellService, SpellSession};

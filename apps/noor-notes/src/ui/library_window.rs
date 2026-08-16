@@ -17,6 +17,7 @@ use crate::library::{LibrarySection, LibraryState};
 use crate::library_preferences::LibraryPreferences;
 use crate::note_window::NoteWindow;
 use crate::services::trash_command;
+use crate::writing_assistance::WritingAssistanceRuntime;
 
 use super::empty_state::EmptyState;
 use super::library_sidebar::LibrarySidebar;
@@ -45,6 +46,7 @@ pub struct MainWindow {
     repository: SqliteNoteRepository,
     autosave: AutosaveQueue,
     controller: Arc<dyn WindowController>,
+    writing_runtime: WritingAssistanceRuntime,
     app: adw::Application,
     notes: Rc<RefCell<Vec<Note>>>,
     section: Rc<Cell<LibrarySection>>,
@@ -58,6 +60,7 @@ impl MainWindow {
         repository: SqliteNoteRepository,
         autosave: AutosaveQueue,
         controller: Arc<dyn WindowController>,
+        writing_runtime: WritingAssistanceRuntime,
     ) -> Self {
         let window = adw::ApplicationWindow::builder()
             .application(app)
@@ -231,6 +234,7 @@ impl MainWindow {
             repository,
             autosave,
             controller,
+            writing_runtime,
             app: app.clone(),
             notes: Rc::new(RefCell::new(Vec::new())),
             section: Rc::new(Cell::new(LibrarySection::AllNotes)),
@@ -407,6 +411,7 @@ impl MainWindow {
             self.autosave.clone(),
             self.repository.clone(),
             self.controller.clone(),
+            self.writing_runtime.clone(),
         )
         .present();
     }
@@ -435,7 +440,11 @@ impl MainWindow {
             }
             let result = apply_saved_card_action(&this.repository, id, action, Utc::now()).await;
             match result {
-                Ok(()) => this.refresh(),
+                Ok(()) => {
+                    this.writing_runtime
+                        .schedule_model_rebuild(Duration::from_secs(5));
+                    this.refresh();
+                }
                 Err(error) => this.set_status(&format!("Note action failed: {error}")),
             }
         });

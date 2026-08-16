@@ -65,6 +65,7 @@ impl SpellService {
     }
 }
 
+#[derive(Clone)]
 pub struct SpellSession {
     adapter: TextBufferAdapter,
     provider: Provider,
