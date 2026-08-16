@@ -35,6 +35,7 @@ libsqlite3-sys = { version = "0.30.1", features = ["bundled-sqlcipher-vendored-o
 x11rb = "0.13"
 wiremock = "0.6"
 zbus = { version = "5", default-features = false, features = ["tokio"] }
+url = "2"
 
 [profile.release]
 lto = "thin"

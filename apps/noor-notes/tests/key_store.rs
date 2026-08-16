@@ -11,6 +11,10 @@ async fn secrets_are_namespaced_and_deletable() {
         .put(SecretKind::RefreshToken, "same", b"token")
         .await
         .unwrap();
+    store
+        .put(SecretKind::WritingAssistanceApiKey, "same", b"provider-key")
+        .await
+        .unwrap();
     assert_eq!(
         store
             .get(SecretKind::DatabaseKey, "same")
@@ -28,6 +32,15 @@ async fn secrets_are_namespaced_and_deletable() {
             .unwrap()
             .as_slice(),
         b"token"
+    );
+    assert_eq!(
+        store
+            .get(SecretKind::WritingAssistanceApiKey, "same")
+            .await
+            .unwrap()
+            .unwrap()
+            .as_slice(),
+        b"provider-key"
     );
     store
         .delete(SecretKind::RefreshToken, "same")

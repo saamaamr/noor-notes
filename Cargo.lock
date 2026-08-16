@@ -1618,12 +1618,14 @@ dependencies = [
  "noor-windowing",
  "noor-xpad-import",
  "oo7",
+ "reqwest",
  "serde",
  "serde_json",
  "sourceview5",
  "tempfile",
  "thiserror",
  "tokio",
+ "url",
  "zeroize",
 ]
 

@@ -11,6 +11,7 @@ pub enum SecretKind {
     DatabaseKey,
     RefreshToken,
     WrappedVault,
+    WritingAssistanceApiKey,
 }
 
 impl SecretKind {
@@ -19,6 +20,7 @@ impl SecretKind {
             Self::DatabaseKey => "database-key",
             Self::RefreshToken => "refresh-token",
             Self::WrappedVault => "wrapped-vault",
+            Self::WritingAssistanceApiKey => "writing-assistance-api-key",
         }
     }
 }

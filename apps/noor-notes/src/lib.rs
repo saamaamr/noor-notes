@@ -30,3 +30,4 @@ pub mod shortcuts;
 pub mod sync_status;
 pub mod ui;
 pub mod vault_setup;
+pub mod writing_assistance;
