@@ -3952,6 +3952,7 @@ dependencies = [
  "tokio",
  "unicode-segmentation",
  "url",
+ "wiremock",
  "zeroize",
 ]
 
