@@ -29,6 +29,7 @@ reqwest.workspace = true
 url.workspace = true
 libspelling.workspace = true
 harper-core.workspace = true
+unicode-segmentation.workspace = true
 
 [dev-dependencies]
 chrono.workspace = true

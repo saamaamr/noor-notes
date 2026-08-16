@@ -16,6 +16,7 @@ uuid.workspace = true
 libsqlite3-sys.workspace = true
 rand.workspace = true
 zeroize.workspace = true
+sha2.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -84,6 +84,9 @@ impl SqliteNoteRepository {
                 .execute(&pool)
                 .await?;
         }
+        sqlx::raw_sql(include_str!("../migrations/0004_writing_assistance.sql"))
+            .execute(&pool)
+            .await?;
         let legacy_rows = sqlx::query("SELECT id, payload_json FROM notes")
             .fetch_all(&pool)
             .await?;

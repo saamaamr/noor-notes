@@ -3950,6 +3950,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.19",
  "tokio",
+ "unicode-segmentation",
  "url",
  "zeroize",
 ]
@@ -3963,6 +3964,7 @@ dependencies = [
  "noor-domain",
  "rand 0.8.7",
  "serde_json",
+ "sha2",
  "sqlx",
  "tempfile",
  "thiserror 2.0.19",
