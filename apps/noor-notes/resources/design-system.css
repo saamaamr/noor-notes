@@ -289,3 +289,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-swatch-oled { background: #050506; border-color: #b1a0ff; }
 /* prefers-reduced-motion: GTK follows the desktop animation setting; component
  * transitions remain below 180 ms and are omitted by libadwaita when disabled. */
+.nn-assistance-status {
+  color: alpha(currentColor, 0.72);
+  font-size: 0.9em;
+}

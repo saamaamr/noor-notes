@@ -6,6 +6,7 @@ use crate::editor_status::EditorStatistics;
 pub struct EditorStatusBar {
     pub widget: gtk::Box,
     pub statistics: gtk::Label,
+    pub assistance: gtk::Label,
     pub mode: gtk::Label,
 }
 
@@ -17,6 +18,11 @@ impl EditorStatusBar {
         statistics.set_halign(gtk::Align::Start);
         statistics.update_property(&[gtk::accessible::Property::Label("Editor statistics")]);
 
+        let assistance = gtk::Label::new(Some("Writing assistance ready"));
+        assistance.set_halign(gtk::Align::Center);
+        assistance.add_css_class("nn-assistance-status");
+        assistance.update_property(&[gtk::accessible::Property::Label("Writing assistance ready")]);
+
         let mode = gtk::Label::new(Some(&format!("{mode_name}  ·  UTF-8")));
         mode.set_halign(gtk::Align::End);
         mode.set_hexpand(true);
@@ -25,10 +31,12 @@ impl EditorStatusBar {
         let widget = gtk::Box::new(gtk::Orientation::Horizontal, 12);
         widget.add_css_class("nn-statusbar");
         widget.append(&statistics);
+        widget.append(&assistance);
         widget.append(&mode);
         Self {
             widget,
             statistics,
+            assistance,
             mode,
         }
     }

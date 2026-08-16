@@ -27,6 +27,9 @@ use crate::ui::editor_presentation::EditorPresentation;
 use crate::ui::editor_status_bar::EditorStatusBar;
 use crate::ui::editor_toolbar::EditorToolbar;
 use crate::ui::find_replace_panel::FindReplacePanel;
+use crate::writing_assistance::{
+    GrammarService, SpellService, WritingAssistanceController, WritingAssistanceStore,
+};
 
 pub struct NoteWindow {
     pub window: adw::ApplicationWindow,
@@ -115,6 +118,7 @@ impl NoteWindow {
             )
         };
         let source_buffer = adapter.buffer().clone();
+        let source_view = adapter.view().clone();
         let buffer = source_buffer.clone().upcast::<gtk::TextBuffer>();
         let editor = adapter.view().clone().upcast::<gtk::TextView>();
         if current.editor_mode != EditorMode::Rich {
@@ -314,6 +318,29 @@ impl NoteWindow {
         };
         let status_bar = EditorStatusBar::new(mode_name);
         let editor_status = status_bar.statistics.clone();
+        let writing_preferences = WritingAssistanceStore::for_current_user().load();
+        let resolved_writing =
+            writing_preferences.resolve(&current.editor_preferences.writing_assistance);
+        let grammar_language = if writing_preferences.language.eq_ignore_ascii_case("auto") {
+            "en"
+        } else {
+            &writing_preferences.language
+        };
+        let writing_controller = WritingAssistanceController::new(
+            &source_buffer,
+            Arc::new(GrammarService::default()),
+            grammar_language,
+            current.editor_mode.clone(),
+        );
+        writing_controller.set_preferences(resolved_writing);
+        writing_controller.set_suppressed(is_trashed || current.editor_preferences.view_only);
+        writing_controller.set_status_label(&status_bar.assistance);
+        let spell_session = SpellService::attach(
+            &source_buffer,
+            &source_view,
+            &writing_preferences.language,
+            resolved_writing.spelling && !is_trashed && !current.editor_preferences.view_only,
+        );
         layout.append(&status_bar.widget);
         window.set_content(Some(&layout));
         let presentation = EditorPresentation::new(
@@ -432,6 +459,11 @@ impl NoteWindow {
             let zoom = zoom.clone();
             buffer.connect_changed(move |buffer| update_editor_status(buffer, &status, zoom.get()));
         }
+        {
+            let writing_controller = writing_controller.clone();
+            buffer.connect_changed(move |_| writing_controller.notify_content_changed());
+        }
+        writing_controller.notify_content_changed();
         {
             let status = editor_status.clone();
             let zoom = zoom.clone();
@@ -855,7 +887,10 @@ impl NoteWindow {
             let buffer = buffer.clone();
             let note = note.clone();
             let edit_save_gate = edit_save_gate.clone();
+            let writing_controller = writing_controller.clone();
             window.connect_close_request(move |window| {
+                writing_controller.shutdown();
+                let _keep_spell_session_alive = &spell_session;
                 if allow_close.get() {
                     return gtk::glib::Propagation::Proceed;
                 }
