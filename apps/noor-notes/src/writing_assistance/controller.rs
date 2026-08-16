@@ -1,14 +1,18 @@
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 use adw::prelude::*;
 use noor_domain::EditorMode;
 
-use super::{AssistanceIssue, GrammarService, ResolvedWritingAssistance, checkable_regions};
+use super::{
+    AssistanceIssue, GrammarService, PredictionModel, PredictionOverlay, ResolvedWritingAssistance,
+    checkable_regions,
+};
 
 const GRAMMAR_DEBOUNCE: Duration = Duration::from_millis(450);
+const PREDICTION_DEBOUNCE: Duration = Duration::from_millis(250);
 const GRAMMAR_TAG: &str = "noor-writing-assistance-grammar";
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -47,10 +51,13 @@ struct ControllerInner {
     suppressed: Cell<bool>,
     generation: Cell<u64>,
     pending: RefCell<Option<gtk::glib::SourceId>>,
+    pending_prediction: RefCell<Option<gtk::glib::SourceId>>,
     issues: RefCell<Vec<AssistanceIssue>>,
     status: Cell<AssistanceStatus>,
     status_label: RefCell<Option<gtk::Label>>,
     shutdown: Cell<bool>,
+    prediction_overlay: RefCell<Option<PredictionOverlay>>,
+    prediction_model: RefCell<Option<Arc<RwLock<PredictionModel>>>>,
 }
 
 impl WritingAssistanceController {
@@ -76,10 +83,13 @@ impl WritingAssistanceController {
                 suppressed: Cell::new(false),
                 generation: Cell::new(0),
                 pending: RefCell::new(None),
+                pending_prediction: RefCell::new(None),
                 issues: RefCell::new(Vec::new()),
                 status: Cell::new(AssistanceStatus::Idle),
                 status_label: RefCell::new(None),
                 shutdown: Cell::new(false),
+                prediction_overlay: RefCell::new(None),
+                prediction_model: RefCell::new(None),
             }),
         }
     }
@@ -95,6 +105,17 @@ impl WritingAssistanceController {
             self.clear_issues();
             self.update_status(AssistanceStatus::Idle);
         }
+        if !preferences.offline_prediction {
+            self.dismiss_prediction();
+        }
+    }
+
+    pub fn set_prediction_overlay(&self, overlay: PredictionOverlay) {
+        self.inner.prediction_overlay.replace(Some(overlay));
+    }
+
+    pub fn set_prediction_model(&self, model: Arc<RwLock<PredictionModel>>) {
+        self.inner.prediction_model.replace(Some(model));
     }
 
     pub fn set_language(&self, language: &str) {
@@ -111,8 +132,10 @@ impl WritingAssistanceController {
         self.inner.suppressed.set(suppressed);
         if suppressed {
             self.cancel_pending();
+            self.cancel_pending_prediction();
             self.bump_generation();
             self.clear_issues();
+            self.dismiss_prediction();
             self.update_status(AssistanceStatus::Idle);
         } else {
             self.notify_content_changed();
@@ -125,22 +148,37 @@ impl WritingAssistanceController {
         }
         let generation = self.bump_generation();
         self.clear_issues();
+        self.dismiss_prediction();
         self.cancel_pending();
-        if !self.can_check() {
+        self.cancel_pending_prediction();
+        if self.inner.suppressed.get() {
             self.update_status(AssistanceStatus::Idle);
             return;
         }
-        self.update_status(AssistanceStatus::Checking);
-        let controller = self.clone();
-        let source = gtk::glib::timeout_add_local_once(GRAMMAR_DEBOUNCE, move || {
-            controller.inner.pending.borrow_mut().take();
-            controller.run_check(generation);
-        });
-        self.inner.pending.replace(Some(source));
+        if self.inner.preferences.get().grammar {
+            self.update_status(AssistanceStatus::Checking);
+            let controller = self.clone();
+            let source = gtk::glib::timeout_add_local_once(GRAMMAR_DEBOUNCE, move || {
+                controller.inner.pending.borrow_mut().take();
+                controller.run_check(generation);
+            });
+            self.inner.pending.replace(Some(source));
+        } else {
+            self.update_status(AssistanceStatus::Idle);
+        }
+        if self.inner.preferences.get().offline_prediction {
+            let controller = self.clone();
+            let source = gtk::glib::timeout_add_local_once(PREDICTION_DEBOUNCE, move || {
+                controller.inner.pending_prediction.borrow_mut().take();
+                controller.show_local_prediction(generation);
+            });
+            self.inner.pending_prediction.replace(Some(source));
+        }
     }
 
     pub fn check_now(&self) {
         self.cancel_pending();
+        self.cancel_pending_prediction();
         let generation = self.bump_generation();
         if !self.can_check() {
             self.clear_issues();
@@ -186,7 +224,9 @@ impl WritingAssistanceController {
     pub fn shutdown(&self) {
         self.inner.shutdown.set(true);
         self.cancel_pending();
+        self.cancel_pending_prediction();
         self.clear_issues();
+        self.dismiss_prediction();
     }
 
     fn can_check(&self) -> bool {
@@ -289,6 +329,86 @@ impl WritingAssistanceController {
             source.remove();
         }
     }
+
+    fn cancel_pending_prediction(&self) {
+        if let Some(source) = self.inner.pending_prediction.borrow_mut().take() {
+            source.remove();
+        }
+    }
+
+    fn show_local_prediction(&self, generation: u64) {
+        if generation != self.inner.generation.get()
+            || self.inner.suppressed.get()
+            || !self.inner.preferences.get().offline_prediction
+        {
+            return;
+        }
+        let Some(overlay) = self.inner.prediction_overlay.borrow().clone() else {
+            return;
+        };
+        let Some(model) = self.inner.prediction_model.borrow().clone() else {
+            return;
+        };
+        if self.inner.buffer.selection_bounds().is_some() {
+            overlay.dismiss();
+            return;
+        }
+        let cursor = self.inner.buffer.cursor_position().max(0) as usize;
+        let regions = checkable_regions(&self.inner.buffer, self.inner.mode.borrow().clone());
+        if !regions
+            .iter()
+            .any(|region| region.start <= cursor && cursor <= region.end)
+        {
+            overlay.dismiss();
+            return;
+        }
+        let text = self
+            .inner
+            .buffer
+            .text(
+                &self.inner.buffer.start_iter(),
+                &self.inner.buffer.end_iter(),
+                true,
+            )
+            .to_string();
+        let prefix = text.chars().take(cursor).collect::<String>();
+        let partial_start = prefix
+            .char_indices()
+            .rev()
+            .find(|(_, character)| !character.is_alphanumeric() && *character != '_')
+            .map_or(0, |(index, character)| index + character.len_utf8());
+        let partial = &prefix[partial_start..];
+        let context = &prefix[..partial_start];
+        let suggestions = model
+            .read()
+            .ok()
+            .map(|model| model.suggest(context, partial, 3))
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|suggestion| insertion_suffix(&suggestion, partial))
+            .collect::<Vec<_>>();
+        if generation == self.inner.generation.get() {
+            overlay.show(&suggestions);
+        }
+    }
+
+    fn dismiss_prediction(&self) {
+        if let Some(overlay) = self.inner.prediction_overlay.borrow().as_ref() {
+            overlay.dismiss();
+        }
+    }
+}
+
+fn insertion_suffix(suggestion: &str, partial: &str) -> Option<String> {
+    if partial.is_empty() {
+        return Some(suggestion.to_owned());
+    }
+    let normalized = suggestion.to_lowercase();
+    let partial_normalized = partial.to_lowercase();
+    if !normalized.starts_with(&partial_normalized) {
+        return None;
+    }
+    Some(suggestion.chars().skip(partial.chars().count()).collect())
 }
 
 fn ensure_grammar_tag(buffer: &sourceview5::Buffer) {

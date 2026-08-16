@@ -293,3 +293,12 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
   color: alpha(currentColor, 0.72);
   font-size: 0.9em;
 }
+
+.nn-prediction-ghost {
+  color: alpha(currentColor, 0.5);
+  padding: 0 2px;
+}
+
+.nn-prediction-ghost.nn-reduced-motion {
+  transition: none;
+}

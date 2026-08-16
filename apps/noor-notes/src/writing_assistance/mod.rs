@@ -4,6 +4,7 @@ mod grammar;
 mod issue;
 mod issue_popover;
 mod prediction;
+mod prediction_overlay;
 mod preferences;
 mod scope;
 mod spelling;
@@ -14,6 +15,7 @@ pub use grammar::GrammarService;
 pub use issue::{AssistanceIssue, IssueSource};
 pub use issue_popover::IssuePopover;
 pub use prediction::PredictionModel;
+pub use prediction_overlay::PredictionOverlay;
 pub use preferences::{
     PreferenceError, ProviderConfiguration, ResolvedWritingAssistance,
     WritingAssistancePreferences, WritingAssistanceStore, provider_requires_api_key,

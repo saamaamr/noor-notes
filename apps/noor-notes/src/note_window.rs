@@ -28,7 +28,8 @@ use crate::ui::editor_status_bar::EditorStatusBar;
 use crate::ui::editor_toolbar::EditorToolbar;
 use crate::ui::find_replace_panel::FindReplacePanel;
 use crate::writing_assistance::{
-    GrammarService, SpellService, WritingAssistanceController, WritingAssistanceStore,
+    GrammarService, PredictionOverlay, SpellService, WritingAssistanceController,
+    WritingAssistanceStore,
 };
 
 pub struct NoteWindow {
@@ -303,10 +304,13 @@ impl NoteWindow {
         }
 
         let canvas = build_editor_canvas(&editor, rich_mode);
+        let canvas_overlay = gtk::Overlay::new();
+        canvas_overlay.set_child(Some(&canvas));
+        let prediction_overlay = PredictionOverlay::new(&canvas_overlay, &editor);
         let scroller = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never)
             .vexpand(true)
-            .child(&canvas)
+            .child(&canvas_overlay)
             .build();
         scroller.add_css_class("nn-canvas-scroller");
         layout.append(&scroller);
@@ -333,6 +337,7 @@ impl NoteWindow {
             current.editor_mode.clone(),
         );
         writing_controller.set_preferences(resolved_writing);
+        writing_controller.set_prediction_overlay(prediction_overlay);
         writing_controller.set_suppressed(is_trashed || current.editor_preferences.view_only);
         writing_controller.set_status_label(&status_bar.assistance);
         let spell_session = SpellService::attach(
