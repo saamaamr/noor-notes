@@ -1,7 +1,11 @@
+mod grammar;
+mod issue;
 mod preferences;
 mod scope;
 mod spelling;
 
+pub use grammar::GrammarService;
+pub use issue::{AssistanceIssue, IssueSource};
 pub use preferences::{
     PreferenceError, ProviderConfiguration, ResolvedWritingAssistance,
     WritingAssistancePreferences, WritingAssistanceStore, provider_requires_api_key,
