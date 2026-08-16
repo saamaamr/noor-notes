@@ -96,29 +96,28 @@ impl NoteWindow {
         metadata.append(&tags_entry);
         layout.append(&metadata);
 
-        let (buffer, editor, source_buffer) = if current.editor_mode == EditorMode::Rich {
-            let buffer = gtk::TextBuffer::new(None);
+        let adapter = if current.editor_mode == EditorMode::Rich {
+            let adapter =
+                SourceEditorAdapter::new_rich(&current.content, appearance.effective_theme());
+            let buffer = adapter.buffer().clone().upcast::<gtk::TextBuffer>();
             RichBuffer::load(&buffer, &current.content, current.rich_content.as_ref());
-            let editor = gtk::TextView::with_buffer(&buffer);
-            (buffer, editor, None)
+            adapter
         } else {
             let language = match current.editor_mode {
                 EditorMode::PlainText => None,
                 EditorMode::Markdown | EditorMode::Code => Some(&current.source_language),
                 EditorMode::Rich => unreachable!(),
             };
-            let adapter = SourceEditorAdapter::new_with_theme(
+            SourceEditorAdapter::new_with_theme(
                 &current.content,
                 language,
                 appearance.effective_theme(),
-            );
-            (
-                adapter.buffer().clone().upcast::<gtk::TextBuffer>(),
-                adapter.view().clone().upcast::<gtk::TextView>(),
-                Some(adapter.buffer().clone()),
             )
         };
-        if let Some(source_buffer) = source_buffer {
+        let source_buffer = adapter.buffer().clone();
+        let buffer = source_buffer.clone().upcast::<gtk::TextBuffer>();
+        let editor = adapter.view().clone().upcast::<gtk::TextView>();
+        if current.editor_mode != EditorMode::Rich {
             let source_buffer = source_buffer.downgrade();
             appearance.subscribe(move |_, theme| {
                 if let Some(buffer) = source_buffer.upgrade() {

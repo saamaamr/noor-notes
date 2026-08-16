@@ -1,11 +1,15 @@
 use gtk::prelude::*;
 use noor_domain::{RichDocument, TextMarks};
 use noor_notes::rich_buffer::RichBuffer;
+use noor_notes::{appearance::EffectiveTheme, editor::SourceEditorAdapter};
+use sourceview5::prelude::*;
 
 #[test]
 fn rich_buffer_round_trip_preserves_bold_selection_and_emoji() {
     gtk::init().unwrap();
-    let buffer = gtk::TextBuffer::new(None);
+    let editor = SourceEditorAdapter::new_rich("Hello world", EffectiveTheme::Light);
+    assert!(!editor.buffer().is_highlight_syntax());
+    let buffer: gtk::TextBuffer = editor.buffer().clone().upcast();
     RichBuffer::load(
         &buffer,
         "Hello world",

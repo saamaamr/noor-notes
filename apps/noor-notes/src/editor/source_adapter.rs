@@ -19,6 +19,16 @@ impl SourceEditorAdapter {
         Self::new_with_theme(text, Some(language), EffectiveTheme::Light)
     }
 
+    pub fn new_rich(text: &str, theme: EffectiveTheme) -> Self {
+        let editor = Self::new_with_theme(text, None, theme);
+        editor.buffer.set_highlight_syntax(false);
+        editor.buffer.set_highlight_matching_brackets(false);
+        editor.view.set_show_line_numbers(false);
+        editor.view.set_highlight_current_line(false);
+        editor.view.set_auto_indent(false);
+        editor
+    }
+
     pub fn new_with_theme(
         text: &str,
         language: Option<&SourceLanguage>,

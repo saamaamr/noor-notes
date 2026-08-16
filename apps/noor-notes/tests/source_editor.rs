@@ -52,6 +52,21 @@ fn source_editor_supports_languages_regex_unicode_lines_and_bookmarks() {
     assert!(ids.contains(&"python3".to_string()));
     source_editor_applies_theme_without_losing_text_selection_or_undo();
     plain_text_has_no_language_while_markdown_and_code_keep_theirs();
+    rich_editor_uses_source_widgets_without_source_presentation();
+}
+
+fn rich_editor_uses_source_widgets_without_source_presentation() {
+    let editor = SourceEditorAdapter::new_rich("hello", EffectiveTheme::Light);
+
+    assert!(!editor.buffer().is_highlight_syntax());
+    assert!(editor.buffer().style_scheme().is_some());
+    assert!(!editor.view().shows_line_numbers());
+    assert!(!editor.view().is_highlight_current_line());
+    let gtk_buffer: gtk::TextBuffer = editor.buffer().clone().upcast();
+    assert_eq!(
+        gtk_buffer.text(&gtk_buffer.start_iter(), &gtk_buffer.end_iter(), true),
+        "hello"
+    );
 }
 
 fn source_editor_applies_theme_without_losing_text_selection_or_undo() {
