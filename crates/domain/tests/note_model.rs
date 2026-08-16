@@ -1,5 +1,7 @@
 use chrono::{TimeZone, Utc};
-use noor_domain::{Note, NoteState, NoteStyle, WindowGeometry};
+use noor_domain::{
+    EditorPreferences, Note, NoteState, NoteStyle, WindowGeometry, WritingAssistanceOverrides,
+};
 
 #[test]
 fn new_note_has_safe_defaults() {
@@ -58,4 +60,42 @@ fn window_geometry_defaults_to_a_useful_sticky_note_size() {
 
     assert_eq!(geometry.width, 360);
     assert_eq!(geometry.height, 320);
+}
+
+#[test]
+fn legacy_editor_preferences_default_to_global_writing_settings() {
+    let value = serde_json::json!({
+        "zoom_percent": 100,
+        "word_wrap": true,
+        "cursor_offset": 0,
+        "scroll_offset": 0,
+        "bookmarks": [],
+        "view_only": false
+    });
+
+    let preferences: EditorPreferences = serde_json::from_value(value).unwrap();
+
+    assert_eq!(
+        preferences.writing_assistance,
+        WritingAssistanceOverrides::default()
+    );
+    assert_eq!(preferences.writing_assistance.spelling, None);
+    assert_eq!(preferences.writing_assistance.grammar, None);
+    assert_eq!(preferences.writing_assistance.offline_prediction, None);
+    assert_eq!(preferences.writing_assistance.cloud, None);
+}
+
+#[test]
+fn duplicating_a_note_copies_writing_assistance_overrides() {
+    let now = Utc.with_ymd_and_hms(2026, 8, 16, 12, 0, 0).unwrap();
+    let mut note = Note::new(now);
+    note.editor_preferences.writing_assistance.spelling = Some(false);
+    note.editor_preferences.writing_assistance.cloud = Some(true);
+
+    let copy = note.duplicate(now);
+
+    assert_eq!(
+        copy.editor_preferences.writing_assistance,
+        note.editor_preferences.writing_assistance
+    );
 }

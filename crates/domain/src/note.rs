@@ -82,6 +82,29 @@ impl SourceLanguage {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct WritingAssistanceOverrides {
+    #[serde(default)]
+    pub spelling: Option<bool>,
+    #[serde(default)]
+    pub grammar: Option<bool>,
+    #[serde(default)]
+    pub offline_prediction: Option<bool>,
+    #[serde(default)]
+    pub cloud: Option<bool>,
+}
+
+impl Default for WritingAssistanceOverrides {
+    fn default() -> Self {
+        Self {
+            spelling: None,
+            grammar: None,
+            offline_prediction: None,
+            cloud: None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EditorPreferences {
     #[serde(default = "default_zoom_percent")]
     pub zoom_percent: u16,
@@ -95,6 +118,8 @@ pub struct EditorPreferences {
     pub bookmarks: Vec<u32>,
     #[serde(default)]
     pub view_only: bool,
+    #[serde(default)]
+    pub writing_assistance: WritingAssistanceOverrides,
 }
 
 const fn default_zoom_percent() -> u16 {
@@ -114,6 +139,7 @@ impl Default for EditorPreferences {
             scroll_offset: 0,
             bookmarks: Vec::new(),
             view_only: false,
+            writing_assistance: WritingAssistanceOverrides::default(),
         }
     }
 }
