@@ -12,6 +12,7 @@ fi
 
 python3 - "$manifest" <<'PY'
 import sys
+import tomllib
 from pathlib import Path
 
 import yaml
@@ -25,6 +26,7 @@ def require_equal(path, actual, expected):
 manifest_path = Path(sys.argv[1])
 source = manifest_path.read_text(encoding="utf-8")
 manifest = yaml.safe_load(source)
+workspace = tomllib.loads((manifest_path.parent / "Cargo.toml").read_text(encoding="utf-8"))
 
 if not isinstance(manifest, dict):
     raise SystemExit("Snap manifest must be a YAML mapping")
@@ -101,6 +103,11 @@ for package in ("libspelling-1-dev",):
 for package in ("libspelling-1-1", "libenchant-2-2", "hunspell-en-us"):
     if package not in part.get("stage-packages", []):
         raise SystemExit(f"parts.noor-notes.stage-packages must include {package}")
+require_equal(
+    "workspace.dependencies.sourceview5.features",
+    workspace["workspace"]["dependencies"]["sourceview5"].get("features"),
+    ["gtk_v4_14", "v5_16"],
+)
 require_equal(
     "parts.noor-notes.build-environment",
     part.get("build-environment"),
