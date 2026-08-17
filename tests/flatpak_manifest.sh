@@ -61,19 +61,38 @@ require_equal(
 )
 
 modules = manifest.get("modules")
-if not isinstance(modules, list) or len(modules) != 2 or not all(isinstance(item, dict) for item in modules):
-    raise SystemExit("Flatpak manifest must contain the dictionary and application modules")
+if not isinstance(modules, list) or len(modules) != 3 or not all(isinstance(item, dict) for item in modules):
+    raise SystemExit("Flatpak manifest must contain libspelling, dictionary, and application modules")
 
-dictionary = modules[0]
-require_equal("modules[0].name", dictionary.get("name"), "hunspell-en-us")
-dictionary_source = dictionary.get("sources", [{}])[0]
+spelling = modules[0]
+require_equal("modules[0].name", spelling.get("name"), "libspelling")
+require_equal("modules[0].buildsystem", spelling.get("buildsystem"), "meson")
+require_equal("modules[0].config-opts", spelling.get("config-opts"), ["-Dvapi=false", "-Ddocs=false"])
+spelling_sources = spelling.get("sources", [])
+if len(spelling_sources) != 1 or not isinstance(spelling_sources[0], dict):
+    raise SystemExit("Flatpak libspelling module must have one immutable source")
+require_equal("modules[0].sources[0].type", spelling_sources[0].get("type"), "archive")
 require_equal(
     "modules[0].sources[0].url",
+    spelling_sources[0].get("url"),
+    "https://download.gnome.org/sources/libspelling/0.4/libspelling-0.4.10.tar.xz",
+)
+require_equal(
+    "modules[0].sources[0].sha256",
+    spelling_sources[0].get("sha256"),
+    "56e3f01a3a18b575beea4c34349f99cdaba316e1f7c271b1231f7bcf5d9af73b",
+)
+
+dictionary = modules[1]
+require_equal("modules[1].name", dictionary.get("name"), "hunspell-en-us")
+dictionary_source = dictionary.get("sources", [{}])[0]
+require_equal(
+    "modules[1].sources[0].url",
     dictionary_source.get("url"),
     "https://github.com/LibreOffice/dictionaries/archive/c011d96c90cc9c6c8b6d95ec6d83d11daacce994.tar.gz",
 )
 require_equal(
-    "modules[0].sources[0].sha256",
+    "modules[1].sources[0].sha256",
     dictionary_source.get("sha256"),
     "cdbc8d6d79425b2749f7eee077c107ef96fb23c44e4f0ca450897f0a4402581a",
 )
@@ -81,15 +100,15 @@ for path in ("/app/share/hunspell/en_US.aff", "/app/share/hunspell/en_US.dic"):
     if not any(path in command for command in dictionary.get("build-commands", [])):
         raise SystemExit(f"Dictionary module must install {path}")
 
-module = modules[1]
-require_equal("modules[1].name", module.get("name"), "noor-notes")
+module = modules[2]
+require_equal("modules[2].name", module.get("name"), "noor-notes")
 require_equal(
-    "modules[0].build-options.append-path",
+    "modules[2].build-options.append-path",
     module.get("build-options", {}).get("append-path"),
     "/usr/lib/sdk/rust-stable/bin",
 )
 require_equal(
-    "modules[0].build-options.env.CARGO_HOME",
+    "modules[2].build-options.env.CARGO_HOME",
     module.get("build-options", {}).get("env", {}).get("CARGO_HOME"),
     "/run/build/noor-notes/cargo",
 )

@@ -12,6 +12,19 @@ finish-args:
   - --socket=wayland
   - --talk-name=org.freedesktop.secrets
 modules:
+  - name: libspelling
+    buildsystem: meson
+    config-opts:
+      - -Dvapi=false
+      - -Ddocs=false
+    cleanup:
+      - /lib/girepository-1.0
+      - /share/gir-1.0
+      - /share/vala
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libspelling/0.4/libspelling-0.4.10.tar.xz
+        sha256: 56e3f01a3a18b575beea4c34349f99cdaba316e1f7c271b1231f7bcf5d9af73b
   - name: hunspell-en-us
     buildsystem: simple
     sources:
