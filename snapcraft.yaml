@@ -65,7 +65,7 @@ parts:
       - rust-deps
     stage-packages:
       - libgtksourceview-5-0
-      - libspelling-1-2
+      - libspelling-1-1
       - libenchant-2-2
       - hunspell-en-us
     plugin: rust
