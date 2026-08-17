@@ -25,10 +25,10 @@ impl LibraryLayoutMode {
     }
 
     pub const fn for_window_width(allocated: i32, configured_default: i32) -> Self {
-        let width = if allocated > configured_default {
-            allocated
-        } else {
+        let width = if allocated <= 1 {
             configured_default
+        } else {
+            allocated
         };
         Self::for_width(width)
     }

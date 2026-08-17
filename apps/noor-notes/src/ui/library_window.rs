@@ -341,6 +341,7 @@ impl MainWindow {
         self.sidebar_separator.set_visible(visibility.sidebar);
         self.collection_stack.set_visible(visibility.collection);
         self.preview.widget.set_visible(visibility.content);
+        self.preview.set_compact(mode == LibraryLayoutMode::Narrow);
         self.back.set_visible(visibility.back);
         self.panes.set_position(match mode {
             LibraryLayoutMode::Wide => 569,

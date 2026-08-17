@@ -10,6 +10,10 @@ fn width_breakpoints_choose_one_stable_library_mode() {
     assert_eq!(LibraryLayoutMode::for_width(760), LibraryLayoutMode::Medium);
     assert_eq!(LibraryLayoutMode::for_width(759), LibraryLayoutMode::Narrow);
     assert_eq!(
+        LibraryLayoutMode::for_window_width(720, 1_180),
+        LibraryLayoutMode::Narrow
+    );
+    assert_eq!(
         LibraryLayoutMode::for_window_width(1, 1_180),
         LibraryLayoutMode::Wide
     );

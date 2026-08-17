@@ -91,6 +91,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .note-lavender .nn-color-strip { background: #8f76bf; }
 .nn-preview-surface { background: @nn_surface; }
 .nn-preview { background: @nn_surface; padding: 36px 48px; }
+.nn-preview-surface.compact .nn-preview { padding: 28px 32px; }
 .nn-empty-state { padding: 48px 32px; color: @nn_text_secondary; }
 .nn-editor-window { background: @nn_bg; color: @nn_text; }
 .nn-editor-toolbar { min-height: 38px; padding: 0 12px; background: shade(@nn_surface, .985); border-bottom: 1px solid @nn_border; }

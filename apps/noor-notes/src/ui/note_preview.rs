@@ -98,6 +98,14 @@ impl NotePreview {
             &note.content
         });
     }
+
+    pub fn set_compact(&self, compact: bool) {
+        if compact {
+            self.widget.add_css_class("compact");
+        } else {
+            self.widget.remove_css_class("compact");
+        }
+    }
 }
 
 impl Default for NotePreview {

@@ -98,6 +98,10 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
 
     let preview = NotePreview::new();
     assert!(preview.widget.has_css_class("nn-preview-surface"));
+    preview.set_compact(true);
+    assert!(preview.widget.has_css_class("compact"));
+    preview.set_compact(false);
+    assert!(!preview.widget.has_css_class("compact"));
     preview.show_note(&note);
     let preview_labels: Vec<gtk::Label> = descendants(preview.widget.clone().upcast())
         .into_iter()
