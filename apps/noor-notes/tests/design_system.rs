@@ -60,7 +60,10 @@ fn light_mode_uses_professional_semantic_tokens_and_neutral_interactions() {
         "@define-color nn_scrollbar #c7cdd6;",
         "@define-color nn_scrollbar_hover #aeb7c4;",
     ] {
-        assert!(CSS.contains(declaration), "missing Light token: {declaration}");
+        assert!(
+            CSS.contains(declaration),
+            "missing Light token: {declaration}"
+        );
     }
 
     let button_hover = CSS
@@ -119,6 +122,23 @@ fn note_colors_are_identity_rails_and_selection_remains_calm() {
         .expect("selected card rules");
     assert!(selected.contains("@nn_selected"));
     assert!(!selected.contains("color: white"));
+}
+
+#[test]
+fn light_header_search_sort_and_status_share_compact_chrome() {
+    for rule in [
+        ".nn-app-header { min-height: 44px;",
+        ".nn-header-control { min-width: 36px; min-height: 36px;",
+        ".nn-new-note { min-height: 36px;",
+        ".nn-sort-control { min-height: 36px;",
+        ".nn-search-entry { min-height: 36px;",
+        ".nn-statusbar { min-height: 30px;",
+        ".nn-theme-light scrollbar slider {",
+    ] {
+        assert!(CSS.contains(rule), "missing compact chrome rule: {rule}");
+    }
+    assert!(CSS.contains(".nn-theme-light { background: @nn_app_bg; color: @nn_text; }"));
+    assert!(CSS.contains(".nn-theme-light windowcontrols button"));
 }
 
 #[test]

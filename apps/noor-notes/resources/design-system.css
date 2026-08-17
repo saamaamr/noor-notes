@@ -36,6 +36,15 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
   box-shadow: 0 0 0 3px @nn_focus_ring;
 }
 
+.nn-app-header { min-height: 44px; background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; box-shadow: none; }
+.nn-header-control { min-width: 36px; min-height: 36px; padding: 0 8px; border-radius: 8px; color: @nn_text_secondary; }
+.nn-header-control:hover { background: @nn_hover; color: @nn_text; }
+.nn-header-control:checked { background: @nn_accent_soft; color: @nn_accent; }
+.nn-header-control image { -gtk-icon-size: 18px; }
+.nn-new-note { min-height: 36px; padding: 0 12px; border-radius: 9px; }
+.nn-sort-control { min-height: 36px; padding: 0 8px; border: 1px solid transparent; border-radius: 8px; background: @nn_hover; color: @nn_text; }
+.nn-search-entry { min-height: 36px; border-radius: 8px; border-color: @nn_border; background: @nn_surface; color: @nn_text; }
+
 .nn-sidebar { background: @nn_sidebar_bg; border-right: 0; padding: 12px 8px; }
 .nn-pane-separator { min-width: 1px; background: @nn_border; }
 .nn-sidebar-row { min-height: 42px; margin: 2px 0; padding: 0 12px; border-radius: 8px; transition: 140ms ease; }
@@ -152,7 +161,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
   caret-color: @nn_accent;
 }
 .nn-find-panel { padding: 8px 16px; background: @nn_surface; border-bottom: 1px solid @nn_border; }
-.nn-statusbar { min-height: 30px; padding: 0 12px; background: shade(@nn_bg, .98); border-top: 1px solid @nn_border; font-size: 12px; color: @nn_text_secondary; }
+.nn-statusbar { min-height: 30px; padding: 0 12px; background: @nn_note_list_bg; border-top: 1px solid @nn_border_subtle; font-size: 12px; color: @nn_text_muted; }
 .nn-display-title { font-size: 28px; font-weight: 700; }
 .nn-section-title { font-size: 20px; font-weight: 700; }
 .nn-note-title { font-size: 18px; font-weight: 650; }
@@ -193,11 +202,11 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .empty-state { padding: 32px; color: @nn_text_secondary; }
 
 /* Effective light root. */
-.nn-theme-light { background: #f5f5f4; color: #202124; }
-.nn-theme-light headerbar { background: #ffffff; color: #202124; }
-.nn-theme-light .nn-icon-neutral { color: #303238; }
-.nn-theme-light .nn-icon-secondary { color: #686a70; }
-.nn-theme-light .nn-icon-active { color: #4d6fdc; }
+.nn-theme-light { background: @nn_app_bg; color: @nn_text; }
+.nn-theme-light headerbar { background: @nn_surface; color: @nn_text; }
+.nn-theme-light .nn-icon-neutral { color: @nn_text_secondary; }
+.nn-theme-light .nn-icon-secondary { color: @nn_text_secondary; }
+.nn-theme-light .nn-icon-active { color: @nn_accent; }
 .nn-theme-light .note-yellow { background: #fffef5; }
 .nn-theme-light .note-cream { background: #fffaf4; }
 .nn-theme-light .note-blue { background: #f7f9ff; }
@@ -205,6 +214,10 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-light .note-rose { background: #fff8fa; }
 .nn-theme-light .note-lavender { background: #faf8ff; }
 .nn-theme-light .nn-note-list row:selected .nn-note-card { background: @nn_selected; }
+.nn-theme-light windowcontrols button { color: @nn_text_secondary; background: transparent; }
+.nn-theme-light windowcontrols button:hover { color: @nn_text; background: @nn_hover; }
+.nn-theme-light scrollbar slider { min-width: 6px; min-height: 6px; background: @nn_scrollbar; border-radius: 999px; }
+.nn-theme-light scrollbar slider:hover { background: @nn_scrollbar_hover; }
 
 /* Graphite: warm neutral charcoal with restrained indigo. */
 .nn-theme-graphite { background: #1c1d20; color: #f3f4f6; }
@@ -229,6 +242,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-graphite .nn-tag-strip { background: #282a2f; border-color: rgba(255,255,255,.09); }
 .nn-theme-graphite button:hover { background: rgba(154,175,255,.13); }
 .nn-theme-graphite button:checked { background: rgba(154,175,255,.22); color: #ffffff; }
+.nn-theme-graphite .nn-header-control { color: #b8bbc3; }
 
 /* Midnight: deep navy layers with calm sky-blue interaction. */
 .nn-theme-midnight { background: #101722; color: #edf5ff; }
@@ -253,6 +267,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-midnight .nn-tag-strip { background: #1a2638; border-color: rgba(168,205,255,.10); }
 .nn-theme-midnight button:hover { background: rgba(115,183,255,.14); }
 .nn-theme-midnight button:checked { background: rgba(115,183,255,.24); color: #ffffff; }
+.nn-theme-midnight .nn-header-control { color: #abc0da; }
 
 /* OLED: near-black canvas with carefully separated elevated layers. */
 .nn-theme-oled { background: #050506; color: #f7f7fa; }
@@ -277,6 +292,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-oled .nn-tag-strip { background: #121216; border-color: rgba(255,255,255,.11); }
 .nn-theme-oled button:hover { background: rgba(177,160,255,.16); }
 .nn-theme-oled button:checked { background: rgba(177,160,255,.26); color: #ffffff; }
+.nn-theme-oled .nn-header-control { color: #bdbdc7; }
 
 /* Symbolic icons inherit these semantic states in every palette. */
 .nn-icon-neutral { color: @nn_text; }

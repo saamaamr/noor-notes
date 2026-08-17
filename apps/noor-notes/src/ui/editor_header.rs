@@ -50,6 +50,8 @@ impl EditorHeader {
             .tooltip_text("Pin note in the library")
             .active(note.pinned)
             .build();
+        library_pin.add_css_class("nn-header-control");
+        library_pin.add_css_class("nn-icon-neutral");
         library_pin.update_property(&[gtk::accessible::Property::Label("Pin note in the library")]);
         let favorite = gtk::ToggleButton::builder()
             .icon_name(if note.favorite {
@@ -60,7 +62,21 @@ impl EditorHeader {
             .tooltip_text("Add to favorites")
             .active(note.favorite)
             .build();
+        favorite.add_css_class("nn-header-control");
+        favorite.add_css_class("nn-icon-neutral");
         favorite.update_property(&[gtk::accessible::Property::Label("Add to favorites")]);
+
+        for control in [
+            toolbar.header_trash.upcast_ref::<gtk::Widget>(),
+            toolbar.header_archive.upcast_ref::<gtk::Widget>(),
+            toolbar.appearance.upcast_ref::<gtk::Widget>(),
+            appearance_button.upcast_ref::<gtk::Widget>(),
+        ] {
+            control.add_css_class("nn-header-control");
+        }
+        toolbar.header_trash.add_css_class("nn-icon-neutral");
+        toolbar.header_archive.add_css_class("nn-icon-neutral");
+        toolbar.appearance.add_css_class("nn-icon-neutral");
 
         widget.pack_end(&toolbar.header_trash);
         widget.pack_end(&toolbar.header_archive);

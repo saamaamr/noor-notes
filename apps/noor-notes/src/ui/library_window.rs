@@ -76,6 +76,7 @@ impl MainWindow {
 
         let toolbar = adw::ToolbarView::new();
         let header = adw::HeaderBar::new();
+        header.add_css_class("nn-app-header");
         let title = adw::WindowTitle::new("Noor Notes", "Private notebook");
         header.set_title_widget(Some(&title));
         let back = gtk::Button::builder()
@@ -84,6 +85,7 @@ impl MainWindow {
             .visible(false)
             .build();
         back.add_css_class("flat");
+        back.add_css_class("nn-header-control");
         back.add_css_class("nn-icon-neutral");
         header.pack_start(&back);
         let new_button = gtk::Button::builder()
@@ -93,11 +95,15 @@ impl MainWindow {
             .action_name("app.new-note")
             .build();
         new_button.add_css_class("suggested-action");
+        new_button.add_css_class("nn-new-note");
         header.pack_start(&new_button);
         let search_button = gtk::ToggleButton::builder()
             .icon_name("system-search-symbolic")
             .tooltip_text("Search notes (Ctrl+F)")
             .build();
+        search_button.add_css_class("flat");
+        search_button.add_css_class("nn-header-control");
+        search_button.add_css_class("nn-icon-neutral");
         header.pack_end(&search_button);
         let sort = gtk::DropDown::from_strings(&[
             "Recently updated",
@@ -107,6 +113,7 @@ impl MainWindow {
         ]);
         sort.set_tooltip_text(Some("Sort notes"));
         sort.add_css_class("flat");
+        sort.add_css_class("nn-sort-control");
         sort.set_selected(match LibraryPreferences::for_current_user().load_sort() {
             NoteSort::UpdatedDesc => 0,
             NoteSort::CreatedDesc => 1,
@@ -116,6 +123,7 @@ impl MainWindow {
         header.pack_end(&sort);
         let menu = gtk::gio::Menu::new();
         let appearance_button = AppearanceButton::new(appearance);
+        appearance_button.button.add_css_class("nn-header-control");
         header.pack_end(&appearance_button.button);
         menu.append(Some("Import Xpad Notes…"), Some("app.import-xpad"));
         menu.append(Some("Keyboard Shortcuts"), Some("app.shortcuts"));
@@ -135,13 +143,15 @@ impl MainWindow {
             Some("app.writing-assistance-settings"),
         );
         menu.append(Some("Quit"), Some("app.quit"));
-        header.pack_end(
-            &gtk::MenuButton::builder()
-                .icon_name("open-menu-symbolic")
-                .tooltip_text("Main menu")
-                .menu_model(&menu)
-                .build(),
-        );
+        let menu_button = gtk::MenuButton::builder()
+            .icon_name("open-menu-symbolic")
+            .tooltip_text("Main menu")
+            .menu_model(&menu)
+            .build();
+        menu_button.add_css_class("flat");
+        menu_button.add_css_class("nn-header-control");
+        menu_button.add_css_class("nn-icon-neutral");
+        header.pack_end(&menu_button);
         toolbar.add_top_bar(&header);
 
         let page = gtk::Box::new(gtk::Orientation::Vertical, 0);
@@ -153,6 +163,7 @@ impl MainWindow {
             .margin_start(16)
             .margin_end(16)
             .build();
+        search.add_css_class("nn-search-entry");
         let search_bar = gtk::SearchBar::new();
         search_bar.connect_entry(&search);
         search_bar.set_child(Some(&search));
