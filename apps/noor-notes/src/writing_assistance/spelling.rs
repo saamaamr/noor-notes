@@ -49,9 +49,10 @@ impl SpellService {
             .iter::<libspelling::Language>()
             .filter_map(Result::ok)
             .filter_map(|language| {
+                let code = language.code()?.to_string();
                 Some(SpellLanguage {
-                    code: language.code()?.to_string(),
-                    name: language.name()?.to_string(),
+                    name: language_display_name(&code),
+                    code,
                 })
             })
             .collect::<Vec<_>>();
@@ -62,6 +63,22 @@ impl SpellService {
         });
         languages.dedup_by(|left, right| left.code == right.code);
         languages
+    }
+}
+
+fn language_display_name(code: &str) -> String {
+    match code.to_ascii_lowercase().as_str() {
+        "en_us" => "English (United States)".into(),
+        "en_gb" => "English (United Kingdom)".into(),
+        "en_ca" => "English (Canada)".into(),
+        "en_au" => "English (Australia)".into(),
+        "bn_bd" => "Bangla (Bangladesh)".into(),
+        "bn_in" => "Bangla (India)".into(),
+        "ar" => "Arabic".into(),
+        "de_de" => "German (Germany)".into(),
+        "es_es" => "Spanish (Spain)".into(),
+        "fr_fr" => "French (France)".into(),
+        _ => code.replace('_', " · "),
     }
 }
 

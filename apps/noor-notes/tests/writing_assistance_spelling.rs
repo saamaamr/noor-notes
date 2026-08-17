@@ -19,7 +19,11 @@ fn spelling_attaches_named_actions_lists_languages_and_can_be_toggled() {
     assert_eq!(label.as_deref(), Some("Spelling"));
 
     let languages = SpellService::installed_languages();
-    assert!(languages.iter().any(|language| language.code == "en_US"));
+    let english = languages
+        .iter()
+        .find(|language| language.code == "en_US")
+        .expect("en_US dictionary should be installed for the test environment");
+    assert_eq!(english.name, "English (United States)");
     assert!(
         languages
             .windows(2)

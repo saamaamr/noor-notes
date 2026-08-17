@@ -27,6 +27,7 @@ manifest_path = Path(sys.argv[1])
 source = manifest_path.read_text(encoding="utf-8")
 manifest = yaml.safe_load(source)
 workspace = tomllib.loads((manifest_path.parent / "Cargo.toml").read_text(encoding="utf-8"))
+spelling_source = (manifest_path.parent / "apps/noor-notes/src/writing_assistance/spelling.rs").read_text(encoding="utf-8")
 
 if not isinstance(manifest, dict):
     raise SystemExit("Snap manifest must be a YAML mapping")
@@ -108,6 +109,8 @@ require_equal(
     workspace["workspace"]["dependencies"]["sourceview5"].get("features"),
     ["gtk_v4_14", "v5_16"],
 )
+if "language.name()" in spelling_source:
+    raise SystemExit("Snap-compatible spelling language labels must not require libspelling 0.4 symbols")
 require_equal(
     "parts.noor-notes.build-environment",
     part.get("build-environment"),
