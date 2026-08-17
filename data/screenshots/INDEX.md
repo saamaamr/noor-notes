@@ -1,6 +1,6 @@
 # Noor Notes screenshot gallery
 
-Most of this comprehensive visual reference was captured from the real GTK4/libadwaita interface on 9 August 2026. The stable Light and Graphite library overviews were refreshed on 17 August 2026 after the Light Mode update. Every capture used an isolated temporary SQLCipher database with synthetic notes; no personal note database was opened.
+Most of this comprehensive visual reference was captured from the real GTK4/libadwaita interface on 9 August 2026. The five Store views were refreshed from the v0.2.0 interface on 17 August 2026. Every refreshed capture used an isolated temporary SQLCipher database with synthetic notes; no personal note database was opened.
 
 All individual screenshots and gallery overviews use a stable 1248 × 702 RGB canvas. “Compact” documents the smallest visible non-maximized window; a truly minimized window cannot be screenshotted because it is not rendered.
 
@@ -10,6 +10,7 @@ Download or print the complete 98-page collection as [noor-notes-complete-galler
 
 - [noor notes library](noor-notes-library.png)
 - [noor notes editor](noor-notes-editor.png)
+- [noor notes writing assistance](noor-notes-writing-assistance.png)
 - [noor notes dark](noor-notes-dark.png)
 - [noor notes formatting](noor-notes-formatting.png)
 - [noor notes find replace](noor-notes-find-replace.png)

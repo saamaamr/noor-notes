@@ -7,6 +7,7 @@ metadata="$repo_root/data/io.github.saamaamr.NoorNotes.metainfo.xml"
 desktop="$repo_root/data/io.github.saamaamr.NoorNotes.desktop"
 screenshots='noor-notes-editor.png
 noor-notes-library.png
+noor-notes-writing-assistance.png
 noor-notes-dark.png
 noor-notes-formatting.png
 noor-notes-find-replace.png
@@ -32,6 +33,7 @@ require '<url type="vcs-browser">https://github.com/saamaamr/noor-notes</url>' "
 require '<release version="0.2.0" date="2026-08-17" type="stable">' "$metadata"
 require '<release version="0.1.1" date="2026-08-05" type="stable">' "$metadata"
 require '<caption>Browse and preview private notes.</caption>' "$metadata"
+require '<caption>Control private local and optional online writing assistance.</caption>' "$metadata"
 
 require 'Exec=noor-notes' "$desktop"
 require 'Icon=io.github.saamaamr.NoorNotes' "$desktop"

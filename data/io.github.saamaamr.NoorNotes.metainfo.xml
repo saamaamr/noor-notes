@@ -2,15 +2,15 @@
 <component type="desktop-application">
   <id>io.github.saamaamr.NoorNotes</id>
   <name>Noor Notes</name>
-  <summary>Private, offline-first sticky notes for Linux</summary>
+  <summary>Private, offline-first notes with powerful editing for Linux</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <developer id="io.github.saamaamr">
     <name>Abdullah Al Mamun</name>
   </developer>
   <description>
-    <p>Noor Notes is a native Linux application for private, offline-first sticky notes.</p>
-    <p>Create richly formatted notes, organize them in a searchable library, and recover notes from Trash when needed. Noor Notes can import existing Xpad notes without changing the original files, and optional encrypted synchronization is available when configured.</p>
+    <p>Noor Notes is a native GTK4/libadwaita application for private, offline-first writing on Linux.</p>
+    <p>Create and organize encrypted local notes, write in Rich Text or source-oriented editor modes, search and tag your library, and recover notes safely from Trash. Private on-device spelling, English grammar, and learned predictions are available by default; optional online assistance remains off until explicitly configured and tested.</p>
   </description>
   <launchable type="desktop-id">io.github.saamaamr.NoorNotes.desktop</launchable>
   <url type="homepage">https://github.com/saamaamr/noor-notes</url>
@@ -25,6 +25,10 @@
     <screenshot>
       <caption>Browse and preview private notes.</caption>
       <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-library.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Control private local and optional online writing assistance.</caption>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-writing-assistance.png</image>
     </screenshot>
     <screenshot>
       <caption>Use a focused dark appearance.</caption>
