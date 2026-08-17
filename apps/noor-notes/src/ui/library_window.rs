@@ -185,18 +185,19 @@ impl MainWindow {
         collection_stack.add_named(&list_scroll, Some("notes"));
         collection_stack.add_named(&empty.widget, Some("empty"));
         collection_stack.set_visible_child_name("empty");
-        collection_stack.set_width_request(360);
+        collection_stack.set_width_request(336);
         let preview = NotePreview::new();
 
         let panes = gtk::Paned::new(gtk::Orientation::Horizontal);
         let navigation = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         navigation.append(&sidebar.widget);
         let sidebar_separator = gtk::Separator::new(gtk::Orientation::Vertical);
+        sidebar_separator.add_css_class("nn-pane-separator");
         navigation.append(&sidebar_separator);
         navigation.append(&collection_stack);
         panes.set_start_child(Some(&navigation));
         panes.set_end_child(Some(&preview.widget));
-        panes.set_position(570);
+        panes.set_position(569);
         panes.set_resize_start_child(false);
         panes.set_shrink_start_child(false);
         panes.set_vexpand(true);
@@ -331,8 +332,8 @@ impl MainWindow {
         self.preview.widget.set_visible(visibility.content);
         self.back.set_visible(visibility.back);
         self.panes.set_position(match mode {
-            LibraryLayoutMode::Wide => 570,
-            LibraryLayoutMode::Medium => 360,
+            LibraryLayoutMode::Wide => 569,
+            LibraryLayoutMode::Medium => 336,
             LibraryLayoutMode::Narrow => self.window.width(),
         });
     }

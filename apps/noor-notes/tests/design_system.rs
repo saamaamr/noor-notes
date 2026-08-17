@@ -99,6 +99,14 @@ fn selected_navigation_and_note_cards_use_calm_semantic_surfaces() {
 }
 
 #[test]
+fn light_library_layers_sidebar_and_note_list_without_heavy_borders() {
+    assert!(CSS.contains(".nn-sidebar { background: @nn_sidebar_bg;"));
+    assert!(CSS.contains(".nn-note-list { background: @nn_note_list_bg;"));
+    assert!(CSS.contains(".nn-sidebar-row { min-height: 42px;"));
+    assert!(CSS.contains(".nn-pane-separator { min-width: 1px; background: @nn_border;"));
+}
+
+#[test]
 fn replacement_design_system_is_valid_gtk_css() {
     use std::cell::RefCell;
     use std::rc::Rc;

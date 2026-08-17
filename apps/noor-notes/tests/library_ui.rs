@@ -27,6 +27,13 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     for index in 0..7 {
         let row = list.row_at_index(index).unwrap();
         assert!(row.tooltip_text().is_some());
+        let content = row.child().and_downcast::<gtk::Box>().unwrap();
+        let icon = content.first_child().unwrap();
+        let label = icon.next_sibling().unwrap();
+        let count = label.next_sibling().unwrap();
+        assert!(icon.has_css_class("nn-sidebar-icon"));
+        assert!(label.has_css_class("nn-sidebar-label"));
+        assert!(count.has_css_class("nn-sidebar-count"));
     }
 
     sidebar.set_collapsed(true);
@@ -41,7 +48,7 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
         assert!(row.tooltip_text().is_some());
     }
     sidebar.set_collapsed(false);
-    assert_eq!(sidebar.widget.width_request(), 220);
+    assert_eq!(sidebar.widget.width_request(), 232);
 
     let collection = NoteCollection::new(Rc::new(|_, _| {}));
     assert!(collection.widget.has_css_class("nn-note-list"));

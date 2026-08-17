@@ -18,7 +18,7 @@ impl LibrarySidebar {
     pub fn new() -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 8);
         widget.add_css_class("nn-sidebar");
-        widget.set_width_request(220);
+        widget.set_width_request(232);
 
         let heading = gtk::Label::new(Some("Library"));
         heading.add_css_class("nn-caption");
@@ -37,14 +37,18 @@ impl LibrarySidebar {
             row.add_css_class("nn-sidebar-row");
             row.set_tooltip_text(Some(section.label()));
             let content = gtk::Box::new(gtk::Orientation::Horizontal, 10);
-            content.append(&gtk::Image::from_icon_name(section.icon_name()));
+            let icon = gtk::Image::from_icon_name(section.icon_name());
+            icon.add_css_class("nn-sidebar-icon");
+            content.append(&icon);
             let label = gtk::Label::new(Some(section.label()));
+            label.add_css_class("nn-sidebar-label");
             label.set_halign(gtk::Align::Start);
             label.set_hexpand(true);
             content.append(&label);
             labels.push(label.clone());
             let count = gtk::Label::new(Some("0"));
             count.add_css_class("nn-caption");
+            count.add_css_class("nn-sidebar-count");
             content.append(&count);
             row.set_child(Some(&content));
             list.append(&row);
@@ -76,7 +80,7 @@ impl LibrarySidebar {
 
     pub fn set_collapsed(&self, collapsed: bool) {
         self.widget
-            .set_width_request(if collapsed { 64 } else { 220 });
+            .set_width_request(if collapsed { 64 } else { 232 });
         self.heading.set_visible(!collapsed);
         self.privacy.set_visible(!collapsed);
         for label in &self.labels {
