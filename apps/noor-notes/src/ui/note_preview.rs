@@ -16,21 +16,34 @@ impl NotePreview {
         document.set_valign(gtk::Align::Start);
         let title = gtk::Label::new(Some("Select a note"));
         title.add_css_class("nn-display-title");
+        title.add_css_class("nn-preview-title");
         title.set_xalign(0.0);
         title.set_wrap(true);
+        title.set_wrap_mode(gtk::pango::WrapMode::WordChar);
+        let title_attributes = gtk::pango::AttrList::new();
+        title_attributes.insert(gtk::pango::AttrFloat::new_line_height(1.2));
+        title.set_attributes(Some(&title_attributes));
         document.append(&title);
         let metadata = gtk::Label::new(Some("Your note preview will appear here"));
         metadata.add_css_class("nn-metadata");
+        metadata.add_css_class("nn-preview-metadata");
         metadata.set_xalign(0.0);
+        metadata.set_wrap(true);
+        metadata.set_wrap_mode(gtk::pango::WrapMode::WordChar);
         document.append(&metadata);
         document.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
         let body = gtk::Label::new(Some(
             "Choose a note from the library to read it without opening another window.",
         ));
         body.add_css_class("nn-body");
+        body.add_css_class("nn-preview-body");
         body.set_xalign(0.0);
         body.set_yalign(0.0);
         body.set_wrap(true);
+        body.set_wrap_mode(gtk::pango::WrapMode::WordChar);
+        let body_attributes = gtk::pango::AttrList::new();
+        body_attributes.insert(gtk::pango::AttrFloat::new_line_height(1.6));
+        body.set_attributes(Some(&body_attributes));
         body.set_selectable(true);
         document.append(&body);
         let clamp = adw::Clamp::builder()

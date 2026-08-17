@@ -8,9 +8,15 @@ pub fn configure_editor_canvas(editor: &gtk::TextView, rich_mode: bool) {
     editor.set_bottom_margin(bottom);
     editor.add_css_class("nn-writing-canvas");
     if rich_mode {
+        editor.set_pixels_above_lines(2);
+        editor.set_pixels_below_lines(2);
+        editor.set_pixels_inside_wrap(1);
         editor.add_css_class("nn-rich-writing-canvas");
         editor.remove_css_class("nn-source-canvas");
     } else {
+        editor.set_pixels_above_lines(0);
+        editor.set_pixels_below_lines(0);
+        editor.set_pixels_inside_wrap(0);
         editor.add_css_class("nn-source-canvas");
         editor.remove_css_class("nn-rich-writing-canvas");
     }

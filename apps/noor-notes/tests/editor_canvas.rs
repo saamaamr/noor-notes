@@ -10,6 +10,9 @@ fn rich_writing_is_clamped_while_source_modes_keep_full_editor_width() {
     assert_eq!(rich_editor.right_margin(), 8);
     assert_eq!(rich_editor.top_margin(), 5);
     assert_eq!(rich_editor.bottom_margin(), 5);
+    assert_eq!(rich_editor.pixels_above_lines(), 2);
+    assert_eq!(rich_editor.pixels_below_lines(), 2);
+    assert_eq!(rich_editor.pixels_inside_wrap(), 1);
     assert!(rich_editor.has_css_class("nn-rich-writing-canvas"));
     let rich_canvas = build_editor_canvas(&rich_editor, true);
     let clamp = rich_canvas
@@ -23,6 +26,9 @@ fn rich_writing_is_clamped_while_source_modes_keep_full_editor_width() {
     assert_eq!(source_editor.right_margin(), 16);
     assert_eq!(source_editor.top_margin(), 16);
     assert_eq!(source_editor.bottom_margin(), 24);
+    assert_eq!(source_editor.pixels_above_lines(), 0);
+    assert_eq!(source_editor.pixels_below_lines(), 0);
+    assert_eq!(source_editor.pixels_inside_wrap(), 0);
     assert!(source_editor.has_css_class("nn-source-canvas"));
     let source_canvas = build_editor_canvas(&source_editor, false);
     assert!(source_canvas.is::<gtk::TextView>());

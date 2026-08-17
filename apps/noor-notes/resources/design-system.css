@@ -81,7 +81,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .note-rose .nn-color-strip { background: #cc6c7f; }
 .note-lavender .nn-color-strip { background: #8f76bf; }
 .nn-preview-surface { background: @nn_surface; }
-.nn-preview { background: @nn_surface; padding: 48px 40px; }
+.nn-preview { background: @nn_surface; padding: 36px 48px; }
 .nn-empty-state { padding: 48px 32px; color: @nn_text_secondary; }
 .nn-editor-window { background: @nn_bg; color: @nn_text; }
 .nn-editor-toolbar { min-height: 38px; padding: 0 12px; background: shade(@nn_surface, .985); border-bottom: 1px solid @nn_border; }
@@ -159,6 +159,9 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-body { font-size: 16px; }
 .nn-metadata { font-size: 13px; color: @nn_text_secondary; }
 .nn-caption { font-size: 12px; color: @nn_text_secondary; }
+.nn-preview-title { font-size: 30px; font-weight: 700; color: @nn_text; }
+.nn-preview-metadata { font-size: 13px; color: @nn_text_muted; }
+.nn-preview-body { font-size: 16px; color: @nn_text; }
 .paper-warm-white { background: #fffefa; color: #222222; }
 .paper-cream { background: #fff8e8; color: #29251f; }
 .paper-light-yellow { background: #fff9cf; color: #292619; }

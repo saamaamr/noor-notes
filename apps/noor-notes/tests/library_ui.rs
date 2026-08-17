@@ -62,7 +62,7 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
 
     let mut note = Note::new(Utc::now());
     note.title = "A complete redesign".into();
-    note.content = "First line\nSecond line\nThird line".into();
+    note.content = format!("{} বাংলা نص عربي", "A".repeat(300));
     note.tags = vec!["design".into(), "gtk".into(), "hidden".into()];
     collection.set_notes(&[note.clone()]);
     assert_eq!(collection.widget.model().unwrap().n_items(), 1);
@@ -79,19 +79,19 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     assert!(archive.has_css_class("nn-card-action"));
     assert_eq!(archive.valign(), gtk::Align::Center);
     assert_eq!(card.menu.tooltip_text().as_deref(), Some("Note actions"));
-    let descendants = descendants(card.widget.clone().upcast());
+    let card_descendants = descendants(card.widget.clone().upcast());
     assert!(
-        descendants
+        card_descendants
             .iter()
             .any(|widget| widget.has_css_class("nn-note-card-preview"))
     );
     assert!(
-        descendants
+        card_descendants
             .iter()
             .any(|widget| widget.has_css_class("nn-note-card-tags"))
     );
     assert!(
-        descendants
+        card_descendants
             .iter()
             .any(|widget| widget.has_css_class("nn-note-card-meta"))
     );
@@ -99,6 +99,26 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     let preview = NotePreview::new();
     assert!(preview.widget.has_css_class("nn-preview-surface"));
     preview.show_note(&note);
+    let preview_labels: Vec<gtk::Label> = descendants(preview.widget.clone().upcast())
+        .into_iter()
+        .filter_map(|widget| widget.downcast::<gtk::Label>().ok())
+        .collect();
+    let title = preview_labels
+        .iter()
+        .find(|label| label.has_css_class("nn-preview-title"))
+        .expect("preview title");
+    let metadata = preview_labels
+        .iter()
+        .find(|label| label.has_css_class("nn-preview-metadata"))
+        .expect("preview metadata");
+    let body = preview_labels
+        .iter()
+        .find(|label| label.has_css_class("nn-preview-body"))
+        .expect("preview body");
+    assert_eq!(title.wrap_mode(), gtk::pango::WrapMode::WordChar);
+    assert_eq!(metadata.wrap_mode(), gtk::pango::WrapMode::WordChar);
+    assert_eq!(body.wrap_mode(), gtk::pango::WrapMode::WordChar);
+    assert!(body.is_selectable());
     preview.clear();
     let preview_text = label_texts(preview.widget.clone().upcast());
     assert!(preview_text.iter().any(|text| text == "Select a note"));
