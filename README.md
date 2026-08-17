@@ -2,7 +2,7 @@
 
 Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
 
-**Current release:** v0.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
+**Current release:** v0.2.0 · **Platform:** Linux · **License:** GPL-3.0-or-later
 
 ## Product overview
 
@@ -55,17 +55,17 @@ Prediction controls are keyboard accessible: **Tab** accepts visible ghost text,
 
 Choose one installation method:
 
-- **Snap Store** for the recommended packaged installation from the current preview channel.
-- **Downloaded Snap or Flatpak release** for a locally verified v0.1.1 package.
+- **Snap Store** for the recommended stable packaged installation.
+- **Downloaded Snap or Flatpak release** for a locally verified v0.2.0 package.
 - **Ubuntu source installer** for the current repository version and host Xpad import.
 - **Local rebuild** when this repository and its dependencies are already installed.
 
 ### Install from Snap Store
 
-Noor Notes is currently published on the Snap Store's `latest/edge` preview channel. Install it, then launch it from the application grid or terminal:
+Install the stable Snap Store release, then launch it from the application grid or terminal:
 
 ```bash
-sudo snap install noor-notes --edge
+sudo snap install noor-notes
 noor-notes
 ```
 
@@ -76,10 +76,19 @@ snap info noor-notes
 snap list noor-notes
 ```
 
-Refresh an existing installation to the newest edge revision:
+Refresh an existing installation from the stable channel:
+
+```bash
+sudo snap refresh noor-notes --stable
+```
+
+#### Optional edge channel
+
+The `latest/edge` channel is intended for preview testing and may update more frequently. Switch an existing installation to edge, or return it to stable, with:
 
 ```bash
 sudo snap refresh noor-notes --edge
+sudo snap refresh noor-notes --stable
 ```
 
 Remove the Snap installation when it is no longer needed:
@@ -88,14 +97,14 @@ Remove the Snap installation when it is no longer needed:
 sudo snap remove noor-notes
 ```
 
-See the [Noor Notes Snap Store listing](https://snapcraft.io/noor-notes) for current channel information. The edge channel is intended for preview builds; no stable, candidate, or beta release is currently published.
+See the [Noor Notes Snap Store listing](https://snapcraft.io/noor-notes) for the current version, revision, architecture, and channel information.
 
 ### Release packages
 
-Download `noor-notes_0.1.1_amd64.snap` or `noor-notes.flatpak` from the v0.1.1 release, verify it as described below, then install one package.
+Download `noor-notes_0.2.0_amd64.snap` or `noor-notes.flatpak` from the v0.2.0 release, verify it as described below, then install one package.
 
 ```bash
-sudo snap install --dangerous ./noor-notes_0.1.1_amd64.snap
+sudo snap install --dangerous ./noor-notes_0.2.0_amd64.snap
 ```
 
 On Ubuntu or another APT-based system, install Flatpak and add a runtime remote before installing the Flatpak bundle:
@@ -128,8 +137,8 @@ From an existing checkout with dependencies already available, rebuild and reins
 To download every published asset from a terminal:
 
 ```bash
-release=https://github.com/saamaamr/noor-notes/releases/download/v0.1.1
-curl -LO "$release/noor-notes_0.1.1_amd64.snap"
+release=https://github.com/saamaamr/noor-notes/releases/download/v0.2.0
+curl -LO "$release/noor-notes_0.2.0_amd64.snap"
 curl -LO "$release/noor-notes.flatpak"
 curl -LO "$release/SHA256SUMS.txt"
 sha256sum -c SHA256SUMS.txt
@@ -161,7 +170,7 @@ System follows the current GNOME preference while remembering the last preferred
 
 Create a note from the library. With a native/source installation, use the Xpad import control, review the preview, and confirm the import. Noor Notes does not modify Xpad or its files under `~/.config/xpad`.
 
-The strict Snap and Flatpak packages cannot read the host `~/.config/xpad`, so their import control cannot migrate host Xpad notes in v0.1.1. No portal or file-selection import path is provided in those packages; use a native/source installation for Xpad migration.
+The strict Snap and Flatpak packages cannot read the host `~/.config/xpad`, so their import control cannot migrate host Xpad notes in v0.2.0. No portal or file-selection import path is provided in those packages; use a native/source installation for Xpad migration.
 
 ## Rich text, responsive controls, and Trash
 
@@ -214,7 +223,7 @@ gnome-extensions disable noor-lockscreen-motion@saamaamr.github.io
 
 ## Encrypted sync
 
-Encrypted synchronization is not available to v0.1.1 users: the released app has no account, vault, or Supabase-project configuration flow, and its Sync action reports that cloud sync is not configured. Notes remain encrypted locally until a future release integrates that workflow.
+Encrypted synchronization is not available to v0.2.0 users: the released app has no account, vault, or Supabase-project configuration flow, and its Sync action reports that cloud sync is not configured. Notes remain encrypted locally until a future release integrates that workflow.
 
 ## Data and recovery
 
@@ -231,8 +240,8 @@ Back up the encrypted database together with a working GNOME Keyring backup. If 
 - If a release package will not install, re-download it and `SHA256SUMS.txt`, then use the selected-artifact checksum commands above. Confirm that the exact package reports `OK`.
 - If Always on Top is disabled on GNOME Wayland, use a source installation with the separately installed GNOME Shell extension, or use a supported window environment.
 - If lock-screen motion is missing after a source update, run `./scripts/install-gnome-extension.sh`, log out and back in, and confirm `gnome-extensions info noor-lockscreen-motion@saamaamr.github.io` reports the extension. The motion safely becomes a no-op if the compatible WACK/GNOME clock actors are unavailable.
-- If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v0.1.1.
-- If Sync says it is not configured, that is the current v0.1.1 limitation; there is no supported account or Supabase setup path yet.
+- If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v0.2.0.
+- If Sync says it is not configured, that is the current v0.2.0 limitation; there is no supported account or Supabase setup path yet.
 - If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
 - After pulling source changes, run `./scripts/install-local.sh` to rebuild and replace the user-installed binary and desktop resources. Fully quit any older Noor Notes process before reopening it.
 - If Noor Notes does not open from the application grid, run `~/.local/bin/noor-notes` in a terminal and include the displayed error in a bug report. Reinstall first if that path is missing or older than the checkout. Do not delete the notes database or GNOME Keyring entry while diagnosing launch problems.
@@ -266,9 +275,9 @@ bash tests/e2e/two_device_sync.sh
 
 ## Release automation and Store status
 
-Version tags build Snap and Flatpak artifacts in GitHub Actions. The `v0.1.1` tag creates the GitHub release with `noor-notes_0.1.1_amd64.snap`, `noor-notes.flatpak`, and `SHA256SUMS.txt` after the security gate passes.
+Version tags build Snap and Flatpak artifacts in GitHub Actions. The `v0.2.0` tag creates the GitHub release with `noor-notes_0.2.0_amd64.snap`, `noor-notes.flatpak`, and `SHA256SUMS.txt` after the security gate passes.
 
-Snap Store publication remains a manual owner action rather than part of the tag workflow. Noor Notes v0.1.1 revision 2 is currently published on `latest/edge`; no stable, candidate, or beta channel release is available. A Flathub submission is not created by this project's workflow.
+Snap Store publication remains a manual owner action rather than part of the tag workflow. The verified release is published to `latest/stable` for amd64, while `latest/edge` remains an optional preview channel. A Flathub submission is not created by this project's workflow.
 
 ## Contributing
 

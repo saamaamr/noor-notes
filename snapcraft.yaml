@@ -3,9 +3,18 @@ version: "0.2.0"
 title: Noor Notes
 summary: Private, offline-first notes with powerful editing for Linux
 description: |
-  Noor Notes is a native GTK4 sticky-note application for Linux.
-  It works offline, imports Xpad without modifying it, and supports optional
-  end-to-end encrypted synchronization.
+  Noor Notes is a native GTK4/libadwaita application for private,
+  offline-first writing on Linux.
+
+  Create and organize encrypted local notes in a responsive library. Write in
+  Rich Text, Markdown, Plain Text, or Code; use search, tags, pinning,
+  favorites, Archive, Trash recovery, autosave, and multiple light and dark
+  appearances.
+
+  Offline spelling, English grammar, and learned local predictions are enabled
+  by default and can be controlled globally or per note. Optional online
+  assistance remains disabled until the user configures and tests a provider.
+  Noor Notes contains no advertising, analytics, or tracking.
 base: core24
 grade: stable
 confinement: strict
