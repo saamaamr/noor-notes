@@ -1,7 +1,7 @@
 name: noor-notes
-version: "0.1.1"
+version: "0.2.0"
 title: Noor Notes
-summary: Private, offline-first sticky notes for Linux
+summary: Private, offline-first notes with powerful editing for Linux
 description: |
   Noor Notes is a native GTK4 sticky-note application for Linux.
   It works offline, imports Xpad without modifying it, and supports optional

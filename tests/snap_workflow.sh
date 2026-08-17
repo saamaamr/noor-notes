@@ -58,4 +58,10 @@ smoke_run = smoke.get("run", "")
 for command in ("sudo snap install --dangerous", "snap run noor-notes --help"):
     if command not in smoke_run:
         raise SystemExit(f"Snap smoke test must run: {command}")
+
+upload = steps_by_name.get("Upload Snap artifact")
+if not isinstance(upload, dict):
+    raise SystemExit("Snap workflow must upload the built artifact")
+if upload.get("with", {}).get("name") != "noor-notes-snap":
+    raise SystemExit("Snap workflow artifact name must not hard-code a product version")
 PY

@@ -29,6 +29,7 @@ require '<name>Abdullah Al Mamun</name>' "$metadata"
 require '<url type="homepage">https://github.com/saamaamr/noor-notes</url>' "$metadata"
 require '<url type="bugtracker">https://github.com/saamaamr/noor-notes/issues</url>' "$metadata"
 require '<url type="vcs-browser">https://github.com/saamaamr/noor-notes</url>' "$metadata"
+require '<release version="0.2.0" date="2026-08-17" type="stable">' "$metadata"
 require '<release version="0.1.1" date="2026-08-05" type="stable">' "$metadata"
 require '<caption>Browse and preview private notes.</caption>' "$metadata"
 

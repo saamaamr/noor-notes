@@ -48,6 +48,11 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="0.2.0" date="2026-08-17" type="stable">
+      <description>
+        <p>Feature release with a redesigned adaptive library, refined Light and dark appearances, Rich Text and source editor modes, private writing assistance, responsive controls, and expanded recovery and organization workflows.</p>
+      </description>
+    </release>
     <release version="0.1.1" date="2026-08-05" type="stable">
       <description>
         <p>Security update with SQLCipher local encryption, GNOME Keyring integration, safe database migration, hardened networking, and stricter import and desktop boundaries.</p>

@@ -29,6 +29,30 @@ manifest = yaml.safe_load(source)
 if not isinstance(manifest, dict):
     raise SystemExit("Snap manifest must be a YAML mapping")
 
+require_equal("version", manifest.get("version"), "0.2.0")
+require_equal("title", manifest.get("title"), "Noor Notes")
+require_equal(
+    "summary",
+    manifest.get("summary"),
+    "Private, offline-first notes with powerful editing for Linux",
+)
+require_equal("license", manifest.get("license"), "GPL-3.0-or-later")
+require_equal("website", manifest.get("website"), "https://github.com/saamaamr/noor-notes")
+require_equal(
+    "contact",
+    manifest.get("contact"),
+    "https://github.com/saamaamr/noor-notes/issues",
+)
+require_equal(
+    "issues",
+    manifest.get("issues"),
+    "https://github.com/saamaamr/noor-notes/issues",
+)
+require_equal(
+    "source-code",
+    manifest.get("source-code"),
+    "https://github.com/saamaamr/noor-notes",
+)
 require_equal("base", manifest.get("base"), "core24")
 require_equal("confinement", manifest.get("confinement"), "strict")
 require_equal("platforms", manifest.get("platforms"), {"amd64": None})
