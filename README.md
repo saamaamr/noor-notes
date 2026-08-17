@@ -8,6 +8,8 @@ Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application f
 
 Noor Notes is both a usable desktop application and evidence of production-oriented Linux engineering. The repository demonstrates native GTK interface work, a multi-crate Rust architecture, SQLCipher storage, GNOME Keyring integration, safe migration and recovery paths, cross-environment window handling, packaging, accessibility work, and a broad automated test suite.
 
+The refreshed library uses distinct sidebar, note-list, and editor surfaces; note colours remain visible as restrained identity rails and subtle tints instead of saturated cards. Compact controls, a readable preview column, and adaptive narrow-window navigation keep the workspace calm and usable across window sizes.
+
 Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximized and compact layouts, editor modes, View-Only presentation, themes, menus, search, Trash, formatting, and settings.
 
 | Library and preview | Focused rich editor |
@@ -16,7 +18,7 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 
 | Dark appearance | Rich formatting and colours |
 | --- | --- |
-| ![Noor Notes library using the Midnight dark appearance](data/screenshots/noor-notes-dark.png) | ![Noor Notes rich formatting popover with text and highlight colours](data/screenshots/noor-notes-formatting.png) |
+| ![Noor Notes library using the Graphite dark appearance](data/screenshots/noor-notes-dark.png) | ![Noor Notes rich formatting popover with text and highlight colours](data/screenshots/noor-notes-formatting.png) |
 
 | Find and replace | Trash recovery | Narrow layout |
 | --- | --- | --- |
@@ -36,10 +38,10 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 - **Optional online assistance**: an OpenAI-compatible provider is opt-in and disabled until its connection is validated. Grammar sends only the current paragraph (maximum 2,000 Unicode characters), prediction sends only a nearby sentence (maximum 800), and the API key stays in GNOME Keyring. Titles, tags, other notes, account data, and encryption material are not sent.
 - **Native notes library**: a compact GNOME header, adaptive navigation sidebar, virtualized note cards, selected-note preview, responsive empty states, keyboard navigation, and views for All Notes, Pinned, Favorites, Recent, Archived, Trash, and Tags.
 - **Fast organization**: Unicode-aware debounced search, stable sorting, editable titles, searchable tags, pinned and favorite states, note colours, duplication, archive, restore, and confirmed permanent deletion.
-- **Focused editor**: a spacious writing canvas with a compact toolbar and live status bar. Find and replace, undo and redo, word wrap, zoom, go to line, full screen, line and column position, word and character counts, and keyboard shortcuts work end to end.
+- **Focused editor**: a readable writing canvas with a compact toolbar and live status bar. Rich Text preserves the intentionally compact 5-pixel top/bottom and 8-pixel left/right canvas margins. Find and replace, undo and redo, word wrap, zoom, go to line, full screen, line and column position, word and character counts, and keyboard shortcuts work end to end.
 - **Rich and source modes**: rich notes support persistent bold, italic, underline, strikethrough, lists, alignment, font sizes, text and highlight colours, and emoji. Markdown and code notes use GtkSourceView syntax languages, while Plain Text stays unhighlighted; all source modes include line numbers, current-line highlighting, regex search, bookmarks, and theme-matched editor palettes.
 - **Reliable saving**: debounced autosave exposes Unsaved, Saving, Saved, and retryable failure states; close-time flushing protects pending edits, and rich formatting survives save and reopen.
-- **Premium appearance**: follow the GNOME system theme or choose Light, Graphite, Midnight, or OLED. The selection persists and updates library windows, editors, paper colours, controls, and symbolic icon colours together.
+- **Polished appearance**: Light uses calm semantic surfaces, restrained note-colour accents, and subtle selection states; Graphite, Midnight, and OLED provide purpose-built dark palettes, or Noor Notes can follow the GNOME system theme. The selection persists and updates library windows, editors, paper colours, controls, and symbolic icon colours together.
 - **Private local storage**: SQLCipher encrypts note text, titles, tags, and history with a random key held by GNOME Keyring. Existing databases migrate safely, and Noor Notes adds no analytics, advertising, or tracking.
 - **Linux desktop integration**: source installs can preview and import Xpad notes without modifying the originals. Always on Top, all-workspaces, opacity, and other window controls are available where the active desktop backend supports them.
 

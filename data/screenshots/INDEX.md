@@ -1,6 +1,6 @@
 # Noor Notes screenshot gallery
 
-A comprehensive visual reference captured from the real GTK4/libadwaita interface on 9 August 2026, using an isolated temporary SQLCipher database with sample notes. No personal note database was opened.
+Most of this comprehensive visual reference was captured from the real GTK4/libadwaita interface on 9 August 2026. The stable Light and Graphite library overviews were refreshed on 17 August 2026 after the Light Mode update. Every capture used an isolated temporary SQLCipher database with synthetic notes; no personal note database was opened.
 
 All individual screenshots and gallery overviews use a stable 1248 × 702 RGB canvas. “Compact” documents the smallest visible non-maximized window; a truly minimized window cannot be screenshotted because it is not rendered.
 
