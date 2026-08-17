@@ -69,6 +69,20 @@ if not any(
     for step in flatpak_steps
 ):
     raise SystemExit("Release workflow must reject a Flatpak version that differs from the tag")
+flatpak_steps_by_name = {
+    step.get("name"): step for step in flatpak_steps if isinstance(step, dict)
+}
+pin_source = flatpak_steps_by_name.get("Pin Flatpak source to checked-out commit")
+if not isinstance(pin_source, dict):
+    raise SystemExit("Release workflow must pin the Flatpak source to the checked-out tag commit")
+pin_run = pin_source.get("run", "")
+for fragment in ("commit: ${GITHUB_SHA}", 'grep -Fq "        commit: ${GITHUB_SHA}"'):
+    if fragment not in pin_run:
+        raise SystemExit(f"Release Flatpak source pin must include: {fragment}")
+if flatpak_steps.index(pin_source) > next(
+    index for index, step in enumerate(flatpak_steps) if isinstance(step, dict) and "uses" in step and "flatpak-builder@" in step["uses"]
+):
+    raise SystemExit("Release workflow must pin the Flatpak source before building")
 
 release = jobs["release"]
 if release.get("needs") != ["snap", "flatpak"]:

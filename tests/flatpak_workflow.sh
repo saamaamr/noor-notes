@@ -54,6 +54,17 @@ builder_steps = [
 if len(builder_steps) != 1:
     raise SystemExit("Flatpak workflow must use the official Flatpak builder action once")
 
+steps_by_name = {step.get("name"): step for step in steps if isinstance(step, dict)}
+pin_source = steps_by_name.get("Pin Flatpak source to checked-out commit")
+if not isinstance(pin_source, dict):
+    raise SystemExit("Flatpak workflow must pin the manifest source to the checked-out commit")
+pin_run = pin_source.get("run", "")
+for fragment in ("commit: ${GITHUB_SHA}", 'grep -Fq "        commit: ${GITHUB_SHA}"'):
+    if fragment not in pin_run:
+        raise SystemExit(f"Flatpak source pin must include: {fragment}")
+if steps.index(pin_source) > steps.index(builder_steps[0]):
+    raise SystemExit("Flatpak workflow must pin the source before building")
+
 expected_actions = {
     "actions/checkout": "11d5960a326750d5838078e36cf38b85af677262",
     "flatpak/flatpak-github-actions/flatpak-builder": "401fe28a8384095fc1531b9d320b292f0ee45adb",
@@ -82,7 +93,6 @@ if builder.get("repo-dir") != "flatpak-repo":
 if builder.get("upload-artifact") != "true":
     raise SystemExit("Flatpak builder must upload the built bundle as an artifact")
 
-steps_by_name = {step.get("name"): step for step in steps if isinstance(step, dict)}
 smoke = steps_by_name.get("Install and smoke-test Flatpak bundle")
 if not isinstance(smoke, dict):
     raise SystemExit("Flatpak workflow must install and smoke-test the built bundle")
