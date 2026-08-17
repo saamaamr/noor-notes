@@ -8,6 +8,7 @@ fn replacement_design_system_defines_semantic_light_dark_and_accessible_states()
         "@define-color nn_surface",
         "@define-color nn_editor_bg",
         "@define-color nn_sidebar_bg",
+        "@define-color nn_note_list_bg",
         "@define-color nn_border",
         "@define-color nn_border_subtle",
         "@define-color nn_text",
@@ -17,6 +18,7 @@ fn replacement_design_system_defines_semantic_light_dark_and_accessible_states()
         "@define-color nn_accent_soft",
         "@define-color nn_danger",
         "@define-color nn_focus",
+        "@define-color nn_focus_ring",
         "@define-color nn_hover",
         "@define-color nn_selected",
         ".nn-theme-light",
@@ -35,6 +37,46 @@ fn replacement_design_system_defines_semantic_light_dark_and_accessible_states()
         assert!(CSS.contains(token), "missing design token/state: {token}");
     }
     assert!(!CSS.contains("linear-gradient"));
+}
+
+#[test]
+fn light_mode_uses_professional_semantic_tokens_and_neutral_interactions() {
+    for declaration in [
+        "@define-color nn_app_bg #f7f8fa;",
+        "@define-color nn_sidebar_bg #f6f7f9;",
+        "@define-color nn_note_list_bg #fafafb;",
+        "@define-color nn_surface #ffffff;",
+        "@define-color nn_hover #f1f3f6;",
+        "@define-color nn_text #1f2937;",
+        "@define-color nn_text_secondary #667085;",
+        "@define-color nn_text_muted #6b7280;",
+        "@define-color nn_border #e5e7eb;",
+        "@define-color nn_border_subtle #eef0f2;",
+        "@define-color nn_accent #4f6fe8;",
+        "@define-color nn_accent_hover #425fcc;",
+        "@define-color nn_accent_soft #eef2ff;",
+        "@define-color nn_danger #dc2626;",
+        "@define-color nn_success #16a34a;",
+        "@define-color nn_scrollbar #c7cdd6;",
+        "@define-color nn_scrollbar_hover #aeb7c4;",
+    ] {
+        assert!(CSS.contains(declaration), "missing Light token: {declaration}");
+    }
+
+    let button_hover = CSS
+        .split("button:hover")
+        .nth(1)
+        .and_then(|rules| rules.split('}').next())
+        .expect("button hover rules");
+    assert!(button_hover.contains("@nn_hover"));
+    assert!(!button_hover.contains("@nn_accent"));
+
+    for theme in ["graphite", "midnight", "oled"] {
+        assert!(
+            CSS.contains(&format!(".nn-theme-{theme} .nn-sidebar-row:selected")),
+            "dark sidebar selection must be explicit for {theme}"
+        );
+    }
 }
 
 #[test]
