@@ -3,7 +3,7 @@
 set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-manifest="$repo_root/snap/snapcraft.yaml"
+manifest="$repo_root/snapcraft.yaml"
 
 if [ ! -f "$manifest" ]; then
     printf 'Missing Snap manifest: %s\n' "$manifest" >&2

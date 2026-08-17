@@ -21,7 +21,7 @@ jobs:
       - name: Verify package version matches tag
         run: |
           tag_version="${GITHUB_REF_NAME%%-*}"
-          package_version="$(sed -n 's/^version: "\([^"]*\)"$/\1/p' snap/snapcraft.yaml)"
+          package_version="$(sed -n 's/^version: "\([^"]*\)"$/\1/p' snapcraft.yaml)"
           test "$tag_version" = "v$package_version"
 
       - name: Verify Snap manifest contract
