@@ -70,8 +70,21 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     let card = note_card::build(&note, Rc::new(|_, _| {}));
     assert!(card.widget.has_css_class("nn-note-card"));
     assert!(!card.widget.has_css_class("boxed-list"));
+    let color_rail = card.widget.first_child().expect("note color rail");
+    assert!(color_rail.has_css_class("nn-color-strip"));
+    assert_eq!(color_rail.width_request(), 4);
+    assert!(card.menu.has_css_class("nn-card-action"));
+    assert_eq!(card.menu.valign(), gtk::Align::Center);
+    let archive = card.archive.as_ref().expect("active card archive action");
+    assert!(archive.has_css_class("nn-card-action"));
+    assert_eq!(archive.valign(), gtk::Align::Center);
     assert_eq!(card.menu.tooltip_text().as_deref(), Some("Note actions"));
     let descendants = descendants(card.widget.clone().upcast());
+    assert!(
+        descendants
+            .iter()
+            .any(|widget| widget.has_css_class("nn-note-card-preview"))
+    );
     assert!(
         descendants
             .iter()

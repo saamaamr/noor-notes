@@ -107,6 +107,21 @@ fn light_library_layers_sidebar_and_note_list_without_heavy_borders() {
 }
 
 #[test]
+fn note_colors_are_identity_rails_and_selection_remains_calm() {
+    for color in ["yellow", "cream", "blue", "green", "rose", "lavender"] {
+        assert!(CSS.contains(&format!(".note-{color} .nn-color-strip")));
+    }
+    assert!(CSS.contains(".nn-card-action { min-width: 32px; min-height: 32px;"));
+    let selected = CSS
+        .split(".nn-note-list row:selected .nn-note-card")
+        .nth(1)
+        .and_then(|rules| rules.split('}').next())
+        .expect("selected card rules");
+    assert!(selected.contains("@nn_selected"));
+    assert!(!selected.contains("color: white"));
+}
+
+#[test]
 fn replacement_design_system_is_valid_gtk_css() {
     use std::cell::RefCell;
     use std::rc::Rc;

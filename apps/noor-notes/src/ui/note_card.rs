@@ -36,10 +36,16 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     title.set_hexpand(true);
     heading.append(&title);
     if note.pinned {
-        heading.append(&gtk::Image::from_icon_name("view-pin-symbolic"));
+        let icon = gtk::Image::from_icon_name("view-pin-symbolic");
+        icon.add_css_class("nn-note-status-icon");
+        icon.add_css_class("nn-icon-secondary");
+        heading.append(&icon);
     }
     if note.favorite {
-        heading.append(&gtk::Image::from_icon_name("starred-symbolic"));
+        let icon = gtk::Image::from_icon_name("starred-symbolic");
+        icon.add_css_class("nn-note-status-icon");
+        icon.add_css_class("nn-icon-secondary");
+        heading.append(&icon);
     }
     text.append(&heading);
     let preview = gtk::Label::new(Some(&crate::library_view::content_preview(
@@ -47,10 +53,12 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
         140,
     )));
     preview.add_css_class("nn-metadata");
+    preview.add_css_class("nn-note-card-preview");
     preview.set_xalign(0.0);
     preview.set_lines(2);
     preview.set_ellipsize(gtk::pango::EllipsizeMode::End);
     preview.set_wrap(true);
+    preview.set_wrap_mode(gtk::pango::WrapMode::WordChar);
     text.append(&preview);
     let tags = gtk::Label::new(Some(
         &note
@@ -84,6 +92,8 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
             .tooltip_text("Archive note")
             .build();
         button.add_css_class("flat");
+        button.add_css_class("nn-card-action");
+        button.set_valign(gtk::Align::Center);
         button.set_visible(false);
         button.update_property(&[gtk::accessible::Property::Label("Archive note")]);
         let archive_action = action.clone();
@@ -127,6 +137,9 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
         .tooltip_text("Note actions")
         .popover(&popover)
         .build();
+    menu.add_css_class("flat");
+    menu.add_css_class("nn-card-action");
+    menu.set_valign(gtk::Align::Center);
     menu.update_property(&[gtk::accessible::Property::Label("Note actions")]);
     let gesture = gtk::GestureClick::new();
     gesture.set_button(3);
