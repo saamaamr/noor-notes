@@ -165,7 +165,6 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-statusbar { min-height: 30px; padding: 0 12px; background: @nn_note_list_bg; border-top: 1px solid @nn_border_subtle; font-size: 12px; color: @nn_text_muted; }
 .nn-display-title { font-size: 28px; font-weight: 700; }
 .nn-section-title { font-size: 20px; font-weight: 700; }
-.nn-note-title { font-size: 18px; font-weight: 650; }
 .nn-body { font-size: 16px; }
 .nn-metadata { font-size: 13px; color: @nn_text_secondary; }
 .nn-caption { font-size: 12px; color: @nn_text_secondary; }
@@ -224,14 +223,19 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-graphite { background: #1c1d20; color: #f3f4f6; }
 .nn-theme-graphite headerbar { background: #24262a; color: #f3f4f6; border-color: rgba(255,255,255,.10); }
 .nn-theme-graphite .nn-sidebar { background: #202226; color: #dfe1e6; border-color: rgba(255,255,255,.09); }
+.nn-theme-graphite .nn-sidebar-row:hover { background: #2e3137; }
 .nn-theme-graphite .nn-sidebar-row:selected { background: #30364a; color: #ffffff; box-shadow: inset 3px 0 #9aafff; }
 .nn-theme-graphite .nn-sidebar-icon { color: #b8bbc3; }
 .nn-theme-graphite .nn-sidebar-row:selected .nn-sidebar-icon { color: #9aafff; }
 .nn-theme-graphite .nn-note-list { background: #1c1d20; color: #f3f4f6; }
+.nn-theme-graphite .nn-note-card-tags { color: #b8bbc3; }
 .nn-theme-graphite .nn-note-card { background: #282a2f; color: #f5f6f8; border-color: rgba(255,255,255,.10); box-shadow: 0 1px 3px rgba(0,0,0,.32); }
-.nn-theme-graphite .nn-note-card:hover { background: #2e3137; }
-.nn-theme-graphite .nn-note-list row:selected .nn-note-card { background: #30364a; border-color: #9aafff; }
+.nn-theme-graphite .nn-note-card:hover { background: #2e3137; border-color: rgba(154,175,255,.26); }
+.nn-theme-graphite .nn-note-list row:selected .nn-note-card { background: #30364a; border-color: #9aafff; box-shadow: 0 0 0 1px rgba(154,175,255,.18); }
 .nn-theme-graphite .nn-preview-surface, .nn-theme-graphite .nn-preview { background: #24262a; color: #f3f4f6; }
+.nn-theme-graphite .nn-preview-title, .nn-theme-graphite .nn-preview-body { color: #f3f4f6; }
+.nn-theme-graphite .nn-sort-control { background: #2d3035; color: #f3f4f6; }
+.nn-theme-graphite .nn-pane-separator { background: rgba(255,255,255,.09); }
 .nn-theme-graphite .nn-editor-toolbar { background: #222428; color: #e8e9ed; border-color: rgba(255,255,255,.09); }
 .nn-theme-graphite .nn-rich-writing-canvas { background: #282a2f; color: #f5f6f8; caret-color: #9aafff; }
 .nn-theme-graphite .nn-canvas-scroller, .nn-theme-graphite .nn-writing-clamp { background: #1c1d20; }
@@ -249,14 +253,19 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-midnight { background: #101722; color: #edf5ff; }
 .nn-theme-midnight headerbar { background: #172131; color: #f2f7ff; border-color: rgba(168,205,255,.12); }
 .nn-theme-midnight .nn-sidebar { background: #131c2a; color: #dbeaff; border-color: rgba(168,205,255,.10); }
+.nn-theme-midnight .nn-sidebar-row:hover { background: #203049; }
 .nn-theme-midnight .nn-sidebar-row:selected { background: #203858; color: #ffffff; box-shadow: inset 3px 0 #73b7ff; }
 .nn-theme-midnight .nn-sidebar-icon { color: #abc0da; }
 .nn-theme-midnight .nn-sidebar-row:selected .nn-sidebar-icon { color: #73b7ff; }
 .nn-theme-midnight .nn-note-list { background: #101722; color: #edf5ff; }
+.nn-theme-midnight .nn-note-card-tags { color: #abc0da; }
 .nn-theme-midnight .nn-note-card { background: #1a2638; color: #f2f7ff; border-color: rgba(168,205,255,.12); box-shadow: 0 1px 4px rgba(0,5,14,.40); }
-.nn-theme-midnight .nn-note-card:hover { background: #203049; }
-.nn-theme-midnight .nn-note-list row:selected .nn-note-card { background: #203858; border-color: #73b7ff; }
+.nn-theme-midnight .nn-note-card:hover { background: #203049; border-color: rgba(115,183,255,.28); }
+.nn-theme-midnight .nn-note-list row:selected .nn-note-card { background: #203858; border-color: #73b7ff; box-shadow: 0 0 0 1px rgba(115,183,255,.18); }
 .nn-theme-midnight .nn-preview-surface, .nn-theme-midnight .nn-preview { background: #172131; color: #edf5ff; }
+.nn-theme-midnight .nn-preview-title, .nn-theme-midnight .nn-preview-body { color: #edf5ff; }
+.nn-theme-midnight .nn-sort-control { background: #1d2b40; color: #f2f7ff; }
+.nn-theme-midnight .nn-pane-separator { background: rgba(168,205,255,.10); }
 .nn-theme-midnight .nn-editor-toolbar { background: #141e2c; color: #e4efff; border-color: rgba(168,205,255,.10); }
 .nn-theme-midnight .nn-rich-writing-canvas { background: #1a2638; color: #f2f7ff; caret-color: #73b7ff; }
 .nn-theme-midnight .nn-canvas-scroller, .nn-theme-midnight .nn-writing-clamp { background: #101722; }
@@ -274,14 +283,19 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-oled { background: #050506; color: #f7f7fa; }
 .nn-theme-oled headerbar { background: #0d0d0f; color: #fafaff; border-color: rgba(255,255,255,.13); }
 .nn-theme-oled .nn-sidebar { background: #09090b; color: #e7e7ed; border-color: rgba(255,255,255,.11); }
+.nn-theme-oled .nn-sidebar-row:hover { background: #19191f; }
 .nn-theme-oled .nn-sidebar-row:selected { background: #211d38; color: #ffffff; box-shadow: inset 3px 0 #b1a0ff; }
 .nn-theme-oled .nn-sidebar-icon { color: #bdbdc7; }
 .nn-theme-oled .nn-sidebar-row:selected .nn-sidebar-icon { color: #b1a0ff; }
 .nn-theme-oled .nn-note-list { background: #050506; color: #f7f7fa; }
+.nn-theme-oled .nn-note-card-tags { color: #bdbdc7; }
 .nn-theme-oled .nn-note-card { background: #121216; color: #fafaff; border-color: rgba(255,255,255,.13); box-shadow: 0 1px 4px rgba(0,0,0,.65); }
-.nn-theme-oled .nn-note-card:hover { background: #19191f; }
-.nn-theme-oled .nn-note-list row:selected .nn-note-card { background: #211d38; border-color: #b1a0ff; }
+.nn-theme-oled .nn-note-card:hover { background: #19191f; border-color: rgba(177,160,255,.30); }
+.nn-theme-oled .nn-note-list row:selected .nn-note-card { background: #211d38; border-color: #b1a0ff; box-shadow: 0 0 0 1px rgba(177,160,255,.20); }
 .nn-theme-oled .nn-preview-surface, .nn-theme-oled .nn-preview { background: #0d0d0f; color: #f7f7fa; }
+.nn-theme-oled .nn-preview-title, .nn-theme-oled .nn-preview-body { color: #f7f7fa; }
+.nn-theme-oled .nn-sort-control { background: #17171c; color: #fafaff; }
+.nn-theme-oled .nn-pane-separator { background: rgba(255,255,255,.11); }
 .nn-theme-oled .nn-editor-toolbar { background: #0a0a0c; color: #eeeeF4; border-color: rgba(255,255,255,.11); }
 .nn-theme-oled .nn-rich-writing-canvas { background: #121216; color: #fafaff; caret-color: #b1a0ff; }
 .nn-theme-oled .nn-canvas-scroller, .nn-theme-oled .nn-writing-clamp { background: #050506; }

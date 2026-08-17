@@ -142,6 +142,53 @@ fn light_header_search_sort_and_status_share_compact_chrome() {
 }
 
 #[test]
+fn dark_palettes_override_light_specific_library_colors() {
+    for theme in ["graphite", "midnight", "oled"] {
+        for selector in [
+            "nn-preview-title",
+            "nn-preview-body",
+            "nn-sidebar-row:hover",
+            "nn-sort-control",
+            "nn-pane-separator",
+            "nn-note-card-tags",
+        ] {
+            assert!(
+                CSS.contains(&format!(".nn-theme-{theme} .{selector}")),
+                "{theme} must override shared Light styling for {selector}"
+            );
+        }
+    }
+
+    for theme in ["graphite", "midnight", "oled"] {
+        let hover_marker = format!(".nn-theme-{theme} .nn-note-card:hover");
+        let hover = CSS
+            .split(&hover_marker)
+            .nth(1)
+            .and_then(|rules| rules.split('}').next())
+            .expect("dark card hover rules");
+        assert!(hover.contains("border-color:"));
+
+        let selected_marker = format!(".nn-theme-{theme} .nn-note-list row:selected .nn-note-card");
+        let selected = CSS
+            .split(&selected_marker)
+            .nth(1)
+            .and_then(|rules| rules.split('}').next())
+            .expect("dark selected card rules");
+        assert!(selected.contains("box-shadow:"));
+    }
+}
+
+#[test]
+fn note_card_title_keeps_the_compact_typography_contract() {
+    assert_eq!(
+        CSS.matches(".nn-note-title {").count(),
+        1,
+        "a later duplicate selector can silently override compact card typography"
+    );
+    assert!(CSS.contains(".nn-note-title { font-size: 16px; font-weight: 600; }"));
+}
+
+#[test]
 fn replacement_design_system_is_valid_gtk_css() {
     use std::cell::RefCell;
     use std::rc::Rc;

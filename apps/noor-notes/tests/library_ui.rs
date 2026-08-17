@@ -131,6 +131,27 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
             .iter()
             .any(|text| text.contains("Choose a note"))
     );
+    let preview_window = gtk::Window::builder()
+        .default_width(1_400)
+        .default_height(760)
+        .child(&preview.widget)
+        .build();
+    preview_window.present();
+    while gtk::glib::MainContext::default().iteration(false) {}
+    preview.widget.allocate(1_400, 760, -1, None);
+    let document = descendants(preview.widget.clone().upcast())
+        .into_iter()
+        .find(|widget| widget.has_css_class("nn-preview"))
+        .expect("preview document");
+    let bounds = document
+        .compute_bounds(&preview.widget)
+        .expect("preview document bounds");
+    assert!(
+        bounds.x() <= 64.0,
+        "wide preview document started at x={} instead of the leading margin",
+        bounds.x()
+    );
+    preview_window.close();
 
     let empty = EmptyState::new();
     for (section, expected) in [

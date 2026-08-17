@@ -1,3 +1,5 @@
+use adw::prelude::*;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LibraryLayoutMode {
     Wide,
@@ -61,4 +63,27 @@ impl LibraryLayoutMode {
             },
         }
     }
+
+    pub const fn pane_position(self, window_width: i32, showing_content: bool) -> i32 {
+        match self {
+            Self::Wide => 569,
+            Self::Medium => 336,
+            Self::Narrow if showing_content => 0,
+            Self::Narrow => window_width,
+        }
+    }
+}
+
+pub fn apply_paned_layout(
+    panes: &gtk::Paned,
+    navigation: &impl IsA<gtk::Widget>,
+    content: &impl IsA<gtk::Widget>,
+    mode: LibraryLayoutMode,
+    window_width: i32,
+    showing_content: bool,
+) {
+    let visibility = mode.visibility(showing_content);
+    navigation.set_visible(visibility.sidebar || visibility.collection);
+    content.set_visible(visibility.content);
+    panes.set_position(mode.pane_position(window_width, showing_content));
 }

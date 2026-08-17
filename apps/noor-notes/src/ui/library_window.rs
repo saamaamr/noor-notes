@@ -10,7 +10,7 @@ use noor_domain::{Note, NoteId};
 use noor_storage::{NoteSort, SqliteNoteRepository, StorageError};
 use noor_windowing::WindowController;
 
-use super::adaptive_layout::LibraryLayoutMode;
+use super::adaptive_layout::{LibraryLayoutMode, apply_paned_layout};
 use super::appearance_button::AppearanceButton;
 use crate::autosave::AutosaveQueue;
 use crate::library::{LibrarySection, LibraryState};
@@ -35,6 +35,7 @@ pub struct MainWindow {
     sort: gtk::DropDown,
     sidebar: LibrarySidebar,
     panes: gtk::Paned,
+    navigation: gtk::Box,
     sidebar_separator: gtk::Separator,
     back: gtk::Button,
     collection: NoteCollection,
@@ -235,6 +236,7 @@ impl MainWindow {
             sort,
             sidebar,
             panes,
+            navigation,
             sidebar_separator,
             back,
             collection,
@@ -340,14 +342,16 @@ impl MainWindow {
         self.sidebar.widget.set_visible(visibility.sidebar);
         self.sidebar_separator.set_visible(visibility.sidebar);
         self.collection_stack.set_visible(visibility.collection);
-        self.preview.widget.set_visible(visibility.content);
         self.preview.set_compact(mode == LibraryLayoutMode::Narrow);
         self.back.set_visible(visibility.back);
-        self.panes.set_position(match mode {
-            LibraryLayoutMode::Wide => 569,
-            LibraryLayoutMode::Medium => 336,
-            LibraryLayoutMode::Narrow => self.window.width(),
-        });
+        apply_paned_layout(
+            &self.panes,
+            &self.navigation,
+            &self.preview.widget,
+            mode,
+            self.window.width(),
+            self.showing_content.get(),
+        );
     }
 
     pub fn present(&self) {
