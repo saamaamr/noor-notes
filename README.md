@@ -64,6 +64,8 @@ Choose one installation method:
 
 Install the stable Snap Store release, then launch it from the application grid or terminal:
 
+The current stable publication is **Noor Notes 0.2.0** for amd64, Store revision **3**.
+
 ```bash
 sudo snap install noor-notes
 noor-notes
@@ -277,7 +279,7 @@ bash tests/e2e/two_device_sync.sh
 
 Version tags build Snap and Flatpak artifacts in GitHub Actions. The `v0.2.0` tag creates the GitHub release with `noor-notes_0.2.0_amd64.snap`, `noor-notes.flatpak`, and `SHA256SUMS.txt` after the security gate passes.
 
-Snap Store publication remains a manual owner action rather than part of the tag workflow. The verified release is published to `latest/stable` for amd64, while `latest/edge` remains an optional preview channel. A Flathub submission is not created by this project's workflow.
+Snap Store publication remains an owner-controlled action rather than part of the tag workflow. The verified v0.2.0 release is published to `latest/stable` for amd64 as Store revision 3, while `latest/edge` remains an optional preview channel. A Flathub submission is not created by this project's workflow.
 
 ## Contributing
 
