@@ -29,7 +29,7 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 - Workspace boundaries separate the GTK application from domain, crypto, storage, synchronization, windowing, and Xpad-import concerns.
 - Security-sensitive behavior fails closed: missing encryption keys and failed plaintext migrations never silently fall back to unencrypted storage.
 - Autosave, close-time flushing, import/export, recovery, trash, rich formatting, source modes, appearance, and window behavior have focused integration coverage.
-- Snap, Flatpak, local, and Ubuntu installation paths are documented without claiming unsupported store availability.
+- Snap Store, downloadable Snap, Flatpak, local, and Ubuntu installation paths are documented with their supported channels and sandbox limitations.
 - Known sandbox, Wayland, encrypted-sync, recovery, and release limitations remain explicit below.
 
 ## Features
@@ -55,9 +55,40 @@ Prediction controls are keyboard accessible: **Tab** accepts visible ghost text,
 
 Choose one installation method:
 
-- **Snap or Flatpak release** for a packaged v0.1.1 installation.
+- **Snap Store** for the recommended packaged installation from the current preview channel.
+- **Downloaded Snap or Flatpak release** for a locally verified v0.1.1 package.
 - **Ubuntu source installer** for the current repository version and host Xpad import.
 - **Local rebuild** when this repository and its dependencies are already installed.
+
+### Install from Snap Store
+
+Noor Notes is currently published on the Snap Store's `latest/edge` preview channel. Install it, then launch it from the application grid or terminal:
+
+```bash
+sudo snap install noor-notes --edge
+noor-notes
+```
+
+View the Store channels and confirm the installed revision:
+
+```bash
+snap info noor-notes
+snap list noor-notes
+```
+
+Refresh an existing installation to the newest edge revision:
+
+```bash
+sudo snap refresh noor-notes --edge
+```
+
+Remove the Snap installation when it is no longer needed:
+
+```bash
+sudo snap remove noor-notes
+```
+
+See the [Noor Notes Snap Store listing](https://snapcraft.io/noor-notes) for current channel information. The edge channel is intended for preview builds; no stable, candidate, or beta release is currently published.
 
 ### Release packages
 
@@ -237,7 +268,7 @@ bash tests/e2e/two_device_sync.sh
 
 Version tags build Snap and Flatpak artifacts in GitHub Actions. The `v0.1.1` tag creates the GitHub release with `noor-notes_0.1.1_amd64.snap`, `noor-notes.flatpak`, and `SHA256SUMS.txt` after the security gate passes.
 
-Store publication is not automated: Snap Store upload remains a manual owner action, and a Flathub submission is not created by this project’s workflow. Use the published release artifacts above rather than assuming Snap Store or Flathub availability.
+Snap Store publication remains a manual owner action rather than part of the tag workflow. Noor Notes v0.1.1 revision 2 is currently published on `latest/edge`; no stable, candidate, or beta channel release is available. A Flathub submission is not created by this project's workflow.
 
 ## Contributing
 
