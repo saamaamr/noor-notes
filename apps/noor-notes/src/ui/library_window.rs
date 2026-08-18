@@ -26,10 +26,12 @@ use super::note_collection::NoteCollection;
 use super::note_preview::NotePreview;
 
 type CardActionHandler = Rc<dyn Fn(NoteId, CardAction)>;
+type PreviewCacheHandler = Rc<dyn Fn(&Note)>;
 
 pub fn preview_edit_handler(
     notes: Rc<RefCell<Vec<Note>>>,
     autosave: AutosaveQueue,
+    update_collection_cache: PreviewCacheHandler,
 ) -> Rc<dyn Fn(Note)> {
     Rc::new(move |edited| {
         if let Some(current) = notes
@@ -39,6 +41,7 @@ pub fn preview_edit_handler(
         {
             *current = edited.clone();
         }
+        update_collection_cache(&edited);
         autosave.schedule(NoteDraft::from(edited));
     })
 }
@@ -217,8 +220,24 @@ impl MainWindow {
         collection_stack.set_visible_child_name("empty");
         collection_stack.set_width_request(300);
         let notes = Rc::new(RefCell::new(Vec::new()));
-        let preview =
-            NotePreview::new_with_handler(preview_edit_handler(notes.clone(), autosave.clone()));
+        let collection_cache = collection.clone();
+        let finish_holder = Rc::new(RefCell::new(None::<Rc<dyn Fn(NoteId)>>));
+        let finish_proxy = {
+            let finish_holder = finish_holder.clone();
+            Rc::new(move |id| {
+                if let Some(handler) = finish_holder.borrow().as_ref() {
+                    handler(id);
+                }
+            })
+        };
+        let preview = NotePreview::new_with_handlers(
+            preview_edit_handler(
+                notes.clone(),
+                autosave.clone(),
+                Rc::new(move |note| collection_cache.update_note(note)),
+            ),
+            finish_proxy,
+        );
 
         let panes = gtk::Paned::new(gtk::Orientation::Horizontal);
         let navigation = gtk::Box::new(gtk::Orientation::Horizontal, 0);
@@ -279,6 +298,20 @@ impl MainWindow {
             let this = this.clone();
             *action_holder.borrow_mut() = Some(Rc::new(move |id, action| {
                 this.handle_card_action(id, action);
+            }));
+        }
+        {
+            let this = this.clone();
+            *finish_holder.borrow_mut() = Some(Rc::new(move |id| {
+                let this = this.clone();
+                gtk::glib::MainContext::default().spawn_local(async move {
+                    match this.autosave.flush(id).await {
+                        Ok(()) => this.set_status("Private · Saved locally"),
+                        Err(error) => {
+                            this.set_status(&format!("Could not save preview edit: {error}"))
+                        }
+                    }
+                });
             }));
         }
         {

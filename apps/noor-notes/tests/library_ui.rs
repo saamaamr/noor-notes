@@ -68,6 +68,24 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     collection.set_notes(&[note.clone()]);
     assert_eq!(collection.widget.model().unwrap().n_items(), 1);
 
+    let activated = Rc::new(std::cell::RefCell::new(Vec::<Note>::new()));
+    collection.connect_activate({
+        let activated = activated.clone();
+        move |note| activated.borrow_mut().push(note)
+    });
+    let mut edited = note.clone();
+    edited.content = "Edited from the preview".into();
+    collection.update_note(&edited);
+    collection.widget.emit_by_name::<()>("activate", &[&0_u32]);
+    assert_eq!(
+        activated
+            .borrow()
+            .last()
+            .map(|note| (note.id, note.content.as_str())),
+        Some((note.id, "Edited from the preview")),
+        "selecting the note again must use the preview's latest cached content"
+    );
+
     let card = note_card::build(&note, Rc::new(|_, _| {}));
     assert!(card.widget.has_css_class("nn-note-card"));
     assert!(!card.widget.has_css_class("boxed-list"));

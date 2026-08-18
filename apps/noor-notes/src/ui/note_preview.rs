@@ -2,7 +2,7 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use adw::prelude::*;
-use noor_domain::{EditorMode, Note, NoteState};
+use noor_domain::{EditorMode, Note, NoteId, NoteState};
 
 use crate::appearance::{EffectiveTheme, try_global};
 use crate::rich_buffer::RichBuffer;
@@ -10,6 +10,7 @@ use crate::rich_buffer::RichBuffer;
 use super::editor_canvas::configure_editor_canvas;
 
 type BodyEditHandler = Rc<dyn Fn(Note)>;
+type EditFinishedHandler = Rc<dyn Fn(NoteId)>;
 
 #[derive(Clone)]
 pub struct NotePreview {
@@ -22,14 +23,22 @@ pub struct NotePreview {
     edit: gtk::Button,
     current: Rc<RefCell<Option<Note>>>,
     editing: Rc<Cell<bool>>,
+    on_edit_finished: EditFinishedHandler,
 }
 
 impl NotePreview {
     pub fn new() -> Self {
-        Self::new_with_handler(Rc::new(|_| {}))
+        Self::new_with_handlers(Rc::new(|_| {}), Rc::new(|_| {}))
     }
 
     pub fn new_with_handler(on_body_edited: BodyEditHandler) -> Self {
+        Self::new_with_handlers(on_body_edited, Rc::new(|_| {}))
+    }
+
+    pub fn new_with_handlers(
+        on_body_edited: BodyEditHandler,
+        on_edit_finished: EditFinishedHandler,
+    ) -> Self {
         let document = gtk::Box::new(gtk::Orientation::Vertical, 16);
         document.add_css_class("nn-preview");
         document.set_valign(gtk::Align::Start);
@@ -131,6 +140,7 @@ impl NotePreview {
             let body_stack = body_stack.clone();
             let editor = editor.clone();
             let on_body_edited = on_body_edited.clone();
+            let on_edit_finished = on_edit_finished.clone();
             edit.connect_clicked(move |button| {
                 let can_edit = current
                     .borrow()
@@ -157,6 +167,11 @@ impl NotePreview {
                     on_body_edited(note);
                 }
                 set_editing(&editing, &body_stack, &editor, button, enabled);
+                if !enabled {
+                    if let Some(id) = current.borrow().as_ref().map(|note| note.id) {
+                        on_edit_finished(id);
+                    }
+                }
             });
         }
         {
@@ -196,10 +211,12 @@ impl NotePreview {
             edit,
             current,
             editing,
+            on_edit_finished,
         }
     }
 
     pub fn clear(&self) {
+        self.finish_pending_edit();
         self.current.replace(None);
         set_editing(
             &self.editing,
@@ -217,6 +234,7 @@ impl NotePreview {
     }
 
     pub fn show_note(&self, note: &Note) {
+        self.finish_pending_edit();
         set_editing(
             &self.editing,
             &self.body_stack,
@@ -275,6 +293,14 @@ impl NotePreview {
             self.widget.add_css_class("compact");
         } else {
             self.widget.remove_css_class("compact");
+        }
+    }
+
+    fn finish_pending_edit(&self) {
+        if self.editing.get() {
+            if let Some(id) = self.current.borrow().as_ref().map(|note| note.id) {
+                (self.on_edit_finished)(id);
+            }
         }
     }
 }

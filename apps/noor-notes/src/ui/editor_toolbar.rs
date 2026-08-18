@@ -159,6 +159,10 @@ impl EditorToolbar {
         let fullscreen = toggle_button("view-fullscreen-symbolic", "Full screen (F11)");
         let view_only = gtk::Button::with_label("View Only");
         view_only.set_tooltip_text(Some("Read this note without editing controls"));
+        view_only.update_property(&[gtk::accessible::Property::Label(
+            "Read this note without editing controls",
+        )]);
+        view_only.add_css_class("nn-view-only-toggle");
         let view_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
         view_box.append(&word_wrap);
         view_box.append(&zoom_in);
@@ -229,7 +233,6 @@ impl EditorToolbar {
             rename.upcast_ref(),
             duplicate.upcast_ref(),
             pin.upcast_ref(),
-            view_only.upcast_ref(),
             writing_assistance.upcast_ref(),
             archive.upcast_ref(),
             trash.upcast_ref(),
@@ -360,6 +363,18 @@ impl EditorToolbar {
         for button in &self.alignment_buttons {
             button.set_sensitive(enabled);
         }
+    }
+
+    pub fn set_view_only_state(&self, enabled: bool) {
+        let (label, description) = if enabled {
+            ("Exit View Only", "Return to editing this note")
+        } else {
+            ("View Only", "Read this note without editing controls")
+        };
+        self.view_only.set_label(label);
+        self.view_only.set_tooltip_text(Some(description));
+        self.view_only
+            .update_property(&[gtk::accessible::Property::Label(description)]);
     }
 }
 

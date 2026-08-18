@@ -39,10 +39,17 @@ fn active_note_body_edits_inline_and_preserves_rich_content() {
     note.rich_content = Some(document);
 
     let saved = Rc::new(RefCell::new(Vec::<Note>::new()));
-    let preview = NotePreview::new_with_handler({
-        let saved = saved.clone();
-        Rc::new(move |note| saved.borrow_mut().push(note))
-    });
+    let finished = Rc::new(RefCell::new(Vec::new()));
+    let preview = NotePreview::new_with_handlers(
+        {
+            let saved = saved.clone();
+            Rc::new(move |note| saved.borrow_mut().push(note))
+        },
+        {
+            let finished = finished.clone();
+            Rc::new(move |id| finished.borrow_mut().push(id))
+        },
+    );
     preview.show_note(&note);
 
     let widgets = descendants(preview.widget.clone().upcast());
@@ -85,6 +92,7 @@ fn active_note_body_edits_inline_and_preserves_rich_content() {
     assert_eq!(edit.label().as_deref(), Some("Edit"));
     assert!(!editor.is_editable());
     assert_eq!(body.text(), "Important body!");
+    assert_eq!(finished.borrow().as_slice(), &[note.id]);
 
     let save_count = saved.borrow().len();
     let mut view_only = note.clone();

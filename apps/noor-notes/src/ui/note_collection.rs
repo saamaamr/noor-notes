@@ -75,6 +75,13 @@ impl NoteCollection {
         self.model.splice(0, 0, &ids);
     }
 
+    pub fn update_note(&self, note: &Note) {
+        let id = note.id.value().to_string();
+        if self.notes.borrow().contains_key(&id) {
+            self.notes.borrow_mut().insert(id, note.clone());
+        }
+    }
+
     pub fn connect_activate<F: Fn(Note) + 'static>(&self, callback: F) {
         let model = self.model.clone();
         let notes = self.notes.clone();

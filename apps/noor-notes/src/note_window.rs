@@ -69,6 +69,7 @@ impl NoteWindow {
         toolbar.trash.set_visible(!is_trashed);
         toolbar.header_trash.set_visible(!is_trashed);
         toolbar.view_only.set_visible(!is_trashed);
+        toolbar.set_view_only_state(current.editor_preferences.view_only && !is_trashed);
         toolbar.restore.set_visible(is_trashed);
         toolbar.permanent_delete.set_visible(is_trashed);
         let appearance_button = AppearanceButton::new(appearance.clone());
@@ -398,6 +399,7 @@ impl NoteWindow {
             busy: view_mode_busy,
             writing_controller: writing_controller.clone(),
             spell_session: spell_session.clone(),
+            toolbar: toolbar.clone(),
         };
         let exit_view_mode: Rc<dyn Fn()> = {
             let context = view_mode_context.clone();
@@ -408,7 +410,8 @@ impl NoteWindow {
         {
             let context = view_mode_context;
             toolbar.view_only.connect_clicked(move |_| {
-                request_view_mode(context.clone(), true);
+                let enabled = !context.presentation.is_view_only();
+                request_view_mode(context.clone(), enabled);
             });
         }
         {
@@ -1189,6 +1192,7 @@ struct ViewModeContext {
     busy: Rc<Cell<bool>>,
     writing_controller: WritingAssistanceController,
     spell_session: crate::writing_assistance::SpellSession,
+    toolbar: EditorToolbar,
 }
 
 fn request_view_mode(context: ViewModeContext, enabled: bool) {
@@ -1205,6 +1209,7 @@ fn request_view_mode(context: ViewModeContext, enabled: bool) {
         let mut changed = context.note.borrow().clone();
         if changed.editor_preferences.view_only == enabled {
             context.presentation.set_view_only(enabled);
+            context.toolbar.set_view_only_state(enabled);
             context.writing_controller.set_suppressed(enabled);
             context.spell_session.set_enabled(!enabled);
             context.busy.set(false);
@@ -1217,6 +1222,7 @@ fn request_view_mode(context: ViewModeContext, enabled: bool) {
             Ok(()) => {
                 context.note.replace(changed);
                 context.presentation.set_view_only(enabled);
+                context.toolbar.set_view_only_state(enabled);
                 context.writing_controller.set_suppressed(enabled);
                 context.spell_session.set_enabled(!enabled);
                 if let Some(application) = context.window.application() {

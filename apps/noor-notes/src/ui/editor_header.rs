@@ -67,6 +67,7 @@ impl EditorHeader {
         favorite.update_property(&[gtk::accessible::Property::Label("Add to favorites")]);
 
         for control in [
+            toolbar.view_only.upcast_ref::<gtk::Widget>(),
             toolbar.header_trash.upcast_ref::<gtk::Widget>(),
             toolbar.header_archive.upcast_ref::<gtk::Widget>(),
             toolbar.appearance.upcast_ref::<gtk::Widget>(),
@@ -78,6 +79,7 @@ impl EditorHeader {
         toolbar.header_archive.add_css_class("nn-icon-neutral");
         toolbar.appearance.add_css_class("nn-icon-neutral");
 
+        widget.pack_end(&toolbar.view_only);
         widget.pack_end(&toolbar.header_trash);
         widget.pack_end(&toolbar.header_archive);
         widget.pack_end(&toolbar.appearance);

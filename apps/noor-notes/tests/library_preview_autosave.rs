@@ -19,8 +19,14 @@ async fn preview_body_edit_updates_library_cache_and_existing_autosave_pipeline(
     repository.save_note(&original).await.unwrap();
     repository.save_note(&untouched).await.unwrap();
     let notes = Rc::new(RefCell::new(vec![original.clone(), untouched.clone()]));
+    let collection_cache = Rc::new(RefCell::new(None::<Note>));
     let autosave = AutosaveQueue::new(repository.clone(), Duration::from_secs(60));
-    let handle_edit = preview_edit_handler(notes.clone(), autosave.clone());
+    let handle_edit = preview_edit_handler(notes.clone(), autosave.clone(), {
+        let collection_cache = collection_cache.clone();
+        Rc::new(move |note| {
+            collection_cache.replace(Some(note.clone()));
+        })
+    });
 
     let mut edited = original.clone();
     edited.content = "Saved from the preview body".into();
@@ -28,6 +34,13 @@ async fn preview_body_edit_updates_library_cache_and_existing_autosave_pipeline(
 
     assert_eq!(notes.borrow()[0].content, "Saved from the preview body");
     assert_eq!(notes.borrow()[1], untouched);
+    assert_eq!(
+        collection_cache
+            .borrow()
+            .as_ref()
+            .map(|note| note.content.as_str()),
+        Some("Saved from the preview body")
+    );
     assert!(autosave.has_pending(original.id));
     autosave.flush(original.id).await.unwrap();
     let persisted = repository.get_note(original.id).await.unwrap().unwrap();
