@@ -146,7 +146,9 @@ impl MainWindow {
         menu.append(Some("Keyboard Shortcuts"), Some("app.shortcuts"));
         let appearance_menu = gtk::gio::Menu::new();
         appearance_menu.append(Some("System"), Some("app.appearance::system"));
-        appearance_menu.append(Some("Light"), Some("app.appearance::light"));
+        appearance_menu.append(Some("Snow"), Some("app.appearance::light"));
+        appearance_menu.append(Some("Warm Paper"), Some("app.appearance::warm-paper"));
+        appearance_menu.append(Some("Cool Mist"), Some("app.appearance::cool-mist"));
         appearance_menu.append(Some("Graphite"), Some("app.appearance::graphite"));
         appearance_menu.append(Some("Midnight"), Some("app.appearance::midnight"));
         appearance_menu.append(Some("OLED"), Some("app.appearance::oled"));

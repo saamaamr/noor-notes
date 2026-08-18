@@ -225,6 +225,30 @@ fn dark_palettes_override_light_specific_library_colors() {
 }
 
 #[test]
+fn warm_paper_and_cool_mist_define_complete_light_surface_layers() {
+    for theme in ["warm-paper", "cool-mist"] {
+        for selector in [
+            "headerbar",
+            ".nn-sidebar",
+            ".nn-note-list",
+            ".nn-note-card",
+            ".nn-preview-surface",
+            ".nn-rich-writing-canvas",
+            ".nn-statusbar",
+        ] {
+            assert!(
+                CSS.contains(&format!(".nn-theme-{theme} {selector}")),
+                "{theme} must visibly own {selector}"
+            );
+        }
+        assert!(
+            CSS.contains(&format!(".nn-swatch-{theme}")),
+            "{theme} must have a settings preview swatch"
+        );
+    }
+}
+
+#[test]
 fn note_card_title_keeps_the_compact_typography_contract() {
     assert_eq!(
         CSS.lines()

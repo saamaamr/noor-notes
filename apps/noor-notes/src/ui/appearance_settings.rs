@@ -25,7 +25,7 @@ impl AppearanceSettings {
         let group = adw::PreferencesGroup::new();
         group.set_title("Theme");
         group.set_description(Some(
-            "System follows GNOME and remembers your preferred dark palette.",
+            "System follows GNOME and remembers your preferred light and dark palettes.",
         ));
 
         let mut choices = Vec::new();
@@ -40,9 +40,21 @@ impl AppearanceSettings {
             ),
             (
                 AppearanceMode::Light,
-                "Light",
-                "Bright neutral surfaces",
+                "Snow",
+                "Clean neutral surfaces",
                 "nn-swatch-light",
+            ),
+            (
+                AppearanceMode::WarmPaper,
+                "Warm Paper",
+                "Soft ivory surfaces for comfortable reading",
+                "nn-swatch-warm-paper",
+            ),
+            (
+                AppearanceMode::CoolMist,
+                "Cool Mist",
+                "Calm blue-gray productivity surfaces",
+                "nn-swatch-cool-mist",
             ),
             (
                 AppearanceMode::Graphite,

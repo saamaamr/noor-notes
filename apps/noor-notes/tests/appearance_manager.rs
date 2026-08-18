@@ -55,4 +55,19 @@ fn manager_updates_windows_cycles_palettes_and_persists_the_active_mode() {
     assert!(failing.set_mode(AppearanceMode::Oled).is_err());
     assert_eq!(failing.effective_theme(), EffectiveTheme::Oled);
     assert!(failure_window.has_css_class("nn-theme-oled"));
+
+    manager.set_mode(AppearanceMode::Light).unwrap();
+    assert_eq!(manager.active_label(), "Snow");
+    assert_eq!(manager.cycle_palette().unwrap(), EffectiveTheme::WarmPaper);
+    assert!(first.has_css_class("nn-theme-warm-paper"));
+    assert_eq!(manager.cycle_palette().unwrap(), EffectiveTheme::CoolMist);
+    assert!(first.has_css_class("nn-theme-cool-mist"));
+    assert_eq!(manager.cycle_palette().unwrap(), EffectiveTheme::Light);
+    assert!(first.has_css_class("nn-theme-light"));
+
+    manager.set_mode(AppearanceMode::Graphite).unwrap();
+    assert_eq!(manager.cycle_palette().unwrap(), EffectiveTheme::Midnight);
+    assert_eq!(manager.cycle_palette().unwrap(), EffectiveTheme::Oled);
+    assert_eq!(manager.cycle_palette().unwrap(), EffectiveTheme::Graphite);
+    assert_eq!(store.load().mode, AppearanceMode::Graphite);
 }

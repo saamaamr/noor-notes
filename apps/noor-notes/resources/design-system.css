@@ -232,6 +232,84 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-light scrollbar slider { min-width: 6px; min-height: 6px; background: @nn_scrollbar; border-radius: 999px; }
 .nn-theme-light scrollbar slider:hover { background: @nn_scrollbar_hover; }
 
+/* Warm Paper: gentle ivory layers with the existing restrained blue accent. */
+.nn-theme-warm-paper { background: #f6f1e8; color: #2c2925; }
+.nn-theme-warm-paper headerbar { background: #fffdf8; color: #2c2925; border-color: #e5ddd1; }
+.nn-theme-warm-paper .nn-sidebar { background: #f3ede4; color: #3d3934; }
+.nn-theme-warm-paper .nn-sidebar-row:hover { background: #ebe4da; }
+.nn-theme-warm-paper .nn-sidebar-row:selected { background: #edf0ff; color: #425fcc; box-shadow: inset 3px 0 #4f6fe8; }
+.nn-theme-warm-paper .nn-sidebar-icon, .nn-theme-warm-paper .nn-sidebar-count { color: #756d63; }
+.nn-theme-warm-paper .nn-sidebar-row:selected .nn-sidebar-icon { color: #4f6fe8; }
+.nn-theme-warm-paper .nn-note-list { background: #faf7f1; color: #2c2925; }
+.nn-theme-warm-paper .nn-note-card { background: #fffdf8; color: #2c2925; border-color: #e5ddd1; box-shadow: 0 1px 2px rgba(76,61,42,.04); }
+.nn-theme-warm-paper .nn-note-card:hover { border-color: #d8cdbf; box-shadow: 0 2px 5px rgba(76,61,42,.07); }
+.nn-theme-warm-paper .nn-note-list row:selected .nn-note-card { background: #edf0ff; color: #2c2925; border-color: #c7d2fe; box-shadow: 0 0 0 1px rgba(79,111,232,.12); }
+.nn-theme-warm-paper .nn-note-card-preview,
+.nn-theme-warm-paper .nn-note-card-tags,
+.nn-theme-warm-paper .nn-note-status-icon,
+.nn-theme-warm-paper .nn-card-action { color: #6f675e; }
+.nn-theme-warm-paper .nn-note-card-meta,
+.nn-theme-warm-paper .nn-metadata,
+.nn-theme-warm-paper .nn-caption { color: #81786d; }
+.nn-theme-warm-paper .nn-preview-surface, .nn-theme-warm-paper .nn-preview { background: #fffdf8; color: #2c2925; }
+.nn-theme-warm-paper .nn-preview-title, .nn-theme-warm-paper .nn-preview-body { color: #2c2925; }
+.nn-theme-warm-paper .nn-preview-editor { background: #fffdf8; color: #2c2925; border-color: #e8e0d5; }
+.nn-theme-warm-paper .nn-sort-control { background: #eee8df; color: #2c2925; }
+.nn-theme-warm-paper .nn-pane-separator { background: #e5ddd1; }
+.nn-theme-warm-paper .nn-editor-toolbar { background: #fbf7f0; color: #2c2925; border-color: #e5ddd1; }
+.nn-theme-warm-paper .nn-rich-writing-canvas { background: #fffdf8; color: #2c2925; caret-color: #4f6fe8; }
+.nn-theme-warm-paper .nn-canvas-scroller, .nn-theme-warm-paper .nn-writing-clamp { background: #f6f1e8; }
+.nn-theme-warm-paper .nn-find-panel { background: #fffaf2; color: #2c2925; border-color: #e5ddd1; }
+.nn-theme-warm-paper .nn-statusbar { background: #f8f3eb; color: #756d63; border-color: #e8e0d5; }
+.nn-theme-warm-paper popover, .nn-theme-warm-paper entry { background: #fffdf8; color: #2c2925; }
+.nn-theme-warm-paper .nn-tag-strip { background: #fbf7f0; color: #6f675e; border-color: #e5ddd1; }
+.nn-theme-warm-paper button:hover { background: #ebe4da; }
+.nn-theme-warm-paper button:checked { background: #edf0ff; color: #425fcc; }
+.nn-theme-warm-paper .nn-header-control { color: #6f675e; }
+.nn-theme-warm-paper .nn-icon-neutral, .nn-theme-warm-paper .nn-icon-secondary { color: #6f675e; }
+.nn-theme-warm-paper .nn-icon-active { color: #4f6fe8; }
+.nn-theme-warm-paper windowcontrols button { color: #6f675e; background: transparent; }
+.nn-theme-warm-paper scrollbar slider { background: #c9c0b4; }
+
+/* Cool Mist: quiet blue-gray layers for a focused technical workspace. */
+.nn-theme-cool-mist { background: #f2f6f8; color: #20303b; }
+.nn-theme-cool-mist headerbar { background: #fcfeff; color: #20303b; border-color: #dce6eb; }
+.nn-theme-cool-mist .nn-sidebar { background: #eef3f6; color: #2b3d49; }
+.nn-theme-cool-mist .nn-sidebar-row:hover { background: #e5edf1; }
+.nn-theme-cool-mist .nn-sidebar-row:selected { background: #e9f0ff; color: #425fcc; box-shadow: inset 3px 0 #4f6fe8; }
+.nn-theme-cool-mist .nn-sidebar-icon, .nn-theme-cool-mist .nn-sidebar-count { color: #657783; }
+.nn-theme-cool-mist .nn-sidebar-row:selected .nn-sidebar-icon { color: #4f6fe8; }
+.nn-theme-cool-mist .nn-note-list { background: #f6f9fa; color: #20303b; }
+.nn-theme-cool-mist .nn-note-card { background: #fcfeff; color: #20303b; border-color: #dce6eb; box-shadow: 0 1px 2px rgba(24,55,72,.035); }
+.nn-theme-cool-mist .nn-note-card:hover { border-color: #ccdbe2; box-shadow: 0 2px 5px rgba(24,55,72,.06); }
+.nn-theme-cool-mist .nn-note-list row:selected .nn-note-card { background: #e9f0ff; color: #20303b; border-color: #c7d2fe; box-shadow: 0 0 0 1px rgba(79,111,232,.12); }
+.nn-theme-cool-mist .nn-note-card-preview,
+.nn-theme-cool-mist .nn-note-card-tags,
+.nn-theme-cool-mist .nn-note-status-icon,
+.nn-theme-cool-mist .nn-card-action { color: #60727e; }
+.nn-theme-cool-mist .nn-note-card-meta,
+.nn-theme-cool-mist .nn-metadata,
+.nn-theme-cool-mist .nn-caption { color: #72838e; }
+.nn-theme-cool-mist .nn-preview-surface, .nn-theme-cool-mist .nn-preview { background: #fcfeff; color: #20303b; }
+.nn-theme-cool-mist .nn-preview-title, .nn-theme-cool-mist .nn-preview-body { color: #20303b; }
+.nn-theme-cool-mist .nn-preview-editor { background: #fcfeff; color: #20303b; border-color: #e1e9ed; }
+.nn-theme-cool-mist .nn-sort-control { background: #e8eff3; color: #20303b; }
+.nn-theme-cool-mist .nn-pane-separator { background: #dce6eb; }
+.nn-theme-cool-mist .nn-editor-toolbar { background: #f7fafb; color: #20303b; border-color: #dce6eb; }
+.nn-theme-cool-mist .nn-rich-writing-canvas { background: #fcfeff; color: #20303b; caret-color: #4f6fe8; }
+.nn-theme-cool-mist .nn-canvas-scroller, .nn-theme-cool-mist .nn-writing-clamp { background: #f2f6f8; }
+.nn-theme-cool-mist .nn-find-panel { background: #f9fcfd; color: #20303b; border-color: #dce6eb; }
+.nn-theme-cool-mist .nn-statusbar { background: #f1f6f8; color: #657783; border-color: #e1e9ed; }
+.nn-theme-cool-mist popover, .nn-theme-cool-mist entry { background: #fcfeff; color: #20303b; }
+.nn-theme-cool-mist .nn-tag-strip { background: #f7fafb; color: #60727e; border-color: #dce6eb; }
+.nn-theme-cool-mist button:hover { background: #e5edf1; }
+.nn-theme-cool-mist button:checked { background: #e9f0ff; color: #425fcc; }
+.nn-theme-cool-mist .nn-header-control { color: #60727e; }
+.nn-theme-cool-mist .nn-icon-neutral, .nn-theme-cool-mist .nn-icon-secondary { color: #60727e; }
+.nn-theme-cool-mist .nn-icon-active { color: #4f6fe8; }
+.nn-theme-cool-mist windowcontrols button { color: #60727e; background: transparent; }
+.nn-theme-cool-mist scrollbar slider { background: #becbd2; }
+
 /* Graphite: warm neutral charcoal with restrained indigo. */
 .nn-theme-graphite { background: #1c1d20; color: #f3f4f6; }
 .nn-theme-graphite headerbar { background: #24262a; color: #f3f4f6; border-color: rgba(255,255,255,.10); }
@@ -368,6 +446,8 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-swatch { min-width: 42px; min-height: 26px; border-radius: 7px; border: 1px solid rgba(127,127,127,.35); }
 .nn-swatch-system { background: #7b8190; }
 .nn-swatch-light { background: #f5f5f4; }
+.nn-swatch-warm-paper { background: #f6f1e8; border-color: #cfc3b3; }
+.nn-swatch-cool-mist { background: #f2f6f8; border-color: #b9cbd4; }
 .nn-swatch-graphite { background: #24262a; border-color: #9aafff; }
 .nn-swatch-midnight { background: #172131; border-color: #73b7ff; }
 .nn-swatch-oled { background: #050506; border-color: #b1a0ff; }

@@ -36,6 +36,14 @@ fn preset_rendering_is_theme_adaptive_and_custom_rgb_is_exact() {
         rendered_color(ColorRole::Highlight, "#ABCDEF", EffectiveTheme::Midnight).as_deref(),
         Some("#ABCDEF")
     );
+    assert_eq!(
+        rendered_color(ColorRole::Foreground, "blue", EffectiveTheme::WarmPaper).as_deref(),
+        Some("#1D4ED8")
+    );
+    assert_eq!(
+        rendered_color(ColorRole::Highlight, "yellow", EffectiveTheme::CoolMist).as_deref(),
+        Some("#FEF3C7")
+    );
 }
 
 #[test]

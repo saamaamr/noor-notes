@@ -148,7 +148,7 @@ pub fn rendered_color(role: ColorRole, value: &str, theme: EffectiveTheme) -> Op
     }
     if role == ColorRole::Highlight && normalized == "charcoal" {
         return Some(
-            if theme == EffectiveTheme::Light {
+            if theme.is_light() {
                 "#D8C99B"
             } else {
                 "#5B5030"
@@ -160,7 +160,7 @@ pub fn rendered_color(role: ColorRole, value: &str, theme: EffectiveTheme) -> Op
         .iter()
         .find(|preset| preset.id == normalized)?;
     Some(
-        if theme == EffectiveTheme::Light {
+        if theme.is_light() {
             preset.light
         } else {
             preset.dark

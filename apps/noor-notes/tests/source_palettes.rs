@@ -12,6 +12,8 @@ fn embedded_palettes_are_discoverable_complete_and_readable() {
 
     let expected = [
         (EffectiveTheme::Light, "noor-light"),
+        (EffectiveTheme::WarmPaper, "noor-light"),
+        (EffectiveTheme::CoolMist, "noor-light"),
         (EffectiveTheme::Graphite, "noor-graphite"),
         (EffectiveTheme::Midnight, "noor-midnight"),
         (EffectiveTheme::Oled, "noor-oled"),

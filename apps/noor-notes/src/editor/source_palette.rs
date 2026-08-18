@@ -28,6 +28,7 @@ pub fn register() -> bool {
 pub const fn scheme_id(theme: EffectiveTheme) -> &'static str {
     match theme {
         EffectiveTheme::Light => "noor-light",
+        EffectiveTheme::WarmPaper | EffectiveTheme::CoolMist => "noor-light",
         EffectiveTheme::Graphite => "noor-graphite",
         EffectiveTheme::Midnight => "noor-midnight",
         EffectiveTheme::Oled => "noor-oled",
@@ -38,7 +39,7 @@ pub fn apply(buffer: &sourceview5::Buffer, theme: EffectiveTheme) -> Option<glib
     register();
     let manager = sourceview5::StyleSchemeManager::default();
     let fallback = match theme {
-        EffectiveTheme::Light => "Adwaita",
+        EffectiveTheme::Light | EffectiveTheme::WarmPaper | EffectiveTheme::CoolMist => "Adwaita",
         EffectiveTheme::Graphite | EffectiveTheme::Midnight | EffectiveTheme::Oled => {
             "Adwaita-dark"
         }

@@ -19,17 +19,50 @@ impl AppearanceButton {
 
         let cycle_manager = manager.clone();
         button.connect_clicked(move |_| {
-            let _ = cycle_manager.cycle_dark_palette();
+            let _ = cycle_manager.cycle_palette();
         });
         let live_button = button.clone();
         manager.subscribe(move |_, theme| {
-            let (active, next) = match theme {
-                EffectiveTheme::Light => ("Light", "Graphite"),
-                EffectiveTheme::Graphite => ("Graphite", "Midnight"),
-                EffectiveTheme::Midnight => ("Midnight", "OLED"),
-                EffectiveTheme::Oled => ("OLED", "Graphite"),
+            let (family, active, next, icon) = match theme {
+                EffectiveTheme::Light => (
+                    "Light palette",
+                    "Snow",
+                    "Warm Paper",
+                    "weather-clear-symbolic",
+                ),
+                EffectiveTheme::WarmPaper => (
+                    "Light palette",
+                    "Warm Paper",
+                    "Cool Mist",
+                    "weather-clear-symbolic",
+                ),
+                EffectiveTheme::CoolMist => (
+                    "Light palette",
+                    "Cool Mist",
+                    "Snow",
+                    "weather-clear-symbolic",
+                ),
+                EffectiveTheme::Graphite => (
+                    "Dark palette",
+                    "Graphite",
+                    "Midnight",
+                    "weather-clear-night-symbolic",
+                ),
+                EffectiveTheme::Midnight => (
+                    "Dark palette",
+                    "Midnight",
+                    "OLED",
+                    "weather-clear-night-symbolic",
+                ),
+                EffectiveTheme::Oled => (
+                    "Dark palette",
+                    "OLED",
+                    "Graphite",
+                    "weather-clear-night-symbolic",
+                ),
             };
-            let description = format!("Dark palette: {active}. Click for {next}");
+            let description = format!("{family}: {active}. Click for {next}");
+            live_button.set_icon_name(icon);
             live_button.set_tooltip_text(Some(&description));
             live_button.update_property(&[gtk::accessible::Property::Label(&description)]);
         });
