@@ -90,8 +90,12 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .note-rose .nn-color-strip { background: #cc6c7f; }
 .note-lavender .nn-color-strip { background: #8f76bf; }
 .nn-preview-surface { background: @nn_surface; }
-.nn-preview { background: @nn_surface; padding: 36px 48px; }
-.nn-preview-surface.compact .nn-preview { padding: 28px 32px; }
+.nn-preview { background: @nn_surface; padding: 32px 40px; }
+.nn-preview-surface.compact .nn-preview { padding: 24px; }
+.nn-preview-edit { min-width: 36px; min-height: 36px; padding: 0 10px; border-radius: 8px; color: @nn_text_secondary; }
+.nn-preview-edit:hover { background: @nn_hover; color: @nn_text; }
+.nn-preview-editor { min-height: 280px; font-size: 16px; background: @nn_surface; color: @nn_text; border: 1px solid @nn_border_subtle; border-radius: 8px; }
+.nn-preview-editor:focus { border-color: alpha(@nn_accent, .45); }
 .nn-empty-state { padding: 48px 32px; color: @nn_text_secondary; }
 .nn-editor-window { background: @nn_bg; color: @nn_text; }
 .nn-editor-toolbar { min-height: 38px; padding: 0 12px; background: shade(@nn_surface, .985); border-bottom: 1px solid @nn_border; }
@@ -168,7 +172,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-body { font-size: 16px; }
 .nn-metadata { font-size: 13px; color: @nn_text_secondary; }
 .nn-caption { font-size: 12px; color: @nn_text_secondary; }
-.nn-preview-title { font-size: 30px; font-weight: 700; color: @nn_text; }
+.nn-preview-title { font-size: 28px; font-weight: 700; color: @nn_text; }
 .nn-preview-metadata { font-size: 13px; color: @nn_text_muted; }
 .nn-preview-body { font-size: 16px; color: @nn_text; }
 .paper-warm-white { background: #fffefa; color: #222222; }
@@ -213,7 +217,16 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-light .note-green { background: #f7fcf8; }
 .nn-theme-light .note-rose { background: #fff8fa; }
 .nn-theme-light .note-lavender { background: #faf8ff; }
-.nn-theme-light .nn-note-list row:selected .nn-note-card { background: @nn_selected; }
+.nn-theme-light .nn-note-list row:selected .nn-note-card {
+  background: @nn_selected;
+  color: @nn_text;
+}
+.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-note-title { color: @nn_text; }
+.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-note-card-preview,
+.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-note-card-tags,
+.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-note-status-icon,
+.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-card-action { color: @nn_text_secondary; }
+.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-note-card-meta { color: @nn_text_muted; }
 .nn-theme-light windowcontrols button { color: @nn_text_secondary; background: transparent; }
 .nn-theme-light windowcontrols button:hover { color: @nn_text; background: @nn_hover; }
 .nn-theme-light scrollbar slider { min-width: 6px; min-height: 6px; background: @nn_scrollbar; border-radius: 999px; }
@@ -234,6 +247,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-graphite .nn-note-list row:selected .nn-note-card { background: #30364a; border-color: #9aafff; box-shadow: 0 0 0 1px rgba(154,175,255,.18); }
 .nn-theme-graphite .nn-preview-surface, .nn-theme-graphite .nn-preview { background: #24262a; color: #f3f4f6; }
 .nn-theme-graphite .nn-preview-title, .nn-theme-graphite .nn-preview-body { color: #f3f4f6; }
+.nn-theme-graphite .nn-preview-editor { background: #282a2f; color: #f5f6f8; border-color: rgba(255,255,255,.10); }
 .nn-theme-graphite .nn-sort-control { background: #2d3035; color: #f3f4f6; }
 .nn-theme-graphite .nn-pane-separator { background: rgba(255,255,255,.09); }
 .nn-theme-graphite .nn-editor-toolbar { background: #222428; color: #e8e9ed; border-color: rgba(255,255,255,.09); }
@@ -264,6 +278,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-midnight .nn-note-list row:selected .nn-note-card { background: #203858; border-color: #73b7ff; box-shadow: 0 0 0 1px rgba(115,183,255,.18); }
 .nn-theme-midnight .nn-preview-surface, .nn-theme-midnight .nn-preview { background: #172131; color: #edf5ff; }
 .nn-theme-midnight .nn-preview-title, .nn-theme-midnight .nn-preview-body { color: #edf5ff; }
+.nn-theme-midnight .nn-preview-editor { background: #1a2638; color: #f2f7ff; border-color: rgba(168,205,255,.12); }
 .nn-theme-midnight .nn-sort-control { background: #1d2b40; color: #f2f7ff; }
 .nn-theme-midnight .nn-pane-separator { background: rgba(168,205,255,.10); }
 .nn-theme-midnight .nn-editor-toolbar { background: #141e2c; color: #e4efff; border-color: rgba(168,205,255,.10); }
@@ -294,6 +309,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-oled .nn-note-list row:selected .nn-note-card { background: #211d38; border-color: #b1a0ff; box-shadow: 0 0 0 1px rgba(177,160,255,.20); }
 .nn-theme-oled .nn-preview-surface, .nn-theme-oled .nn-preview { background: #0d0d0f; color: #f7f7fa; }
 .nn-theme-oled .nn-preview-title, .nn-theme-oled .nn-preview-body { color: #f7f7fa; }
+.nn-theme-oled .nn-preview-editor { background: #121216; color: #fafaff; border-color: rgba(255,255,255,.13); }
 .nn-theme-oled .nn-sort-control { background: #17171c; color: #fafaff; }
 .nn-theme-oled .nn-pane-separator { background: rgba(255,255,255,.11); }
 .nn-theme-oled .nn-editor-toolbar { background: #0a0a0c; color: #eeeeF4; border-color: rgba(255,255,255,.11); }

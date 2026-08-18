@@ -42,6 +42,8 @@ fn wide_and_medium_modes_keep_content_visible_without_squeezing_navigation() {
             back: false,
         }
     );
+    assert_eq!(LibraryLayoutMode::Wide.pane_position(1_180, false), 481);
+    assert_eq!(LibraryLayoutMode::Medium.pane_position(900, false), 300);
 }
 
 #[test]

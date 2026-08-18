@@ -102,6 +102,38 @@ fn selected_navigation_and_note_cards_use_calm_semantic_surfaces() {
 }
 
 #[test]
+fn light_selected_note_explicitly_owns_readable_foreground_colors() {
+    let marker = ".nn-theme-light .nn-note-list row:selected .nn-note-card";
+    let selected = CSS
+        .split(marker)
+        .nth(1)
+        .and_then(|rules| rules.split('}').next())
+        .expect("Light selected card rules");
+    assert!(selected.contains("background: @nn_selected"));
+    assert!(selected.contains("color: @nn_text"));
+
+    for (selector, color) in [
+        (".nn-note-title", "@nn_text"),
+        (".nn-note-card-preview", "@nn_text_secondary"),
+        (".nn-note-card-tags", "@nn_text_secondary"),
+        (".nn-note-card-meta", "@nn_text_muted"),
+        (".nn-note-status-icon", "@nn_text_secondary"),
+        (".nn-card-action", "@nn_text_secondary"),
+    ] {
+        let rule_marker = format!("{marker} {selector}");
+        let rule = CSS
+            .split(&rule_marker)
+            .nth(1)
+            .and_then(|rules| rules.split('}').next())
+            .unwrap_or_else(|| panic!("missing explicit selected rule for {selector}"));
+        assert!(
+            rule.contains(&format!("color: {color}")),
+            "{selector} must use {color} in the Light selected state"
+        );
+    }
+}
+
+#[test]
 fn light_library_layers_sidebar_and_note_list_without_heavy_borders() {
     assert!(CSS.contains(".nn-sidebar { background: @nn_sidebar_bg;"));
     assert!(CSS.contains(".nn-note-list { background: @nn_note_list_bg;"));
@@ -142,6 +174,19 @@ fn light_header_search_sort_and_status_share_compact_chrome() {
 }
 
 #[test]
+fn preview_body_editor_uses_compact_readable_layout_tokens() {
+    for rule in [
+        ".nn-preview { background: @nn_surface; padding: 32px 40px; }",
+        ".nn-preview-surface.compact .nn-preview { padding: 24px; }",
+        ".nn-preview-edit { min-width: 36px; min-height: 36px;",
+        ".nn-preview-editor { min-height: 280px; font-size: 16px;",
+        ".nn-preview-title { font-size: 28px; font-weight: 700;",
+    ] {
+        assert!(CSS.contains(rule), "missing preview editor rule: {rule}");
+    }
+}
+
+#[test]
 fn dark_palettes_override_light_specific_library_colors() {
     for theme in ["graphite", "midnight", "oled"] {
         for selector in [
@@ -151,6 +196,7 @@ fn dark_palettes_override_light_specific_library_colors() {
             "nn-sort-control",
             "nn-pane-separator",
             "nn-note-card-tags",
+            "nn-preview-editor",
         ] {
             assert!(
                 CSS.contains(&format!(".nn-theme-{theme} .{selector}")),
@@ -181,7 +227,9 @@ fn dark_palettes_override_light_specific_library_colors() {
 #[test]
 fn note_card_title_keeps_the_compact_typography_contract() {
     assert_eq!(
-        CSS.matches(".nn-note-title {").count(),
+        CSS.lines()
+            .filter(|line| line.trim_start().starts_with(".nn-note-title {"))
+            .count(),
         1,
         "a later duplicate selector can silently override compact card typography"
     );

@@ -18,7 +18,7 @@ impl LibrarySidebar {
     pub fn new() -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 8);
         widget.add_css_class("nn-sidebar");
-        widget.set_width_request(232);
+        widget.set_width_request(180);
 
         let heading = gtk::Label::new(Some("Library"));
         heading.add_css_class("nn-caption");
@@ -80,7 +80,7 @@ impl LibrarySidebar {
 
     pub fn set_collapsed(&self, collapsed: bool) {
         self.widget
-            .set_width_request(if collapsed { 64 } else { 232 });
+            .set_width_request(if collapsed { 64 } else { 180 });
         self.heading.set_visible(!collapsed);
         self.privacy.set_visible(!collapsed);
         for label in &self.labels {

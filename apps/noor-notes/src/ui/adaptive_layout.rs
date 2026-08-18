@@ -66,8 +66,8 @@ impl LibraryLayoutMode {
 
     pub const fn pane_position(self, window_width: i32, showing_content: bool) -> i32 {
         match self {
-            Self::Wide => 569,
-            Self::Medium => 336,
+            Self::Wide => 481,
+            Self::Medium => 300,
             Self::Narrow if showing_content => 0,
             Self::Narrow => window_width,
         }

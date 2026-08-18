@@ -17,10 +17,9 @@ pub fn install_global(manager: AppearanceManager) {
 }
 
 pub fn global() -> AppearanceManager {
-    GLOBAL.with(|global| {
-        global
-            .borrow()
-            .clone()
-            .expect("appearance manager must be installed")
-    })
+    try_global().expect("appearance manager must be installed")
+}
+
+pub fn try_global() -> Option<AppearanceManager> {
+    GLOBAL.with(|global| global.borrow().clone())
 }

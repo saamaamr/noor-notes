@@ -15,6 +15,7 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     gtk::init().unwrap();
     let sidebar = LibrarySidebar::new();
     assert!(sidebar.widget.has_css_class("nn-sidebar"));
+    assert_eq!(sidebar.widget.width_request(), 180);
     sidebar.set_count(LibrarySection::AllNotes, 42);
     let list = sidebar
         .widget
@@ -48,7 +49,7 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
         assert!(row.tooltip_text().is_some());
     }
     sidebar.set_collapsed(false);
-    assert_eq!(sidebar.widget.width_request(), 232);
+    assert_eq!(sidebar.widget.width_request(), 180);
 
     let collection = NoteCollection::new(Rc::new(|_, _| {}));
     assert!(collection.widget.has_css_class("nn-note-list"));

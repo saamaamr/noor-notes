@@ -12,7 +12,7 @@ use noor_windowing::WindowController;
 
 use super::adaptive_layout::{LibraryLayoutMode, apply_paned_layout};
 use super::appearance_button::AppearanceButton;
-use crate::autosave::AutosaveQueue;
+use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::library::{LibrarySection, LibraryState};
 use crate::library_preferences::LibraryPreferences;
 use crate::note_window::NoteWindow;
@@ -26,6 +26,22 @@ use super::note_collection::NoteCollection;
 use super::note_preview::NotePreview;
 
 type CardActionHandler = Rc<dyn Fn(NoteId, CardAction)>;
+
+pub fn preview_edit_handler(
+    notes: Rc<RefCell<Vec<Note>>>,
+    autosave: AutosaveQueue,
+) -> Rc<dyn Fn(Note)> {
+    Rc::new(move |edited| {
+        if let Some(current) = notes
+            .borrow_mut()
+            .iter_mut()
+            .find(|note| note.id == edited.id)
+        {
+            *current = edited.clone();
+        }
+        autosave.schedule(NoteDraft::from(edited));
+    })
+}
 
 #[derive(Clone)]
 pub struct MainWindow {
@@ -197,8 +213,10 @@ impl MainWindow {
         collection_stack.add_named(&list_scroll, Some("notes"));
         collection_stack.add_named(&empty.widget, Some("empty"));
         collection_stack.set_visible_child_name("empty");
-        collection_stack.set_width_request(336);
-        let preview = NotePreview::new();
+        collection_stack.set_width_request(300);
+        let notes = Rc::new(RefCell::new(Vec::new()));
+        let preview =
+            NotePreview::new_with_handler(preview_edit_handler(notes.clone(), autosave.clone()));
 
         let panes = gtk::Paned::new(gtk::Orientation::Horizontal);
         let navigation = gtk::Box::new(gtk::Orientation::Horizontal, 0);
@@ -209,7 +227,7 @@ impl MainWindow {
         navigation.append(&collection_stack);
         panes.set_start_child(Some(&navigation));
         panes.set_end_child(Some(&preview.widget));
-        panes.set_position(569);
+        panes.set_position(481);
         panes.set_resize_start_child(false);
         panes.set_shrink_start_child(false);
         panes.set_vexpand(true);
@@ -250,7 +268,7 @@ impl MainWindow {
             controller,
             writing_runtime,
             app: app.clone(),
-            notes: Rc::new(RefCell::new(Vec::new())),
+            notes,
             section: Rc::new(Cell::new(LibrarySection::AllNotes)),
             showing_content: Rc::new(Cell::new(false)),
             refresh_generation: Rc::new(Cell::new(0)),
