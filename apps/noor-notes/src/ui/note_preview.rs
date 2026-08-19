@@ -6,6 +6,7 @@ use noor_domain::{EditorMode, Note, NoteId, NoteState};
 
 use crate::appearance::{EffectiveTheme, try_global};
 use crate::rich_buffer::RichBuffer;
+use crate::ui::editor_toolbar::EditorToolbar;
 
 use super::editor_canvas::configure_editor_canvas;
 
@@ -20,12 +21,15 @@ type ReadOnlyHandler = Rc<dyn Fn(Note, bool)>;
 pub struct NotePreview {
     pub widget: gtk::ScrolledWindow,
     title: gtk::Label,
+    title_entry: gtk::Entry,
+    title_stack: gtk::Stack,
     metadata: gtk::Label,
     body: gtk::Label,
     body_stack: gtk::Stack,
     editor: gtk::TextView,
     edit: gtk::Button,
     read_only: gtk::Button,
+    toolbar: EditorToolbar,
     current: Rc<RefCell<Option<Note>>>,
     editing: Rc<Cell<bool>>,
     on_edit_finished: EditFinishedHandler,
@@ -68,7 +72,17 @@ impl NotePreview {
         let title_attributes = gtk::pango::AttrList::new();
         title_attributes.insert(gtk::pango::AttrFloat::new_line_height(1.2));
         title.set_attributes(Some(&title_attributes));
-        heading.append(&title);
+        let title_entry = gtk::Entry::builder()
+            .hexpand(true)
+            .placeholder_text("Note title")
+            .visible(false)
+            .build();
+        title_entry.add_css_class("nn-preview-title-entry");
+        let title_stack = gtk::Stack::new();
+        title_stack.add_named(&title, Some("label"));
+        title_stack.add_named(&title_entry, Some("entry"));
+        title_stack.set_hexpand(true);
+        heading.append(&title_stack);
         let edit = gtk::Button::builder()
             .label("Edit")
             .icon_name("document-edit-symbolic")
@@ -137,6 +151,11 @@ impl NotePreview {
         body_stack.add_named(&body, Some("preview"));
         body_stack.add_named(&editor, Some("editor"));
         body_stack.set_visible_child_name("preview");
+        let toolbar = EditorToolbar::new();
+        toolbar.widget.set_visible(false);
+        crate::editor_actions::connect(&toolbar, &buffer, &editor);
+        toolbar.set_rich_formatting_enabled(false);
+        document.append(&toolbar.widget);
         document.append(&body_stack);
 
         let clamp = adw::Clamp::builder()
@@ -159,8 +178,33 @@ impl NotePreview {
         {
             let current = current.clone();
             let editing = editing.clone();
+            let on_body_edited = on_body_edited.clone();
+            let title = title.clone();
+            title_entry.connect_changed(move |entry| {
+                if !editing.get() {
+                    return;
+                }
+                let Some(mut note) = current.borrow().clone() else {
+                    return;
+                };
+                note.title = entry.text().trim().to_string();
+                title.set_text(if note.title.trim().is_empty() {
+                    "Untitled note"
+                } else {
+                    note.title.as_str()
+                });
+                current.replace(Some(note.clone()));
+                on_body_edited(note);
+            });
+        }
+        {
+            let current = current.clone();
+            let editing = editing.clone();
             let body_stack = body_stack.clone();
             let editor = editor.clone();
+            let title_entry = title_entry.clone();
+            let title_stack = title_stack.clone();
+            let toolbar = toolbar.clone();
             let on_body_edited = on_body_edited.clone();
             let on_edit_finished = on_edit_finished.clone();
             edit.connect_clicked(move |button| {
@@ -188,7 +232,16 @@ impl NotePreview {
                 if let Some(note) = exited_view_only {
                     on_body_edited(note);
                 }
-                set_editing(&editing, &body_stack, &editor, button, enabled);
+                set_editing(
+                    &editing,
+                    &body_stack,
+                    &editor,
+                    button,
+                    &title_entry,
+                    &title_stack,
+                    &toolbar,
+                    enabled,
+                );
                 if !enabled {
                     if let Some(id) = current.borrow().as_ref().map(|note| note.id) {
                         on_edit_finished(id);
@@ -256,12 +309,15 @@ impl NotePreview {
         Self {
             widget,
             title,
+            title_entry,
+            title_stack,
             metadata,
             body,
             body_stack,
             editor,
             edit,
             read_only,
+            toolbar,
             current,
             editing,
             on_edit_finished,
@@ -277,10 +333,15 @@ impl NotePreview {
             &self.body_stack,
             &self.editor,
             &self.edit,
+            &self.title_entry,
+            &self.title_stack,
+            &self.toolbar,
             false,
         );
         self.edit.set_visible(false);
         self.read_only.set_visible(false);
+        self.toolbar.widget.set_visible(false);
+        self.title_stack.set_visible_child_name("label");
         self.title.set_text("Select a note");
         self.metadata.set_text("Your note preview will appear here");
         self.body
@@ -295,9 +356,16 @@ impl NotePreview {
             &self.body_stack,
             &self.editor,
             &self.edit,
+            &self.title_entry,
+            &self.title_stack,
+            &self.toolbar,
             false,
         );
         self.current.replace(Some(note.clone()));
+        self.title.set_visible(true);
+        self.title_entry.set_text(note.display_title());
+        self.title_stack.set_visible_child_name("label");
+        self.toolbar.widget.set_visible(false);
         self.edit.set_visible(true);
         self.read_only.set_visible(true);
         let read_only_enabled = note.editor_preferences.view_only;
@@ -366,11 +434,16 @@ impl NotePreview {
         self.finish_pending_edit();
         self.edit.set_visible(false);
         self.read_only.set_visible(false);
+        self.title_stack.set_visible_child_name("label");
+        self.toolbar.widget.set_visible(false);
         set_editing(
             &self.editing,
             &self.body_stack,
             &self.editor,
             &self.edit,
+            &self.title_entry,
+            &self.title_stack,
+            &self.toolbar,
             false,
         );
     }
@@ -395,6 +468,9 @@ fn set_editing(
     body_stack: &gtk::Stack,
     editor: &gtk::TextView,
     edit: &gtk::Button,
+    title_entry: &gtk::Entry,
+    title_stack: &gtk::Stack,
+    toolbar: &EditorToolbar,
     enabled: bool,
 ) {
     editing.set(enabled);
@@ -409,7 +485,13 @@ fn set_editing(
     };
     edit.set_tooltip_text(Some(accessible_label));
     edit.update_property(&[gtk::accessible::Property::Label(accessible_label)]);
+    title_stack.set_visible_child_name(if enabled { "entry" } else { "label" });
+    toolbar.widget.set_visible(enabled);
     if enabled {
+        title_entry.set_text(title_entry.text().as_str());
+        toolbar.set_rich_formatting_enabled(true);
         editor.grab_focus();
+    } else {
+        toolbar.set_rich_formatting_enabled(false);
     }
 }

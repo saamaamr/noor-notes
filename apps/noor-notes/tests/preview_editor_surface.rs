@@ -6,6 +6,9 @@ const LIB: &str = include_str!("../src/lib.rs");
 fn preview_owns_shared_editor_surface_and_read_only_sticky_flow() {
     assert!(PREVIEW.contains("NoteEditorSurface"));
     assert!(PREVIEW.contains("on_read_only_changed"));
+    assert!(PREVIEW.contains("title_entry"));
+    assert!(PREVIEW.contains("EditorToolbar"));
+    assert!(PREVIEW.contains("set_sticky_read_only"));
     assert!(LIB.contains("sticky_note_window"));
     assert!(LIBRARY.contains("StickyNoteWindow"));
 }

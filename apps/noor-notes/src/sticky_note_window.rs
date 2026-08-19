@@ -4,7 +4,6 @@ use adw::prelude::*;
 use noor_domain::Note;
 use noor_windowing::{NativeWindowId, WindowController};
 
-use crate::identity;
 use crate::ui::note_editor_surface::NoteEditorSurface;
 
 #[derive(Clone)]
@@ -18,9 +17,11 @@ impl StickyNoteWindow {
         surface.show_note(&note);
         surface.set_sticky_read_only();
 
+        let window_title =
+            noor_windowing::GnomeWindowController::window_title(&note.id.value().to_string());
         let window = adw::ApplicationWindow::builder()
             .application(app)
-            .title(identity::display_name())
+            .title(&window_title)
             .default_width(note.geometry.width.clamp(260, 560))
             .default_height(note.geometry.height.clamp(220, 720))
             .build();
