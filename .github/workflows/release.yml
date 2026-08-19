@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: snap-store-publication
+  cancel-in-progress: false
+
 jobs:
   snap:
     runs-on: ubuntu-24.04
@@ -122,3 +126,62 @@ jobs:
             release-assets/*.snap
             release-assets/*.flatpak
             release-assets/SHA256SUMS.txt
+
+  store-edge:
+    needs: [snap, release]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download the validated release Snap
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: noor-notes-snap
+          path: store-assets
+
+      - name: Resolve the release Snap path
+        id: snap-file
+        run: |
+          snap_path="$(find store-assets -maxdepth 1 -type f -name '*.snap' -print -quit)"
+          test -n "${snap_path}"
+          printf 'path=%s\n' "${snap_path}" >> "${GITHUB_OUTPUT}"
+
+      - name: Publish validated release to edge
+        uses: canonical/action-publish@214b86e5ca036ead1668c79afb81e550e6c54d40 # v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.snap-file.outputs.path }}
+          release: latest/edge
+
+  store-smoke:
+    needs: store-edge
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install the published edge revision
+        run: |
+          sudo snap install noor-notes --edge
+          expected="Noor Notes ${GITHUB_REF_NAME#v}"
+          matched=false
+          for attempt in $(seq 1 12); do
+            sudo snap refresh noor-notes --edge || true
+            if [ "$(snap run noor-notes --version)" = "${expected}" ]; then
+              matched=true
+              break
+            fi
+            sleep 10
+          done
+          test "${matched}" = true
+
+      - name: Smoke-test the Store-installed revision
+        run: snap run noor-notes --help
+
+  store-stable:
+    needs: store-smoke
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install Snapcraft
+        run: sudo snap install snapcraft --classic --channel=9.x/stable
+
+      - name: Promote the tested edge revision to stable
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: snapcraft promote noor-notes --from-channel latest/edge --to-channel latest/stable --yes

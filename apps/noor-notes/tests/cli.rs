@@ -35,6 +35,6 @@ fn version_does_not_require_a_graphical_session_or_secret_service() {
     );
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "Noor Notes 0.2.0"
+        "Noor Notes 1.0.0"
     );
 }

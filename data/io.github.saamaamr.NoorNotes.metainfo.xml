@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>io.github.saamaamr.NoorNotes</id>
   <name>Noor Notes</name>
-  <summary>Private, offline-first notes with powerful editing for Linux</summary>
+  <summary>Private, encrypted notes with focused editing for Linux</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <developer id="io.github.saamaamr">
@@ -52,6 +52,11 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.0.0" date="2026-08-19" type="stable">
+      <description>
+        <p>First production release with encrypted local storage, focused Rich Text and source editors, private writing assistance, refined Light and dark appearances, adaptive library navigation, reliable autosave, and recovery workflows.</p>
+      </description>
+    </release>
     <release version="0.2.0" date="2026-08-17" type="stable">
       <description>
         <p>Feature release with a redesigned adaptive library, refined Light and dark appearances, Rich Text and source editor modes, private writing assistance, responsive controls, and expanded recovery and organization workflows.</p>

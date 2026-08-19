@@ -1,0 +1,133 @@
+name: Snap Store cadence
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Release to edge, or publish to edge and promote the tested revision to stable
+        required: true
+        default: edge
+        type: choice
+        options:
+          - edge
+          - stable
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: snap-store-publication
+  cancel-in-progress: false
+
+jobs:
+  decide:
+    runs-on: ubuntu-24.04
+    outputs:
+      publish_edge: ${{ steps.release-plan.outputs.publish_edge }}
+      promote_stable: ${{ steps.release-plan.outputs.promote_stable }}
+    steps:
+      - name: Decide weekly edge and monthly stable work
+        id: release-plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MANUAL_RELEASE: ${{ inputs.release }}
+        run: |
+          publish_edge=false
+          promote_stable=false
+
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            publish_edge=true
+            if [ "${MANUAL_RELEASE}" = "stable" ]; then
+              promote_stable=true
+            fi
+          else
+            runs_url="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/snap-cadence.yml/runs?event=schedule&status=success&per_page=1"
+            previous_sha="$(curl --fail --silent --show-error \
+              --header "Authorization: Bearer ${GH_TOKEN}" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "${runs_url}" | python3 -c 'import json,sys; runs=json.load(sys.stdin).get("workflow_runs", []); print(runs[0].get("head_sha", "") if runs else "")')"
+            if [ "${previous_sha}" != "${GITHUB_SHA}" ]; then
+              publish_edge=true
+            fi
+
+            day="$(date -u +%d)"
+            if [ "$((10#${day}))" -le 7 ]; then
+              promote_stable=true
+            fi
+          fi
+
+          printf 'publish_edge=%s\n' "${publish_edge}" >> "${GITHUB_OUTPUT}"
+          printf 'promote_stable=%s\n' "${promote_stable}" >> "${GITHUB_OUTPUT}"
+
+  build-and-publish-edge:
+    needs: decide
+    if: needs.decide.outputs.publish_edge == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Verify release and Snap contracts
+        run: |
+          bash tests/snap_manifest.sh
+          bash tests/release_metadata.sh
+          bash tests/snap_cadence_workflow.sh
+
+      - name: Build Snap
+        id: build-snap
+        uses: canonical/action-build@3bdaa03e1ba6bf59a65f84a751d943d549a54e79 # v1
+
+      - name: Lint built Snap
+        run: sudo -u "$(id -un)" -E /snap/bin/snapcraft lint "${{ steps.build-snap.outputs.snap }}"
+
+      - name: Install and smoke-test built Snap
+        run: |
+          sudo snap install --dangerous "${{ steps.build-snap.outputs.snap }}"
+          snap run noor-notes --help
+
+      - name: Publish to edge
+        uses: canonical/action-publish@214b86e5ca036ead1668c79afb81e550e6c54d40 # v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.build-snap.outputs.snap }}
+          release: latest/edge
+
+  store-smoke:
+    needs: [decide, build-and-publish-edge]
+    if: >-
+      always() && needs.decide.result == 'success' &&
+      (needs.decide.outputs.publish_edge == 'true' || needs.decide.outputs.promote_stable == 'true') &&
+      (needs.build-and-publish-edge.result == 'success' || needs.build-and-publish-edge.result == 'skipped')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install edge from the Snap Store
+        run: |
+          installed=false
+          for attempt in $(seq 1 12); do
+            if sudo snap install noor-notes --edge; then
+              installed=true
+              break
+            fi
+            sleep 10
+          done
+          test "${installed}" = true
+
+      - name: Smoke-test Store revision
+        run: snap run noor-notes --help
+
+  promote-stable:
+    needs: [decide, store-smoke]
+    if: needs.decide.outputs.promote_stable == 'true' && needs.store-smoke.result == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install Snapcraft
+        run: sudo snap install snapcraft --classic --channel=9.x/stable
+
+      - name: Promote tested edge revision to stable
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: snapcraft promote noor-notes --from-channel latest/edge --to-channel latest/stable --yes

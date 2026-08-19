@@ -1,6 +1,6 @@
 # Noor Notes screenshot gallery
 
-Most of this comprehensive visual reference was captured from the real GTK4/libadwaita interface on 9 August 2026. The five Store views were refreshed from the v0.2.0 interface on 17 August 2026. Every refreshed capture used an isolated temporary SQLCipher database with synthetic notes; no personal note database was opened.
+Most of this comprehensive visual reference was captured from the real GTK4/libadwaita interface on 9 August 2026. The five-image Store set was finalized for v1.0.0 on 19 August 2026: Library, Editor, Graphite, and Responsive were recaptured from the current interface, while the unchanged Writing Assistance view was retained from 17 August. Every Store capture used an isolated temporary SQLCipher database with synthetic notes; no personal note database was opened.
 
 All individual screenshots and gallery overviews use a stable 1248 × 702 RGB canvas. “Compact” documents the smallest visible non-maximized window; a truly minimized window cannot be screenshotted because it is not rendered.
 

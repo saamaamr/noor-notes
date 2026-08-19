@@ -32,12 +32,12 @@ spelling_source = (manifest_path.parent / "apps/noor-notes/src/writing_assistanc
 if not isinstance(manifest, dict):
     raise SystemExit("Snap manifest must be a YAML mapping")
 
-require_equal("version", manifest.get("version"), "0.2.0")
+require_equal("version", manifest.get("version"), "1.0.0")
 require_equal("title", manifest.get("title"), "Noor Notes")
 require_equal(
     "summary",
     manifest.get("summary"),
-    "Private, offline-first notes with powerful editing for Linux",
+    "Private, encrypted notes with focused editing for Linux",
 )
 require_equal("license", manifest.get("license"), "GPL-3.0-or-later")
 require_equal("website", manifest.get("website"), "https://github.com/saamaamr/noor-notes")

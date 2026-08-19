@@ -2,7 +2,7 @@
 
 Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
 
-**Current release:** v0.2.0 · **Platform:** Linux · **License:** GPL-3.0-or-later
+**Current release:** v1.0.0 · **Platform:** Linux · **License:** GPL-3.0-or-later
 
 ## Product overview
 
@@ -56,7 +56,7 @@ Prediction controls are keyboard accessible: **Tab** accepts visible ghost text,
 Choose one installation method:
 
 - **Snap Store** for the recommended stable packaged installation.
-- **Downloaded Snap or Flatpak release** for a locally verified v0.2.0 package.
+- **Downloaded Snap or Flatpak release** for a locally verified v1.0.0 package.
 - **Ubuntu source installer** for the current repository version and host Xpad import.
 - **Local rebuild** when this repository and its dependencies are already installed.
 
@@ -64,7 +64,7 @@ Choose one installation method:
 
 Install the stable Snap Store release, then launch it from the application grid or terminal:
 
-The current stable publication is **Noor Notes 0.2.0** for amd64, Store revision **3**.
+The current stable release line is **Noor Notes 1.0.0** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
 
 ```bash
 sudo snap install noor-notes
@@ -103,10 +103,10 @@ See the [Noor Notes Snap Store listing](https://snapcraft.io/noor-notes) for the
 
 ### Release packages
 
-Download `noor-notes_0.2.0_amd64.snap` or `noor-notes.flatpak` from the v0.2.0 release, verify it as described below, then install one package.
+Download `noor-notes_1.0.0_amd64.snap` or `noor-notes.flatpak` from the v1.0.0 release, verify it as described below, then install one package.
 
 ```bash
-sudo snap install --dangerous ./noor-notes_0.2.0_amd64.snap
+sudo snap install --dangerous ./noor-notes_1.0.0_amd64.snap
 ```
 
 On Ubuntu or another APT-based system, install Flatpak and add a runtime remote before installing the Flatpak bundle:
@@ -139,8 +139,8 @@ From an existing checkout with dependencies already available, rebuild and reins
 To download every published asset from a terminal:
 
 ```bash
-release=https://github.com/saamaamr/noor-notes/releases/download/v0.2.0
-curl -LO "$release/noor-notes_0.2.0_amd64.snap"
+release=https://github.com/saamaamr/noor-notes/releases/download/v1.0.0
+curl -LO "$release/noor-notes_1.0.0_amd64.snap"
 curl -LO "$release/noor-notes.flatpak"
 curl -LO "$release/SHA256SUMS.txt"
 sha256sum -c SHA256SUMS.txt
@@ -172,7 +172,7 @@ System follows the current GNOME preference while remembering the last preferred
 
 Create a note from the library. With a native/source installation, use the Xpad import control, review the preview, and confirm the import. Noor Notes does not modify Xpad or its files under `~/.config/xpad`.
 
-The strict Snap and Flatpak packages cannot read the host `~/.config/xpad`, so their import control cannot migrate host Xpad notes in v0.2.0. No portal or file-selection import path is provided in those packages; use a native/source installation for Xpad migration.
+The strict Snap and Flatpak packages cannot read the host `~/.config/xpad`, so their import control cannot migrate host Xpad notes in v1.0.0. No portal or file-selection import path is provided in those packages; use a native/source installation for Xpad migration.
 
 ## Rich text, responsive controls, and Trash
 
@@ -225,7 +225,7 @@ gnome-extensions disable noor-lockscreen-motion@saamaamr.github.io
 
 ## Encrypted sync
 
-Encrypted synchronization is not available to v0.2.0 users: the released app has no account, vault, or Supabase-project configuration flow, and its Sync action reports that cloud sync is not configured. Notes remain encrypted locally until a future release integrates that workflow.
+Encrypted synchronization is not available to v1.0.0 users: the released app has no account, vault, or Supabase-project configuration flow, and its Sync action reports that cloud sync is not configured. Notes remain encrypted locally until a future release integrates that workflow.
 
 ## Data and recovery
 
@@ -242,8 +242,8 @@ Back up the encrypted database together with a working GNOME Keyring backup. If 
 - If a release package will not install, re-download it and `SHA256SUMS.txt`, then use the selected-artifact checksum commands above. Confirm that the exact package reports `OK`.
 - If Always on Top is disabled on GNOME Wayland, use a source installation with the separately installed GNOME Shell extension, or use a supported window environment.
 - If lock-screen motion is missing after a source update, run `./scripts/install-gnome-extension.sh`, log out and back in, and confirm `gnome-extensions info noor-lockscreen-motion@saamaamr.github.io` reports the extension. The motion safely becomes a no-op if the compatible WACK/GNOME clock actors are unavailable.
-- If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v0.2.0.
-- If Sync says it is not configured, that is the current v0.2.0 limitation; there is no supported account or Supabase setup path yet.
+- If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v1.0.0.
+- If Sync says it is not configured, that is the current v1.0.0 limitation; there is no supported account or Supabase setup path yet.
 - If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
 - After pulling source changes, run `./scripts/install-local.sh` to rebuild and replace the user-installed binary and desktop resources. Fully quit any older Noor Notes process before reopening it.
 - If Noor Notes does not open from the application grid, run `~/.local/bin/noor-notes` in a terminal and include the displayed error in a bug report. Reinstall first if that path is missing or older than the checkout. Do not delete the notes database or GNOME Keyring entry while diagnosing launch problems.
@@ -277,9 +277,11 @@ bash tests/e2e/two_device_sync.sh
 
 ## Release automation and Store status
 
-Version tags build Snap and Flatpak artifacts in GitHub Actions. The `v0.2.0` tag creates the GitHub release with `noor-notes_0.2.0_amd64.snap`, `noor-notes.flatpak`, and `SHA256SUMS.txt` after the security gate passes.
+Version tags build Snap and Flatpak artifacts in GitHub Actions. The `v1.0.0` tag creates the GitHub release with `noor-notes_1.0.0_amd64.snap`, `noor-notes.flatpak`, and `SHA256SUMS.txt` after the security gate passes. The exact validated tag Snap is then published to `latest/edge`, installed back from the Store for a smoke test, and promoted without rebuilding to `latest/stable`.
 
-Snap Store publication remains an owner-controlled action rather than part of the tag workflow. The verified v0.2.0 release is published to `latest/stable` for amd64 as Store revision 3, while `latest/edge` remains an optional preview channel. A Flathub submission is not created by this project's workflow.
+Every Monday at 12:00 Bangladesh time, the Snap cadence workflow publishes a new `main` revision to `latest/edge` only when the source commit changed. On the first Monday of each month, the installed Store edge revision must pass its smoke gate before that same revision is promoted to `latest/stable`. A maintainer can also start an explicit edge or stable run from GitHub Actions. Publication requires a repository secret named `SNAPCRAFT_STORE_CREDENTIALS`, scoped to Noor Notes package push, update, and release access.
+
+The stable channel is the recommended installation path. Edge receives more frequent previews and can be less tested; stable only receives a revision after the build, local package smoke test, and Store-installed edge smoke test succeed. A Flathub submission is not created by this project's workflow.
 
 ## Contributing
 

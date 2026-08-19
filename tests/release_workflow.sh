@@ -33,7 +33,7 @@ if on.get("push", {}).get("tags") != ["v*"]:
     raise SystemExit("Release workflow must build version tags")
 
 jobs = workflow.get("jobs", {})
-for job_name in ("snap", "flatpak", "release"):
+for job_name in ("snap", "flatpak", "release", "store-edge", "store-smoke", "store-stable"):
     if not isinstance(jobs.get(job_name), dict):
         raise SystemExit(f"Release workflow must define jobs.{job_name}")
 
@@ -113,12 +113,67 @@ if permissions.get("contents") != "read":
     raise SystemExit("Release workflow build jobs must use contents: read")
 if release.get("permissions", {}).get("contents") != "write":
     raise SystemExit("Only the release job needs contents: write")
+if workflow.get("concurrency", {}).get("group") != "snap-store-publication":
+    raise SystemExit("Tag and cadence Store publications must share one concurrency lock")
+
+store_edge = jobs["store-edge"]
+if store_edge.get("needs") != ["snap", "release"]:
+    raise SystemExit("Store edge publication must wait for the validated Snap and GitHub release")
+store_edge_steps = store_edge.get("steps", [])
+if not any(
+    isinstance(step, dict)
+    and step.get("uses") == "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093"
+    and step.get("with", {}).get("name") == "noor-notes-snap"
+    for step in store_edge_steps
+):
+    raise SystemExit("Store publication must download the exact validated release Snap")
+publish_step = next(
+    (
+        step
+        for step in store_edge_steps
+        if isinstance(step, dict)
+        and step.get("uses") == "canonical/action-publish@214b86e5ca036ead1668c79afb81e550e6c54d40"
+    ),
+    None,
+)
+if not isinstance(publish_step, dict):
+    raise SystemExit("Release workflow must publish with the reviewed canonical action")
+if publish_step.get("with", {}).get("release") != "latest/edge":
+    raise SystemExit("Validated tag Snap must enter latest/edge first")
+if publish_step.get("env", {}).get("SNAPCRAFT_STORE_CREDENTIALS") != "${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}":
+    raise SystemExit("Store publication must use the scoped Snapcraft credentials secret")
+
+store_smoke = jobs["store-smoke"]
+if store_smoke.get("needs") != "store-edge":
+    raise SystemExit("Store smoke test must wait for edge publication")
+store_smoke_source = "\n".join(
+    step.get("run", "") for step in store_smoke.get("steps", []) if isinstance(step, dict)
+)
+for fragment in (
+    "snap install noor-notes --edge",
+    "snap refresh noor-notes --edge",
+    'expected="Noor Notes ${GITHUB_REF_NAME#v}"',
+    "snap run noor-notes --version",
+    "snap run noor-notes --help",
+):
+    if fragment not in store_smoke_source:
+        raise SystemExit(f"Store smoke test must include: {fragment}")
+
+store_stable = jobs["store-stable"]
+if store_stable.get("needs") != "store-smoke":
+    raise SystemExit("Stable promotion must wait for the Store-installed edge smoke test")
+store_stable_source = "\n".join(
+    step.get("run", "") for step in store_stable.get("steps", []) if isinstance(step, dict)
+)
+if "snapcraft promote noor-notes --from-channel latest/edge --to-channel latest/stable --yes" not in store_stable_source:
+    raise SystemExit("Stable must promote the tested edge revision without rebuilding it")
 
 expected_actions = {
     "actions/checkout": "11d5960a326750d5838078e36cf38b85af677262",
     "actions/upload-artifact": "ea165f8d65b6e75b540449e92b4886f43607fa02",
     "actions/download-artifact": "d3f86a106a0bac45b974a628896c90dbdf5c8093",
     "canonical/action-build": "3bdaa03e1ba6bf59a65f84a751d943d549a54e79",
+    "canonical/action-publish": "214b86e5ca036ead1668c79afb81e550e6c54d40",
     "flatpak/flatpak-github-actions/flatpak-builder": "401fe28a8384095fc1531b9d320b292f0ee45adb",
     "softprops/action-gh-release": "3bb12739c298aeb8a4eeaf626c5b8d85266b0e65",
 }
@@ -142,6 +197,7 @@ for action, commit, version in (
     ("actions/upload-artifact", expected_actions["actions/upload-artifact"], "v4.6.2"),
     ("actions/download-artifact", expected_actions["actions/download-artifact"], "v4.3.0"),
     ("canonical/action-build", expected_actions["canonical/action-build"], "v1"),
+    ("canonical/action-publish", expected_actions["canonical/action-publish"], "v1"),
     ("flatpak/flatpak-github-actions/flatpak-builder", expected_actions["flatpak/flatpak-github-actions/flatpak-builder"], "v6.7"),
     ("softprops/action-gh-release", expected_actions["softprops/action-gh-release"], "v2.6.2"),
 ):
