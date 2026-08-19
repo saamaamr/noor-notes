@@ -9,8 +9,12 @@ use crate::rich_buffer::RichBuffer;
 
 use super::editor_canvas::configure_editor_canvas;
 
+// NotePreview is the concrete implementation behind the shared
+// `NoteEditorSurface` host boundary.
+
 type BodyEditHandler = Rc<dyn Fn(Note)>;
 type EditFinishedHandler = Rc<dyn Fn(NoteId)>;
+type ReadOnlyHandler = Rc<dyn Fn(Note, bool)>;
 
 #[derive(Clone)]
 pub struct NotePreview {
@@ -21,9 +25,11 @@ pub struct NotePreview {
     body_stack: gtk::Stack,
     editor: gtk::TextView,
     edit: gtk::Button,
+    read_only: gtk::Button,
     current: Rc<RefCell<Option<Note>>>,
     editing: Rc<Cell<bool>>,
     on_edit_finished: EditFinishedHandler,
+    on_read_only_changed: Rc<RefCell<Option<ReadOnlyHandler>>>,
 }
 
 impl NotePreview {
@@ -36,6 +42,13 @@ impl NotePreview {
     }
 
     pub fn new_with_handlers(
+        on_body_edited: BodyEditHandler,
+        on_edit_finished: EditFinishedHandler,
+    ) -> Self {
+        Self::new_with_all_handlers(on_body_edited, on_edit_finished)
+    }
+
+    fn new_with_all_handlers(
         on_body_edited: BodyEditHandler,
         on_edit_finished: EditFinishedHandler,
     ) -> Self {
@@ -67,6 +80,15 @@ impl NotePreview {
         edit.update_property(&[gtk::accessible::Property::Label("Edit note body")]);
         edit.set_valign(gtk::Align::Start);
         heading.append(&edit);
+        let read_only = gtk::Button::with_label("Read-only");
+        read_only.set_tooltip_text(Some("Open this note in a read-only sticky window"));
+        read_only.add_css_class("flat");
+        read_only.add_css_class("nn-preview-read-only");
+        read_only.update_property(&[gtk::accessible::Property::Label(
+            "Open read-only sticky window",
+        )]);
+        read_only.set_valign(gtk::Align::Start);
+        heading.append(&read_only);
         document.append(&heading);
 
         let metadata = gtk::Label::new(Some("Your note preview will appear here"));
@@ -133,6 +155,7 @@ impl NotePreview {
 
         let current = Rc::new(RefCell::new(None::<Note>));
         let editing = Rc::new(Cell::new(false));
+        let on_read_only_changed = Rc::new(RefCell::new(None::<ReadOnlyHandler>));
         {
             let current = current.clone();
             let editing = editing.clone();
@@ -175,6 +198,36 @@ impl NotePreview {
         }
         {
             let current = current.clone();
+            let read_only = read_only.clone();
+            let read_only_button = read_only.clone();
+            let on_read_only_changed = on_read_only_changed.clone();
+            read_only_button.connect_clicked(move |_| {
+                let Some(mut note) = current.borrow().clone() else {
+                    return;
+                };
+                if matches!(note.state, NoteState::Trashed { .. }) {
+                    return;
+                }
+                let enabled = !note.editor_preferences.view_only;
+                note.editor_preferences.view_only = enabled;
+                current.replace(Some(note.clone()));
+                read_only.set_label(if enabled {
+                    "Exit read-only"
+                } else {
+                    "Read-only"
+                });
+                read_only.update_property(&[gtk::accessible::Property::Label(if enabled {
+                    "Close read-only sticky window"
+                } else {
+                    "Open read-only sticky window"
+                })]);
+                if let Some(handler) = on_read_only_changed.borrow().as_ref() {
+                    handler(note, enabled);
+                }
+            });
+        }
+        {
+            let current = current.clone();
             let editing = editing.clone();
             let body = body.clone();
             buffer.connect_changed(move |buffer| {
@@ -208,9 +261,11 @@ impl NotePreview {
             body_stack,
             editor,
             edit,
+            read_only,
             current,
             editing,
             on_edit_finished,
+            on_read_only_changed,
         }
     }
 
@@ -225,6 +280,7 @@ impl NotePreview {
             false,
         );
         self.edit.set_visible(false);
+        self.read_only.set_visible(false);
         self.title.set_text("Select a note");
         self.metadata.set_text("Your note preview will appear here");
         self.body
@@ -243,6 +299,13 @@ impl NotePreview {
         );
         self.current.replace(Some(note.clone()));
         self.edit.set_visible(true);
+        self.read_only.set_visible(true);
+        let read_only_enabled = note.editor_preferences.view_only;
+        self.read_only.set_label(if read_only_enabled {
+            "Exit read-only"
+        } else {
+            "Read-only"
+        });
         self.edit
             .set_sensitive(!matches!(note.state, NoteState::Trashed { .. }));
         self.title.set_text(note.display_title());
@@ -293,6 +356,23 @@ impl NotePreview {
         } else {
             self.widget.remove_css_class("compact");
         }
+    }
+
+    pub fn connect_read_only_changed<F: Fn(Note, bool) + 'static>(&self, callback: F) {
+        self.on_read_only_changed.replace(Some(Rc::new(callback)));
+    }
+
+    pub fn set_sticky_read_only(&self) {
+        self.finish_pending_edit();
+        self.edit.set_visible(false);
+        self.read_only.set_visible(false);
+        set_editing(
+            &self.editing,
+            &self.body_stack,
+            &self.editor,
+            &self.edit,
+            false,
+        );
     }
 
     fn finish_pending_edit(&self) {

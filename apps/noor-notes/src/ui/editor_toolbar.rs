@@ -158,6 +158,7 @@ impl EditorToolbar {
         let go_to_line = icon_button("go-jump-symbolic", "Go to line (Ctrl+G)");
         let fullscreen = toggle_button("view-fullscreen-symbolic", "Full screen (F11)");
         let view_only = gtk::Button::with_label("View Only");
+        view_only.set_tooltip_text(Some("Read-only mode"));
         view_only.set_tooltip_text(Some("Read this note without editing controls"));
         view_only.update_property(&[gtk::accessible::Property::Label(
             "Read this note without editing controls",

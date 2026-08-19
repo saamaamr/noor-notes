@@ -109,7 +109,10 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
             ("Archive", CardAction::Archive, false),
             ("Move to Trash", CardAction::Trash, true),
         ],
-        NoteState::Archived => vec![("Move to Trash", CardAction::Trash, true)],
+        NoteState::Archived => vec![
+            ("Restore to All Notes", CardAction::Restore, false),
+            ("Move to Trash", CardAction::Trash, true),
+        ],
         NoteState::Trashed { .. } => vec![
             ("Restore", CardAction::Restore, false),
             ("Delete permanently", CardAction::DeletePermanently, true),

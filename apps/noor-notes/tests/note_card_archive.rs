@@ -29,6 +29,19 @@ fn archive_quick_action_exists_only_for_active_notes() {
             .archive
             .is_none()
     );
+    let archived_card = note_card::build(
+        &archived,
+        Rc::new(|_, action| {
+            assert_eq!(action, CardAction::Restore);
+        }),
+    );
+    let archived_actions = descendants(archived_card.widget.clone().upcast())
+        .into_iter()
+        .filter_map(|widget| widget.downcast::<gtk::Button>().ok())
+        .filter(|button| button.tooltip_text().as_deref() == Some("Restore to All Notes"))
+        .collect::<Vec<_>>();
+    assert_eq!(archived_actions.len(), 1);
+    archived_actions[0].emit_clicked();
 
     let mut trashed = Note::new(Utc::now());
     trashed.state = NoteState::Trashed {

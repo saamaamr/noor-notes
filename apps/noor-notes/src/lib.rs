@@ -28,6 +28,7 @@ pub mod search;
 pub mod security_bootstrap;
 pub mod services;
 pub mod shortcuts;
+pub mod sticky_note_window;
 pub mod sync_status;
 pub mod ui;
 pub mod vault_setup;

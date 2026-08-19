@@ -4,8 +4,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use adw::prelude::*;
-use chrono::Utc;
-use noor_domain::Note;
 use noor_windowing::{
     BackendKind, Environment, FallbackWindowController, GnomeWindowController, WindowController,
     X11WindowController, detect_backend,
@@ -17,7 +15,6 @@ use crate::autosave::AutosaveQueue;
 use crate::import_dialog::ImportFlow;
 use crate::key_store::Oo7KeyStore;
 use crate::main_window::MainWindow;
-use crate::note_window::NoteWindow;
 use crate::security_bootstrap::open_repository;
 use crate::shortcuts::shortcuts_window;
 use crate::ui::appearance_settings::AppearanceSettings;
@@ -48,21 +45,11 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let main_window: Rc<RefCell<Option<MainWindow>>> = Rc::new(RefCell::new(None));
 
     {
-        let app = app.clone();
-        let autosave = autosave.clone();
-        let repository = repository.clone();
-        let controller = controller.clone();
-        let writing_runtime = writing_runtime.clone();
+        let main_window = main_window.clone();
         add_action(&app.clone(), "new-note", move |_, _| {
-            NoteWindow::new(
-                &app,
-                Note::new(Utc::now()),
-                autosave.clone(),
-                repository.clone(),
-                controller.clone(),
-                writing_runtime.clone(),
-            )
-            .present();
+            if let Some(window) = main_window.borrow().as_ref() {
+                window.create_note();
+            }
         });
     }
     {
