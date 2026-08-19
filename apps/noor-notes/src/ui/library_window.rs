@@ -8,15 +8,14 @@ use adw::prelude::*;
 use chrono::{DateTime, Utc};
 use noor_domain::{Note, NoteId};
 use noor_storage::{NoteSort, SqliteNoteRepository, StorageError};
-use noor_windowing::WindowController;
 
 use super::adaptive_layout::{LibraryLayoutMode, apply_paned_layout};
 use super::appearance_button::AppearanceButton;
 use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::library::{LibrarySection, LibraryState};
 use crate::library_preferences::LibraryPreferences;
-use crate::note_window::NoteWindow;
 use crate::services::trash_command;
+use crate::sticky_note_window::StickyNoteWindow;
 use crate::writing_assistance::WritingAssistanceRuntime;
 
 use super::empty_state::EmptyState;
@@ -24,6 +23,7 @@ use super::library_sidebar::LibrarySidebar;
 use super::note_card::CardAction;
 use super::note_collection::NoteCollection;
 use super::note_preview::NotePreview;
+use noor_windowing::WindowController;
 
 type CardActionHandler = Rc<dyn Fn(NoteId, CardAction)>;
 type PreviewCacheHandler = Rc<dyn Fn(&Note)>;
@@ -65,9 +65,9 @@ pub struct MainWindow {
     results: gtk::Label,
     repository: SqliteNoteRepository,
     autosave: AutosaveQueue,
-    controller: Arc<dyn WindowController>,
     writing_runtime: WritingAssistanceRuntime,
-    app: adw::Application,
+    controller: Arc<dyn WindowController>,
+    sticky_window: Rc<RefCell<Option<StickyNoteWindow>>>,
     notes: Rc<RefCell<Vec<Note>>>,
     section: Rc<Cell<LibrarySection>>,
     showing_content: Rc<Cell<bool>>,
@@ -220,6 +220,7 @@ impl MainWindow {
         collection_stack.set_visible_child_name("empty");
         collection_stack.set_width_request(300);
         let notes = Rc::new(RefCell::new(Vec::new()));
+        let sticky_window = Rc::new(RefCell::new(None));
         let collection_cache = collection.clone();
         let finish_holder = Rc::new(RefCell::new(None::<Rc<dyn Fn(NoteId)>>));
         let finish_proxy = {
@@ -286,14 +287,35 @@ impl MainWindow {
             results,
             repository,
             autosave,
-            controller,
             writing_runtime,
-            app: app.clone(),
+            controller,
+            sticky_window: sticky_window.clone(),
             notes,
             section: Rc::new(Cell::new(LibrarySection::AllNotes)),
             showing_content: Rc::new(Cell::new(false)),
             refresh_generation: Rc::new(Cell::new(0)),
         };
+        {
+            let this = this.clone();
+            let preview = this.preview.clone();
+            preview.connect_read_only_changed(move |note, enabled| {
+                this.autosave.schedule(NoteDraft::from(note.clone()));
+                this.preview.show_note(&note);
+                if enabled {
+                    if let Some(previous) = this.sticky_window.borrow_mut().take() {
+                        previous.close();
+                    }
+                    let Some(app) = this.window.application() else {
+                        return;
+                    };
+                    let sticky = StickyNoteWindow::new(&app, note, this.controller.clone());
+                    sticky.present();
+                    this.sticky_window.replace(Some(sticky));
+                } else if let Some(sticky) = this.sticky_window.borrow_mut().take() {
+                    sticky.close();
+                }
+            });
+        }
         {
             let this = this.clone();
             *action_holder.borrow_mut() = Some(Rc::new(move |id, action| {
@@ -337,11 +359,6 @@ impl MainWindow {
                     }
                 }
             });
-        }
-        {
-            let this = this.clone();
-            let collection = this.collection.clone();
-            collection.connect_activate(move |note| this.open_note(note));
         }
         {
             let this = this.clone();
@@ -440,6 +457,24 @@ impl MainWindow {
         });
     }
 
+    pub fn create_note(&self) {
+        let note = Note::new(Utc::now());
+        let repository = self.repository.clone();
+        let this = self.clone();
+        gtk::glib::MainContext::default().spawn_local(async move {
+            match repository.save_note(&note).await {
+                Ok(()) => {
+                    this.notes.borrow_mut().push(note.clone());
+                    this.section.set(LibrarySection::AllNotes);
+                    this.render_current();
+                    this.preview.show_note(&note);
+                    this.set_status("Private · Saved locally");
+                }
+                Err(error) => this.set_status(&format!("Could not create note: {error}")),
+            }
+        });
+    }
+
     fn render_current(&self) {
         let state = LibraryState::new(self.notes.borrow().clone());
         for section in LibrarySection::NAVIGATION {
@@ -472,18 +507,6 @@ impl MainWindow {
             format!("{} · {} notes", section.label(), visible.len())
         });
         self.set_status("Private · Saved locally");
-    }
-
-    fn open_note(&self, note: Note) {
-        NoteWindow::new(
-            &self.app,
-            note,
-            self.autosave.clone(),
-            self.repository.clone(),
-            self.controller.clone(),
-            self.writing_runtime.clone(),
-        )
-        .present();
     }
 
     fn handle_card_action(&self, id: NoteId, action: CardAction) {

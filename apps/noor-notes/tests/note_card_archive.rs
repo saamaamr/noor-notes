@@ -29,9 +29,12 @@ fn archive_quick_action_exists_only_for_active_notes() {
             .archive
             .is_none()
     );
-    let archived_card = note_card::build(&archived, Rc::new(|_, action| {
-        assert_eq!(action, CardAction::Restore);
-    }));
+    let archived_card = note_card::build(
+        &archived,
+        Rc::new(|_, action| {
+            assert_eq!(action, CardAction::Restore);
+        }),
+    );
     let archived_actions = descendants(archived_card.widget.clone().upcast())
         .into_iter()
         .filter_map(|widget| widget.downcast::<gtk::Button>().ok())
