@@ -21,6 +21,10 @@ pub struct EditorToolbar {
     pub bullets: gtk::ToggleButton,
     pub numbered: gtk::ToggleButton,
     pub font_size: gtk::DropDown,
+    pub quick_underline: gtk::ToggleButton,
+    pub quick_strikethrough: gtk::ToggleButton,
+    pub quick_numbered: gtk::ToggleButton,
+    pub quick_font_size: gtk::DropDown,
     pub clear_formatting: gtk::Button,
     pub custom_font_size: gtk::Entry,
     pub apply_font_size: gtk::Button,
@@ -73,6 +77,14 @@ impl EditorToolbar {
         let bold = text_toggle("B", "Bold (Ctrl+B)", "format-bold");
         let italic = text_toggle("I", "Italic (Ctrl+I)", "format-italic");
         let bullets = icon_toggle("view-list-bullet-symbolic", "Bullet list");
+        let quick_underline = text_toggle("U", "Underline (Ctrl+U)", "format-underline");
+        let quick_strikethrough = text_toggle("S", "Strikethrough", "format-strike");
+        let quick_numbered = icon_toggle("view-list-ordered-symbolic", "Numbered list");
+        let quick_font_size = gtk::DropDown::from_strings(&["12", "14", "16", "18", "24"]);
+        quick_font_size.set_selected(2);
+        quick_font_size.set_tooltip_text(Some("Font size"));
+        quick_font_size.set_width_request(64);
+        quick_font_size.add_css_class("nn-toolbar-font-size");
         let formatting = FormattingPopover::new();
         let underline = formatting.underline.clone();
         let strikethrough = formatting.strikethrough.clone();
@@ -285,6 +297,10 @@ impl EditorToolbar {
         widget.append(&bold);
         widget.append(&italic);
         widget.append(&bullets);
+        widget.append(&quick_underline);
+        widget.append(&quick_strikethrough);
+        widget.append(&quick_numbered);
+        widget.append(&quick_font_size);
         widget.append(&format);
         widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
         widget.append(&emoji);
@@ -310,6 +326,10 @@ impl EditorToolbar {
             bullets,
             numbered,
             font_size,
+            quick_underline,
+            quick_strikethrough,
+            quick_numbered,
+            quick_font_size,
             custom_font_size,
             apply_font_size,
             rename,
@@ -353,6 +373,10 @@ impl EditorToolbar {
             self.bullets.upcast_ref(),
             self.numbered.upcast_ref(),
             self.font_size.upcast_ref(),
+            self.quick_underline.upcast_ref(),
+            self.quick_strikethrough.upcast_ref(),
+            self.quick_numbered.upcast_ref(),
+            self.quick_font_size.upcast_ref(),
             self.custom_font_size.upcast_ref(),
             self.apply_font_size.upcast_ref(),
             self.clear_formatting.upcast_ref(),

@@ -26,6 +26,8 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         (&toolbar.italic, RichBuffer::italic),
         (&toolbar.underline, RichBuffer::underline),
         (&toolbar.strikethrough, RichBuffer::strikethrough),
+        (&toolbar.quick_underline, RichBuffer::underline),
+        (&toolbar.quick_strikethrough, RichBuffer::strikethrough),
     ] {
         let buffer = buffer.clone();
         let editor = editor.clone();
@@ -37,21 +39,28 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
     for (button, kind) in [
         (&toolbar.bullets, ListKind::Bullet),
         (&toolbar.numbered, ListKind::Numbered),
+        (&toolbar.quick_numbered, ListKind::Numbered),
     ] {
         let buffer = buffer.clone();
         let editor = editor.clone();
         let bullets = toolbar.bullets.clone();
         let numbered = toolbar.numbered.clone();
+        let quick_numbered = toolbar.quick_numbered.clone();
         button.connect_clicked(move |_| {
             RichBuffer::toggle_list(&buffer, kind);
             sync_list_buttons(&buffer, &bullets, &numbered);
+            quick_numbered.set_active(numbered.is_active());
             editor.grab_focus();
         });
     }
     {
         let bullets = toolbar.bullets.clone();
         let numbered = toolbar.numbered.clone();
-        buffer.connect_mark_set(move |buffer, _, _| sync_list_buttons(buffer, &bullets, &numbered));
+        let quick_numbered = toolbar.quick_numbered.clone();
+        buffer.connect_mark_set(move |buffer, _, _| {
+            sync_list_buttons(buffer, &bullets, &numbered);
+            quick_numbered.set_active(numbered.is_active());
+        });
     }
     {
         let buffer = buffer.clone();
@@ -63,6 +72,19 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
             }
             editor.grab_focus();
         });
+    }
+    {
+        let buffer = buffer.clone();
+        let editor = editor.clone();
+        toolbar
+            .quick_font_size
+            .connect_selected_notify(move |dropdown| {
+                let sizes = [12, 14, 16, 18, 24];
+                if let Some(size) = sizes.get(dropdown.selected() as usize) {
+                    RichBuffer::font_size(&buffer, *size);
+                }
+                editor.grab_focus();
+            });
     }
     {
         let buffer = buffer.clone();
