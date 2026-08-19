@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Noor Notes Dev
+GenericName=Sticky Notes Development Build
+Comment=Development build of Noor Notes for testing
+Exec=noor-notes-dev
+Icon=io.github.saamaamr.NoorNotes
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=notes;sticky;offline;private;development;testing;
+StartupNotify=true
+StartupWMClass=io.github.saamaamr.NoorNotes.Devel

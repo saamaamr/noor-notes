@@ -5,7 +5,7 @@ repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
 installer="$repo_root/scripts/install-ubuntu.sh"
 
 help_output=$(/bin/bash "$installer" --help 2>&1)
-grep -Fq 'Install Noor Notes on Ubuntu' <<<"$help_output"
+grep -Fq 'Install Noor Notes Dev on Ubuntu' <<<"$help_output"
 grep -Fq 'system dependencies' <<<"$help_output"
 grep -Fq 'scripts/install-local.sh' <<<"$help_output"
 

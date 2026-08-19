@@ -25,6 +25,7 @@ fn help_does_not_require_a_graphical_session_or_secret_service() {
 }
 
 #[test]
+#[cfg(not(feature = "development"))]
 fn version_does_not_require_a_graphical_session_or_secret_service() {
     let output = run_without_desktop("--version");
 
@@ -37,4 +38,20 @@ fn version_does_not_require_a_graphical_session_or_secret_service() {
         String::from_utf8_lossy(&output.stdout).trim(),
         "Noor Notes 1.0.0"
     );
+}
+
+#[cfg(feature = "development")]
+#[test]
+fn development_build_is_clearly_branded_in_cli_output() {
+    let version = run_without_desktop("--version");
+    let help = run_without_desktop("--help");
+
+    assert!(version.status.success());
+    assert_eq!(
+        String::from_utf8_lossy(&version.stdout).trim(),
+        "Noor Notes Dev 1.0.0"
+    );
+    let help = String::from_utf8_lossy(&help.stdout);
+    assert!(help.starts_with("Noor Notes Dev 1.0.0"));
+    assert!(help.contains("Usage: noor-notes-dev [OPTION]"));
 }

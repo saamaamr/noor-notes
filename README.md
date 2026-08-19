@@ -139,9 +139,9 @@ cd noor-notes
 ./scripts/install-ubuntu.sh
 ```
 
-The Ubuntu installer installs required system packages, installs Rust only when it is missing, builds Noor Notes, installs the desktop launcher and icon, and installs the optional GNOME Shell integration for the current user.
+The Ubuntu installer installs required system packages, installs Rust only when it is missing, builds the source checkout as **Noor Notes Dev**, installs its separate desktop launcher and icon, and installs the optional GNOME Shell integration for the current user. The Dev app uses the distinct application ID `io.github.saamaamr.NoorNotes.Devel`, so it can run beside the Snap Store build without launcher or single-instance conflicts. Existing source-install notes remain at the same local data path.
 
-From an existing checkout with dependencies already available, rebuild and reinstall with `./scripts/install-local.sh`. Launch Noor Notes from the application grid or run `~/.local/bin/noor-notes` directly (or the equivalent `XDG_BIN_HOME` location) to see startup diagnostics in a terminal.
+From an existing checkout with dependencies already available, rebuild and reinstall with `./scripts/install-local.sh`. Launch **Noor Notes Dev** from the application grid or run `~/.local/bin/noor-notes-dev` directly (or the equivalent `XDG_BIN_HOME` location) to see startup diagnostics in a terminal. The installer retires the old source-only `noor-notes` launcher after the Dev launcher is installed; it never removes the notes database.
 
 ## Verify release artifacts
 
@@ -240,7 +240,7 @@ Encrypted synchronization is not available to v1.0.0 users: the released app has
 
 Back up the database only while Noor Notes is closed. Its location depends on how the app is installed:
 
-- **Source install:** `${XDG_DATA_HOME:-~/.local/share}/noor-notes/notes.db`.
+- **Source/Dev install:** `${XDG_DATA_HOME:-~/.local/share}/noor-notes/notes.db`.
 - **Flatpak:** `~/.var/app/io.github.saamaamr.NoorNotes/data/noor-notes/notes.db`.
 - **Snap:** normally `~/snap/noor-notes/current/.local/share/noor-notes/notes.db`; the app's snap-scoped `HOME` maps to the revision-specific `SNAP_USER_DATA` directory.
 
@@ -254,8 +254,8 @@ Back up the encrypted database together with a working GNOME Keyring backup. If 
 - If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v1.0.0.
 - If Sync says it is not configured, that is the current v1.0.0 limitation; there is no supported account or Supabase setup path yet.
 - If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
-- After pulling source changes, run `./scripts/install-local.sh` to rebuild and replace the user-installed binary and desktop resources. Fully quit any older Noor Notes process before reopening it.
-- If Noor Notes does not open from the application grid, run `~/.local/bin/noor-notes` in a terminal and include the displayed error in a bug report. Reinstall first if that path is missing or older than the checkout. Do not delete the notes database or GNOME Keyring entry while diagnosing launch problems.
+- After pulling source changes, run `./scripts/install-local.sh` to rebuild and replace the user-installed **Noor Notes Dev** binary and desktop resources. Fully quit any older Dev process before reopening it.
+- If Noor Notes Dev does not open from the application grid, run `~/.local/bin/noor-notes-dev` in a terminal and include the displayed error in a bug report. Reinstall first if that path is missing or older than the checkout. Do not delete the notes database or GNOME Keyring entry while diagnosing launch problems.
 - If an Xpad note is skipped, inspect the import preview; it identifies entries that cannot be parsed before any import is committed.
 
 ## Development and build verification

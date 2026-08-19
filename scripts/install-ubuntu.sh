@@ -3,12 +3,12 @@ set -euo pipefail
 
 usage() {
     printf '%s\n' \
-        'Install Noor Notes on Ubuntu' \
+        'Install Noor Notes Dev on Ubuntu' \
         '' \
         'Usage: ./scripts/install-ubuntu.sh [--help]' \
         '' \
         'Installs system dependencies with APT, installs Rust when missing,' \
-        'then runs scripts/install-local.sh to install Noor Notes for this user.'
+        'then runs scripts/install-local.sh to install Noor Notes Dev for this user.'
 }
 
 if [[ ${1:-} == "--help" || ${1:-} == "-h" ]]; then
@@ -65,5 +65,5 @@ if ! command -v cargo >/dev/null 2>&1; then
     export PATH="$HOME/.cargo/bin:$PATH"
 fi
 
-printf 'Building and installing Noor Notes for the current user...\n'
+printf 'Building and installing Noor Notes Dev for the current user...\n'
 "$repo_root/scripts/install-local.sh"

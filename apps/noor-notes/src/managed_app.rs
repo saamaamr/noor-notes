@@ -40,9 +40,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
             autosave_runtime.schedule_model_rebuild(Duration::from_secs(5));
         });
     let controller = window_controller().await;
-    let app = adw::Application::builder()
-        .application_id("io.github.saamaamr.NoorNotes")
-        .build();
+    let app = crate::identity::application();
     let appearance = AppearanceManager::new(AppearanceStore::for_current_user());
     appearance.install_action(&app);
     install_global(appearance);

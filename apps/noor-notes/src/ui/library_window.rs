@@ -84,7 +84,7 @@ impl MainWindow {
     ) -> Self {
         let window = adw::ApplicationWindow::builder()
             .application(app)
-            .title("Noor Notes")
+            .title(crate::identity::display_name())
             .default_width(1180)
             .default_height(760)
             .width_request(620)
@@ -97,7 +97,7 @@ impl MainWindow {
         let toolbar = adw::ToolbarView::new();
         let header = adw::HeaderBar::new();
         header.add_css_class("nn-app-header");
-        let title = adw::WindowTitle::new("Noor Notes", "Private notebook");
+        let title = crate::identity::window_title();
         header.set_title_widget(Some(&title));
         let back = gtk::Button::builder()
             .icon_name("go-previous-symbolic")

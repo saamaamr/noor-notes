@@ -36,9 +36,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
             .unwrap_or_else(|_| Arc::new(FallbackWindowController)),
         BackendKind::GnomeWayland | BackendKind::Fallback => Arc::new(FallbackWindowController),
     };
-    let app = adw::Application::builder()
-        .application_id("io.github.saamaamr.NoorNotes")
-        .build();
+    let app = crate::identity::application();
     app.connect_startup(|_| load_css());
     let runtime = writing_runtime.clone();
     app.connect_activate(move |app| {

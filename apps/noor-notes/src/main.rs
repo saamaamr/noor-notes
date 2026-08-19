@@ -11,13 +11,19 @@ fn print_cli_information() -> bool {
     match std::env::args().nth(1).as_deref() {
         Some("-h" | "--help") => {
             println!(
-                "Noor Notes {}\nPrivate, offline-first notes for Linux\n\nUsage: noor-notes [OPTION]\n\nOptions:\n  -h, --help       Show this help\n  -V, --version    Show the application version",
-                env!("CARGO_PKG_VERSION")
+                "{} {}\nPrivate, offline-first notes for Linux\n\nUsage: {} [OPTION]\n\nOptions:\n  -h, --help       Show this help\n  -V, --version    Show the application version",
+                noor_notes::identity::display_name(),
+                env!("CARGO_PKG_VERSION"),
+                noor_notes::identity::executable_name(),
             );
             true
         }
         Some("-V" | "--version") => {
-            println!("Noor Notes {}", env!("CARGO_PKG_VERSION"));
+            println!(
+                "{} {}",
+                noor_notes::identity::display_name(),
+                env!("CARGO_PKG_VERSION")
+            );
             true
         }
         _ => false,
