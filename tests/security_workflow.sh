@@ -33,10 +33,11 @@ for package in (
     "hunspell-en-us",
     "gjs",
     "ripgrep",
+    "xvfb",
 ):
     if package not in native:
         raise SystemExit(f"Security workflow must install {package}")
 
-if by_name.get("Run security gate", {}).get("run") != "scripts/security-check.sh":
-    raise SystemExit("Security workflow must execute the repository security gate")
+if by_name.get("Run security gate", {}).get("run") != "xvfb-run -a scripts/security-check.sh":
+    raise SystemExit("Security workflow must execute the repository gate with a virtual display")
 PY
