@@ -24,6 +24,7 @@ pub struct NotePreview {
     title_entry: gtk::Entry,
     title_stack: gtk::Stack,
     metadata: gtk::Label,
+    divider: gtk::Separator,
     body: gtk::Label,
     body_stack: gtk::Stack,
     editor: gtk::TextView,
@@ -115,7 +116,8 @@ impl NotePreview {
         metadata.set_wrap(true);
         metadata.set_wrap_mode(gtk::pango::WrapMode::WordChar);
         document.append(&metadata);
-        document.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
+        let divider = gtk::Separator::new(gtk::Orientation::Horizontal);
+        document.append(&divider);
 
         let body = gtk::Label::new(Some(
             "Choose a note from the library to read it without opening another window.",
@@ -321,6 +323,7 @@ impl NotePreview {
             title_entry,
             title_stack,
             metadata,
+            divider,
             body,
             body_stack,
             editor,
@@ -354,6 +357,8 @@ impl NotePreview {
         self.title_stack.set_visible_child_name("label");
         self.title.set_text("Select a note");
         self.metadata.set_text("Your note preview will appear here");
+        self.metadata.set_visible(true);
+        self.divider.set_visible(true);
         self.body
             .set_text("Choose a note from the library to read it without opening another window.");
         self.editor.buffer().set_text("");
@@ -403,6 +408,8 @@ impl NotePreview {
                 )
             }
         ));
+        self.metadata.set_visible(true);
+        self.divider.set_visible(true);
         self.body.set_text(if note.content.trim().is_empty() {
             "This note is empty."
         } else {
@@ -445,6 +452,8 @@ impl NotePreview {
         self.edit.set_visible(false);
         self.read_only.set_visible(false);
         self.title_stack.set_visible(false);
+        self.metadata.set_visible(false);
+        self.divider.set_visible(false);
         self.toolbar.widget.set_visible(false);
         set_editing(
             &self.editing,
