@@ -305,6 +305,18 @@ impl EditorToolbar {
             .popover(&more_popover)
             .build();
         more.add_css_class("toolbar-button");
+        for button in [
+            &new_note,
+            &rename,
+            &duplicate,
+            &archive,
+            &trash,
+            &restore,
+            &permanent_delete,
+        ] {
+            close_more_on_click(button, &more_popover);
+        }
+        close_more_on_toggle(&pin, &more_popover);
         widget.append(&undo);
         widget.append(&redo);
         widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
@@ -507,6 +519,16 @@ fn text_toggle(label: &str, tooltip: &str, class: &str) -> gtk::ToggleButton {
     button.add_css_class(class);
     button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
     button
+}
+
+fn close_more_on_click(button: &gtk::Button, more_popover: &gtk::Popover) {
+    let more_popover = more_popover.clone();
+    button.connect_clicked(move |_| more_popover.popdown());
+}
+
+fn close_more_on_toggle(button: &gtk::ToggleButton, more_popover: &gtk::Popover) {
+    let more_popover = more_popover.clone();
+    button.connect_toggled(move |_| more_popover.popdown());
 }
 impl Default for EditorToolbar {
     fn default() -> Self {

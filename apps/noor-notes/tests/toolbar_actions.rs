@@ -32,3 +32,12 @@ fn every_primary_toolbar_button_is_wired() {
         "saved lifecycle changes must refresh the main note lists"
     );
 }
+
+#[test]
+fn more_actions_close_the_popover_before_modal_work() {
+    let source = include_str!("../src/ui/editor_toolbar.rs");
+    assert!(
+        source.contains("close_more_on_click") && source.contains("more_popover.popdown"),
+        "More actions must release the popover grab before opening dialogs or windows"
+    );
+}
