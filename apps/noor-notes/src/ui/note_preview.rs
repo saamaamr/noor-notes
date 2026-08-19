@@ -9,6 +9,9 @@ use crate::rich_buffer::RichBuffer;
 
 use super::editor_canvas::configure_editor_canvas;
 
+// NotePreview is the concrete implementation behind the shared
+// `NoteEditorSurface` host boundary.
+
 type BodyEditHandler = Rc<dyn Fn(Note)>;
 type EditFinishedHandler = Rc<dyn Fn(NoteId)>;
 
