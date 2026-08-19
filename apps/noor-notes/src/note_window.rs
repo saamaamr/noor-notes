@@ -158,6 +158,7 @@ impl NoteWindow {
         configure_editor_canvas(&editor, rich_mode);
         editor.set_accepts_tab(true);
         editor.set_editable(!is_trashed);
+        toolbar.set_editable(!is_trashed && !current.editor_preferences.view_only);
         let find_panel = FindReplacePanel::new();
         let find_entry = find_panel.find_entry.clone();
         let replace_entry = find_panel.replace_entry.clone();
@@ -380,6 +381,7 @@ impl NoteWindow {
             is_trashed,
             vec![
                 title_box.clone().upcast::<gtk::Widget>(),
+                menu_bar.widget.clone().upcast::<gtk::Widget>(),
                 toolbar.widget.clone().upcast::<gtk::Widget>(),
                 metadata.clone().upcast::<gtk::Widget>(),
                 find_bar.clone().upcast::<gtk::Widget>(),
@@ -1214,6 +1216,7 @@ fn request_view_mode(context: ViewModeContext, enabled: bool) {
         if changed.editor_preferences.view_only == enabled {
             context.presentation.set_view_only(enabled);
             context.toolbar.set_view_only_state(enabled);
+            context.toolbar.set_editable(!enabled);
             context.writing_controller.set_suppressed(enabled);
             context.spell_session.set_enabled(!enabled);
             context.busy.set(false);
@@ -1227,6 +1230,7 @@ fn request_view_mode(context: ViewModeContext, enabled: bool) {
                 context.note.replace(changed);
                 context.presentation.set_view_only(enabled);
                 context.toolbar.set_view_only_state(enabled);
+                context.toolbar.set_editable(!enabled);
                 context.writing_controller.set_suppressed(enabled);
                 context.spell_session.set_enabled(!enabled);
                 if let Some(application) = context.window.application() {

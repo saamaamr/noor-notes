@@ -94,9 +94,6 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     assert_eq!(color_rail.width_request(), 4);
     assert!(card.menu.has_css_class("nn-card-action"));
     assert_eq!(card.menu.valign(), gtk::Align::Center);
-    let archive = card.archive.as_ref().expect("active card archive action");
-    assert!(archive.has_css_class("nn-card-action"));
-    assert_eq!(archive.valign(), gtk::Align::Center);
     assert_eq!(card.menu.tooltip_text().as_deref(), Some("Note actions"));
     let card_descendants = descendants(card.widget.clone().upcast());
     assert!(

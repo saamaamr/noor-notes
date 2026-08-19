@@ -1,5 +1,7 @@
 use adw::prelude::*;
 use noor_domain::EditorMode;
+use std::cell::Cell;
+use std::rc::Rc;
 
 use crate::ui::formatting_popover::FormattingPopover;
 use crate::ui::rich_color_palette::RichColorPalette;
@@ -62,6 +64,7 @@ pub struct EditorToolbar {
     pub header_trash: gtk::Button,
     pub restore: gtk::Button,
     pub permanent_delete: gtk::Button,
+    can_edit: Rc<Cell<bool>>,
 }
 
 impl EditorToolbar {
@@ -307,7 +310,8 @@ impl EditorToolbar {
         widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
         widget.append(&find);
         widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
-        widget.append(&style);
+        // RichDocument currently has no block-style model (heading/quote/code
+        // blocks), so the unsupported Style control is intentionally omitted.
         widget.append(&quick_font_size);
         widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
         widget.append(&bold);
@@ -377,13 +381,43 @@ impl EditorToolbar {
             header_trash,
             restore,
             permanent_delete,
+            can_edit: Rc::new(Cell::new(true)),
         }
+    }
+
+    pub fn set_editable(&self, enabled: bool) {
+        self.can_edit.set(enabled);
+        for control in [
+            self.bold.upcast_ref::<gtk::Widget>(),
+            self.italic.upcast_ref(),
+            self.quick_underline.upcast_ref(),
+            self.quick_strikethrough.upcast_ref(),
+            self.bullets.upcast_ref(),
+            self.quick_numbered.upcast_ref(),
+            self.quick_font_size.upcast_ref(),
+            self.format.upcast_ref(),
+            self.emoji.upcast_ref(),
+        ] {
+            control.set_sensitive(enabled);
+        }
+        if !enabled {
+            self.undo.set_sensitive(false);
+            self.redo.set_sensitive(false);
+        }
+        self.set_rich_formatting_enabled(enabled);
+    }
+
+    pub fn is_editable(&self) -> bool {
+        self.can_edit.get()
+    }
+
+    pub fn edit_state(&self) -> Rc<Cell<bool>> {
+        self.can_edit.clone()
     }
 
     pub fn set_rich_formatting_enabled(&self, enabled: bool) {
         for control in [
             self.format.upcast_ref::<gtk::Widget>(),
-            self.style.upcast_ref(),
             self.bold.upcast_ref::<gtk::Widget>(),
             self.italic.upcast_ref(),
             self.underline.upcast_ref(),
@@ -420,10 +454,10 @@ impl EditorToolbar {
             self.quick_font_size.upcast_ref(),
             self.format.upcast_ref(),
             self.style.upcast_ref(),
-            self.style.upcast_ref(),
         ] {
             control.set_visible(rich);
         }
+        self.emoji.set_visible(mode != EditorMode::Code);
         self.find.set_visible(!rich);
     }
 

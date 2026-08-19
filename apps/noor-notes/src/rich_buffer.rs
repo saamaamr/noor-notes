@@ -306,6 +306,14 @@ impl RichBuffer {
             .map(|value| value.0)
     }
 
+    pub fn marks_at_cursor(buffer: &gtk::TextBuffer) -> TextMarks {
+        let mut iter = buffer.iter_at_mark(&buffer.get_insert());
+        if iter.offset() > 0 && iter.is_end() {
+            iter.backward_char();
+        }
+        marks_at(&iter)
+    }
+
     pub fn continue_list(buffer: &gtk::TextBuffer) -> bool {
         let cursor = buffer.iter_at_mark(&buffer.get_insert());
         let line = cursor.line();

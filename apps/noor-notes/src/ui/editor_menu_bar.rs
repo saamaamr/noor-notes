@@ -11,9 +11,17 @@ pub struct EditorMenuBar {
 
 impl EditorMenuBar {
     pub fn new(toolbar: &EditorToolbar) -> Self {
+        Self::build(toolbar, true)
+    }
+
+    pub fn new_preview(toolbar: &EditorToolbar) -> Self {
+        Self::build(toolbar, false)
+    }
+
+    fn build(toolbar: &EditorToolbar, full: bool) -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Horizontal, 2);
         widget.add_css_class("nn-editor-menu-bar");
-        for (label, items) in [
+        let mut menus = vec![
             (
                 "File",
                 vec![
@@ -62,7 +70,14 @@ impl EditorMenuBar {
                     ("More actions…", proxy_menu(&toolbar.more)),
                 ],
             ),
-        ] {
+        ];
+        if !full {
+            menus.retain(|(label, _)| matches!(*label, "Edit" | "Insert" | "Format"));
+            if let Some((_, items)) = menus.iter_mut().find(|(label, _)| *label == "Edit") {
+                items.retain(|(label, _)| *label != "Find");
+            }
+        }
+        for (label, items) in menus {
             widget.append(&menu_button(label, items));
         }
         Self { widget }

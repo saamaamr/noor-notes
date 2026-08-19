@@ -186,7 +186,7 @@ impl NotePreview {
         toolbar.widget.set_halign(gtk::Align::Start);
         crate::editor_actions::connect(&toolbar, &buffer, &editor);
         toolbar.set_rich_formatting_enabled(false);
-        let menu_bar = EditorMenuBar::new(&toolbar);
+        let menu_bar = EditorMenuBar::new_preview(&toolbar);
         menu_bar.widget.set_visible(false);
         document.append(&menu_bar.widget);
         document.append(&toolbar.widget);
@@ -527,6 +527,7 @@ fn set_editing(
 ) {
     editing.set(enabled);
     editor.set_editable(enabled);
+    toolbar.set_editable(enabled);
     editor.set_cursor_visible(enabled);
     if enabled {
         editor.set_monospace(false);
