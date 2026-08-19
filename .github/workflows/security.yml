@@ -9,7 +9,7 @@ jobs:
       - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Install native dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgtk-4-dev libadwaita-1-dev libx11-dev libspelling-1-dev libenchant-2-2 hunspell-en-us gjs ripgrep xvfb
+        run: sudo apt-get update && sudo apt-get install -y libgtk-4-dev libadwaita-1-dev libx11-dev libspelling-1-dev libenchant-2-2 hunspell-en-us desktop-file-utils gjs ripgrep xvfb
       - name: Install security tools
         run: cargo install --locked cargo-audit cargo-deny cargo-cyclonedx
       - name: Run security gate

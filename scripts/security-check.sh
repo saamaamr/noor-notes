@@ -1,8 +1,10 @@
 #!/bin/sh
 set -eu
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace
+cargo test -p noor-notes --features development --test cli --test development_identity
+desktop-file-validate data/io.github.saamaamr.NoorNotes.Devel.desktop
 cargo audit
 cargo deny check
 if rg -n --hidden --glob '!target/**' --glob '!.git/**' -- '-----BEGIN (RSA|OPENSSH|EC) PRIVATE KEY-----|sbp_[A-Za-z0-9]{20,}' .; then

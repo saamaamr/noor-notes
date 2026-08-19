@@ -37,6 +37,7 @@ for package in (
     "libspelling-1-dev",
     "libenchant-2-2",
     "hunspell-en-us",
+    "desktop-file-utils",
     "gjs",
     "ripgrep",
     "xvfb",
@@ -47,3 +48,44 @@ for package in (
 if by_name.get("Run security gate", {}).get("run") != "xvfb-run -a scripts/security-check.sh":
     raise SystemExit("Security workflow must execute the repository gate with a virtual display")
 PY
+
+fake_root=$(mktemp -d)
+trap 'rm -rf "$fake_root"' EXIT
+cargo_log="$fake_root/cargo.log"
+desktop_log="$fake_root/desktop.log"
+
+cat >"$fake_root/cargo" <<'SH'
+#!/bin/sh
+printf '%s\n' "$*" >>"$SECURITY_CARGO_LOG"
+SH
+cat >"$fake_root/rg" <<'SH'
+#!/bin/sh
+exit 1
+SH
+cat >"$fake_root/desktop-file-validate" <<'SH'
+#!/bin/sh
+printf '%s\n' "$*" >>"$SECURITY_DESKTOP_LOG"
+SH
+for command in bash gjs; do
+    cat >"$fake_root/$command" <<'SH'
+#!/bin/sh
+exit 0
+SH
+done
+chmod +x "$fake_root/cargo" "$fake_root/rg" "$fake_root/desktop-file-validate" \
+    "$fake_root/bash" "$fake_root/gjs"
+
+SECURITY_CARGO_LOG="$cargo_log" SECURITY_DESKTOP_LOG="$desktop_log" \
+    PATH="$fake_root:$PATH" /bin/sh "$security_gate"
+
+if ! grep -Fxq \
+    'test -p noor-notes --features development --test cli --test development_identity' \
+    "$cargo_log"; then
+    printf 'Security gate must execute the Noor Notes Dev identity tests\n' >&2
+    exit 1
+fi
+
+if ! grep -Fxq 'data/io.github.saamaamr.NoorNotes.Devel.desktop' "$desktop_log"; then
+    printf 'Security gate must validate the Noor Notes Dev desktop launcher\n' >&2
+    exit 1
+fi

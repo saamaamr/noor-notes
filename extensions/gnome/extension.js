@@ -2,10 +2,9 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import {authorizeRequest} from './policy.js';
+import {authorizeRequest, isNoorAppId} from './policy.js';
 
 const BUS_NAME = 'io.github.saamaamr.NoorNotes.Windowing';
-const APP_BUS_NAME = 'io.github.saamaamr.NoorNotes';
 const OBJECT_PATH = '/io/github/saamaamr/NoorNotes/Window1';
 const INTERFACE_XML = `
 <node>
@@ -56,9 +55,9 @@ class WindowService {
 
     _apply(method, windowId, enabled, invocation, operation) {
         const sender = invocation.get_sender();
-        const owner = this._appBusOwner();
         const window = this._findWindow(windowId);
         const appId = window?.get_gtk_application_id?.() ?? '';
+        const owner = this._appBusOwner(appId);
         if (!window || !authorizeRequest({method, windowId, enabled, appId, sender, owner, stale: !window.get_compositor_private()})) {
             invocation.return_dbus_error(
                 'io.github.saamaamr.NoorNotes.Window1.NotAuthorized',
@@ -76,14 +75,16 @@ class WindowService {
             .find(window => window.get_title() === windowId) ?? null;
     }
 
-    _appBusOwner() {
+    _appBusOwner(appId) {
+        if (!isNoorAppId(appId))
+            return '';
         try {
             const result = Gio.DBus.session.call_sync(
                 'org.freedesktop.DBus',
                 '/org/freedesktop/DBus',
                 'org.freedesktop.DBus',
                 'GetNameOwner',
-                new GLib.Variant('(s)', [APP_BUS_NAME]),
+                new GLib.Variant('(s)', [appId]),
                 new GLib.VariantType('(s)'),
                 Gio.DBusCallFlags.NONE,
                 -1,

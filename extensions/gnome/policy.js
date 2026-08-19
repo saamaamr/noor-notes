@@ -1,7 +1,14 @@
-export const NOOR_APP_ID = 'io.github.saamaamr.NoorNotes';
+const NOOR_APP_IDS = new Set([
+    'io.github.saamaamr.NoorNotes',
+    'io.github.saamaamr.NoorNotes.Devel',
+]);
+
+export function isNoorAppId(appId) {
+    return NOOR_APP_IDS.has(appId);
+}
 
 export function authorizeWindow({appId, sender, owner, stale}) {
-    return appId === NOOR_APP_ID && sender === owner && !stale;
+    return isNoorAppId(appId) && sender === owner && !stale;
 }
 
 const METHODS = new Set(['SetAbove', 'SetAllWorkspaces']);

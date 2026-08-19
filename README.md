@@ -254,7 +254,7 @@ Back up the encrypted database together with a working GNOME Keyring backup. If 
 - If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v1.0.0.
 - If Sync says it is not configured, that is the current v1.0.0 limitation; there is no supported account or Supabase setup path yet.
 - If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
-- After pulling source changes, run `./scripts/install-local.sh` to rebuild and replace the user-installed **Noor Notes Dev** binary and desktop resources. Fully quit any older Dev process before reopening it.
+- After pulling source changes, run `./scripts/install-local.sh` to rebuild and replace the user-installed **Noor Notes Dev** binary and desktop resources. Before the first migration, fully quit any legacy source-installed Noor Notes process; on later updates, fully quit the older Dev process before reopening it.
 - If Noor Notes Dev does not open from the application grid, run `~/.local/bin/noor-notes-dev` in a terminal and include the displayed error in a bug report. Reinstall first if that path is missing or older than the checkout. Do not delete the notes database or GNOME Keyring entry while diagnosing launch problems.
 - If an Xpad note is skipped, inspect the import preview; it identifies entries that cannot be parsed before any import is committed.
 
@@ -270,8 +270,9 @@ Before contributing a change, run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace
+xvfb-run -a cargo test -p noor-notes --features development --test cli --test development_identity
 cargo audit
 cargo deny check
 xvfb-run -a cargo test -p noor-windowing
