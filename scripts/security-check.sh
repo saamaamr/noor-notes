@@ -12,6 +12,7 @@ fi
 bash tests/snap_manifest.sh
 bash tests/release_metadata.sh
 bash tests/snap_cadence_workflow.sh
+bash tests/security_workflow.sh
 bash tests/flatpak_manifest.sh
 gjs -m extensions/gnome/tests/test-policy.js
 cargo cyclonedx --format json --all
