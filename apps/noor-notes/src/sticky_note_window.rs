@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::Arc;
 
 use adw::prelude::*;
@@ -9,6 +11,7 @@ use crate::ui::note_editor_surface::NoteEditorSurface;
 #[derive(Clone)]
 pub struct StickyNoteWindow {
     pub window: adw::ApplicationWindow,
+    closed: Rc<RefCell<Option<Rc<dyn Fn()>>>>,
 }
 
 impl StickyNoteWindow {
@@ -64,7 +67,17 @@ impl StickyNoteWindow {
             });
         }
 
-        Self { window }
+        let closed = Rc::new(RefCell::new(None::<Rc<dyn Fn()>>));
+        {
+            let closed = closed.clone();
+            window.connect_close_request(move |_| {
+                if let Some(handler) = closed.borrow().as_ref() {
+                    handler();
+                }
+                gtk::glib::Propagation::Proceed
+            });
+        }
+        Self { window, closed }
     }
 
     pub fn present(&self) {
@@ -73,6 +86,10 @@ impl StickyNoteWindow {
 
     pub fn close(&self) {
         self.window.close();
+    }
+
+    pub fn connect_closed<F: Fn() + 'static>(&self, callback: F) {
+        self.closed.replace(Some(Rc::new(callback)));
     }
 }
 

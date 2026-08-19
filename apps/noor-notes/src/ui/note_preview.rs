@@ -90,6 +90,7 @@ impl NotePreview {
             .visible(false)
             .build();
         edit.add_css_class("flat");
+        edit.add_css_class("suggested-action");
         edit.add_css_class("nn-preview-edit");
         edit.update_property(&[gtk::accessible::Property::Label("Edit note body")]);
         edit.set_valign(gtk::Align::Start);
@@ -97,6 +98,8 @@ impl NotePreview {
         let read_only = gtk::Button::with_label("Read-only");
         read_only.set_tooltip_text(Some("Open this note in a read-only sticky window"));
         read_only.add_css_class("flat");
+        read_only.add_css_class("secondary");
+        read_only.add_css_class("nn-preview-read-only-button");
         read_only.add_css_class("nn-preview-read-only");
         read_only.update_property(&[gtk::accessible::Property::Label(
             "Open read-only sticky window",
@@ -153,6 +156,12 @@ impl NotePreview {
         body_stack.set_visible_child_name("preview");
         let toolbar = EditorToolbar::new();
         toolbar.widget.set_visible(false);
+        // Preview exposes only controls that are wired to this editor surface.
+        // Search, note settings, and multi-action menus remain available in the
+        // full editor window and are intentionally not shown as dead buttons here.
+        toolbar.find.set_visible(false);
+        toolbar.more.set_visible(false);
+        toolbar.new_note.set_visible(false);
         crate::editor_actions::connect(&toolbar, &buffer, &editor);
         toolbar.set_rich_formatting_enabled(false);
         document.append(&toolbar.widget);
@@ -341,6 +350,7 @@ impl NotePreview {
         self.edit.set_visible(false);
         self.read_only.set_visible(false);
         self.toolbar.widget.set_visible(false);
+        self.title_stack.set_visible(true);
         self.title_stack.set_visible_child_name("label");
         self.title.set_text("Select a note");
         self.metadata.set_text("Your note preview will appear here");
@@ -434,7 +444,7 @@ impl NotePreview {
         self.finish_pending_edit();
         self.edit.set_visible(false);
         self.read_only.set_visible(false);
-        self.title_stack.set_visible_child_name("label");
+        self.title_stack.set_visible(false);
         self.toolbar.widget.set_visible(false);
         set_editing(
             &self.editing,

@@ -308,7 +308,18 @@ impl MainWindow {
                     let Some(app) = this.window.application() else {
                         return;
                     };
-                    let sticky = StickyNoteWindow::new(&app, note, this.controller.clone());
+                    let sticky = StickyNoteWindow::new(&app, note.clone(), this.controller.clone());
+                    {
+                        let this = this.clone();
+                        let note = note.clone();
+                        sticky.connect_closed(move || {
+                            this.sticky_window.borrow_mut().take();
+                            let mut note = note.clone();
+                            note.editor_preferences.view_only = false;
+                            this.autosave.schedule(NoteDraft::from(note.clone()));
+                            this.preview.show_note(&note);
+                        });
+                    }
                     sticky.present();
                     this.sticky_window.replace(Some(sticky));
                 } else if let Some(sticky) = this.sticky_window.borrow_mut().take() {
