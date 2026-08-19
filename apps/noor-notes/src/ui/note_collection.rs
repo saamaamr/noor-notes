@@ -36,11 +36,6 @@ impl NoteCollection {
                     return;
                 };
                 let card = note_card::build(note, action.clone());
-                if let Some(archive) = card.archive.as_ref() {
-                    item.bind_property("selected", archive, "visible")
-                        .sync_create()
-                        .build();
-                }
                 item.set_child(Some(&card.widget));
             });
         }

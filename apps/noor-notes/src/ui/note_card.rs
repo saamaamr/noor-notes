@@ -13,7 +13,6 @@ pub enum CardAction {
 
 pub struct NoteCard {
     pub widget: gtk::Box,
-    pub archive: Option<gtk::Button>,
     pub menu: gtk::MenuButton,
 }
 
@@ -86,24 +85,6 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     meta.set_ellipsize(gtk::pango::EllipsizeMode::End);
     text.append(&meta);
     card.append(&text);
-    let archive = if matches!(note.state, NoteState::Active) {
-        let button = gtk::Button::builder()
-            .icon_name("folder-symbolic")
-            .tooltip_text("Archive note")
-            .build();
-        button.add_css_class("flat");
-        button.add_css_class("nn-card-action");
-        button.set_valign(gtk::Align::Center);
-        button.set_visible(false);
-        button.update_property(&[gtk::accessible::Property::Label("Archive note")]);
-        let archive_action = action.clone();
-        let id = note.id;
-        button.connect_clicked(move |_| archive_action(id, CardAction::Archive));
-        card.append(&button);
-        Some(button)
-    } else {
-        None
-    };
     let actions = match note.state {
         NoteState::Active => vec![
             ("Archive", CardAction::Archive, false),
@@ -150,9 +131,5 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     gesture.connect_pressed(move |_, _, _, _| popover.popup());
     card.add_controller(gesture);
     card.append(&menu);
-    NoteCard {
-        widget: card,
-        archive,
-        menu,
-    }
+    NoteCard { widget: card, menu }
 }

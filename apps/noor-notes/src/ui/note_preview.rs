@@ -59,7 +59,8 @@ impl NotePreview {
     ) -> Self {
         let document = gtk::Box::new(gtk::Orientation::Vertical, 16);
         document.add_css_class("nn-preview");
-        document.set_valign(gtk::Align::Start);
+        document.set_valign(gtk::Align::Fill);
+        document.set_vexpand(true);
 
         let heading = gtk::Box::new(gtk::Orientation::Horizontal, 12);
         heading.add_css_class("nn-preview-heading");
@@ -134,6 +135,8 @@ impl NotePreview {
         body.add_css_class("nn-preview-body");
         body.set_xalign(0.0);
         body.set_yalign(0.0);
+        body.set_hexpand(true);
+        body.set_vexpand(true);
         body.set_wrap(true);
         body.set_wrap_mode(gtk::pango::WrapMode::WordChar);
         let body_attributes = gtk::pango::AttrList::new();
@@ -147,6 +150,7 @@ impl NotePreview {
         editor.set_cursor_visible(false);
         editor.set_wrap_mode(gtk::WrapMode::WordChar);
         editor.set_hexpand(true);
+        editor.set_vexpand(true);
         configure_editor_canvas(&editor, true);
         let buffer = editor.buffer();
         if let Some(appearance) = try_global() {
@@ -161,6 +165,8 @@ impl NotePreview {
         let body_stack = gtk::Stack::new();
         body_stack.set_transition_type(gtk::StackTransitionType::Crossfade);
         body_stack.set_transition_duration(140);
+        body_stack.set_hexpand(true);
+        body_stack.set_vexpand(true);
         body_stack.add_named(&body, Some("preview"));
         body_stack.add_named(&editor, Some("editor"));
         body_stack.set_visible_child_name("preview");
@@ -187,6 +193,7 @@ impl NotePreview {
             .child(&document)
             .build();
         clamp.set_hexpand(true);
+        clamp.set_vexpand(true);
         let widget = gtk::ScrolledWindow::builder()
             .hexpand(true)
             .vexpand(true)

@@ -103,9 +103,12 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-preview-editor:focus { border-color: alpha(@nn_accent, .45); }
 .nn-empty-state { padding: 48px 32px; color: @nn_text_secondary; }
 .nn-editor-window { background: @nn_bg; color: @nn_text; }
-.nn-editor-toolbar { min-height: 38px; padding: 0 12px; background: shade(@nn_surface, .985); border-bottom: 1px solid @nn_border; }
-.nn-editor-toolbar button { min-width: 32px; min-height: 32px; padding: 0 8px; border-radius: 7px; }
-.nn-editor-toolbar separator { margin: 7px 3px; }
+.nn-editor-toolbar { min-height: 44px; padding: 5px 10px; background: @nn_surface; border: 1px solid @nn_border; border-radius: 9px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+.nn-editor-toolbar button, .nn-editor-toolbar menubutton > button { min-width: 32px; min-height: 32px; padding: 0 8px; border-radius: 6px; color: @nn_text_secondary; transition: 140ms ease; }
+.nn-editor-toolbar button:hover, .nn-editor-toolbar menubutton > button:hover { background: @nn_hover; color: @nn_text; }
+.nn-editor-toolbar button:checked, .nn-editor-toolbar menubutton > button:checked, .nn-editor-toolbar menubutton.active > button { background: @nn_accent_soft; color: @nn_accent; box-shadow: inset 0 0 0 1px alpha(@nn_accent, .16); }
+.nn-editor-toolbar button:disabled { opacity: .42; }
+.nn-editor-toolbar separator { margin: 6px 5px; background: @nn_border; }
 .nn-editor-toolbar > flowboxchild { padding: 0; }
 .nn-formatting-popover { min-width: 320px; }
 .nn-format-section-label { margin-top: 2px; font-size: 12px; font-weight: 700; color: @nn_text_secondary; }
