@@ -123,7 +123,6 @@ impl NotePreview {
             .child(&document)
             .build();
         clamp.set_hexpand(true);
-        clamp.set_halign(gtk::Align::Start);
         let widget = gtk::ScrolledWindow::builder()
             .hexpand(true)
             .vexpand(true)

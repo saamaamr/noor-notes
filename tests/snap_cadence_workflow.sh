@@ -53,6 +53,8 @@ for fragment in (
     "date -u +%d",
     "publish_edge",
     "promote_stable",
+    "release_kind",
+    "publish_edge=true",
 ):
     if fragment not in decision_source:
         raise SystemExit(f"Cadence decision gate must include: {fragment}")
@@ -64,9 +66,27 @@ steps_by_name = {
 }
 if edge.get("if") != "needs.decide.outputs.publish_edge == 'true'":
     raise SystemExit("Edge build must skip when main has already been published")
-for name in ("Lint built Snap", "Install and smoke-test built Snap", "Publish to edge"):
+for name in (
+    "Set automatic build version",
+    "Lint built Snap",
+    "Install and smoke-test built Snap",
+    "Publish to edge",
+):
     if name not in steps_by_name:
         raise SystemExit(f"Edge publication must include: {name}")
+versioning = steps_by_name["Set automatic build version"]
+if versioning.get("env", {}).get("RELEASE_KIND") != "${{ needs.decide.outputs.release_kind }}":
+    raise SystemExit("Automatic versioning must consume the decision job's release kind")
+version_source = versioning.get("run", "")
+for fragment in (
+    "snap info noor-notes",
+    "latest/edge",
+    "latest/stable",
+    "scripts/next-snap-version.py",
+    "scripts/set-build-version.py",
+):
+    if fragment not in version_source:
+        raise SystemExit(f"Automatic Store versioning must include: {fragment}")
 publish = steps_by_name["Publish to edge"]
 if publish.get("uses") != "canonical/action-publish@214b86e5ca036ead1668c79afb81e550e6c54d40":
     raise SystemExit("Store publication must use the reviewed canonical/action-publish commit")

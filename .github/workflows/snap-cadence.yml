@@ -28,6 +28,7 @@ jobs:
     outputs:
       publish_edge: ${{ steps.release-plan.outputs.publish_edge }}
       promote_stable: ${{ steps.release-plan.outputs.promote_stable }}
+      release_kind: ${{ steps.release-plan.outputs.release_kind }}
     steps:
       - name: Decide weekly edge and monthly stable work
         id: release-plan
@@ -37,11 +38,13 @@ jobs:
         run: |
           publish_edge=false
           promote_stable=false
+          release_kind=edge
 
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             publish_edge=true
             if [ "${MANUAL_RELEASE}" = "stable" ]; then
               promote_stable=true
+              release_kind=stable
             fi
           else
             runs_url="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/snap-cadence.yml/runs?event=schedule&status=success&per_page=1"
@@ -55,12 +58,15 @@ jobs:
 
             day="$(date -u +%d)"
             if [ "$((10#${day}))" -le 7 ]; then
+              publish_edge=true
               promote_stable=true
+              release_kind=stable
             fi
           fi
 
           printf 'publish_edge=%s\n' "${publish_edge}" >> "${GITHUB_OUTPUT}"
           printf 'promote_stable=%s\n' "${promote_stable}" >> "${GITHUB_OUTPUT}"
+          printf 'release_kind=%s\n' "${release_kind}" >> "${GITHUB_OUTPUT}"
 
   build-and-publish-edge:
     needs: decide
@@ -75,6 +81,24 @@ jobs:
           bash tests/snap_manifest.sh
           bash tests/release_metadata.sh
           bash tests/snap_cadence_workflow.sh
+          bash tests/automatic_versioning.sh
+
+      - name: Set automatic build version
+        env:
+          RELEASE_KIND: ${{ needs.decide.outputs.release_kind }}
+        run: |
+          case "${RELEASE_KIND}" in
+            edge) source_channel=latest/edge ;;
+            stable) source_channel=latest/stable ;;
+            *) printf 'Unknown release kind: %s\n' "${RELEASE_KIND}" >&2; exit 2 ;;
+          esac
+          current_version="$(snap info noor-notes | awk -v channel="${source_channel}:" \
+            '$1 == channel { print $2; found=1; exit } END { if (!found) exit 1 }')"
+          next_version="$(python3 scripts/next-snap-version.py "${RELEASE_KIND}" "${current_version}")"
+          python3 scripts/set-build-version.py "${next_version}" --date "$(date -u +%F)"
+          cargo metadata --locked --no-deps >/dev/null
+          printf 'Building Noor Notes %s from %s version %s\n' \
+            "${next_version}" "${source_channel}" "${current_version}" >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Build Snap
         id: build-snap

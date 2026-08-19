@@ -4,6 +4,12 @@ set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 workflow="$repo_root/.github/workflows/security.yml"
+security_gate="$repo_root/scripts/security-check.sh"
+
+if ! grep -Fq 'bash tests/automatic_versioning.sh' "$security_gate"; then
+    printf 'Security gate must execute the automatic versioning contract\n' >&2
+    exit 1
+fi
 
 python3 - "$workflow" <<'PY'
 import sys

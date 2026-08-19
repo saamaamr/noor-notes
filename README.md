@@ -24,6 +24,15 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 | --- | --- | --- |
 | ![Noor Notes inline find and replace panel](data/screenshots/noor-notes-find-replace.png) | ![Noor Notes Trash view with recoverable notes](data/screenshots/noor-notes-trash.png) | ![Noor Notes adaptive narrow-window layout](data/screenshots/noor-notes-responsive.png) |
 
+## Recent fixes
+
+- Fixed the library preview allocation so wide windows keep a readable document column instead of collapsing text into a narrow vertical strip.
+- Preserved the responsive list-to-preview transition at narrow widths without clipping the selected note or forcing horizontal scrolling.
+- Fixed inline preview edits so finishing an edit and switching notes uses the existing autosave pipeline and retains the saved content.
+- Refined Light Mode hierarchy, selected-note contrast, compact sidebar and note-list widths, editor spacing, and dark-theme fallbacks.
+- Added automatic Snap versions: changed weekly/manual edge builds increment patch, while monthly/manual stable builds increment minor and reset patch before Store smoke testing and promotion.
+- Kept Rich Text canvas spacing at 5 pixels vertically and 8 pixels horizontally.
+
 ## Engineering highlights
 
 - Workspace boundaries separate the GTK application from domain, crypto, storage, synchronization, windowing, and Xpad-import concerns.
@@ -279,7 +288,9 @@ bash tests/e2e/two_device_sync.sh
 
 Version tags build Snap and Flatpak artifacts in GitHub Actions. The `v1.0.0` tag creates the GitHub release with `noor-notes_1.0.0_amd64.snap`, `noor-notes.flatpak`, and `SHA256SUMS.txt` after the security gate passes. The exact validated tag Snap is then published to `latest/edge`, installed back from the Store for a smoke test, and promoted without rebuilding to `latest/stable`.
 
-Every Monday at 12:00 Bangladesh time, the Snap cadence workflow publishes a new `main` revision to `latest/edge` only when the source commit changed. On the first Monday of each month, the installed Store edge revision must pass its smoke gate before that same revision is promoted to `latest/stable`. A maintainer can also start an explicit edge or stable run from GitHub Actions. Publication requires a repository secret named `SNAPCRAFT_STORE_CREDENTIALS`, scoped to Noor Notes package push, update, and release access.
+Every Monday at 12:00 Bangladesh time, the Snap cadence workflow publishes a new `main` revision to `latest/edge` only when the source commit changed. Each scheduled or manual edge publication reads the current Store edge version and increments its patch component, for example `1.0.0` to `1.0.1` and then `1.0.2`.
+
+On the first Monday of each month, the workflow reads the current stable version, increments its minor component, and resets patch to zero, for example `1.0.0` to `1.1.0`. The new version is built once, published to edge, installed back from the Store for a smoke test, and then promoted without rebuilding to `latest/stable`. Manual stable runs use the same minor-version policy; after `1.1.0` becomes stable, the next edge is `1.1.1`. The generated version is synchronized across the Snap manifest, application binary, Cargo workspace packages, lockfile, and AppStream metadata inside the isolated CI build workspace. A maintainer can start an explicit edge or stable run from GitHub Actions. Publication requires a repository secret named `SNAPCRAFT_STORE_CREDENTIALS`, scoped to Noor Notes package push, update, and release access.
 
 The stable channel is the recommended installation path. Edge receives more frequent previews and can be less tested; stable only receives a revision after the build, local package smoke test, and Store-installed edge smoke test succeed. A Flathub submission is not created by this project's workflow.
 
