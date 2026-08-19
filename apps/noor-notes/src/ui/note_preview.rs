@@ -76,13 +76,14 @@ impl NotePreview {
         let title_entry = gtk::Entry::builder()
             .hexpand(true)
             .placeholder_text("Note title")
-            .visible(false)
+            .visible(true)
             .build();
         title_entry.add_css_class("nn-preview-title-entry");
         let title_stack = gtk::Stack::new();
         title_stack.add_named(&title, Some("label"));
         title_stack.add_named(&title_entry, Some("entry"));
         title_stack.set_hexpand(true);
+        title_stack.set_visible_child_name("entry");
         heading.append(&title_stack);
         let edit = gtk::Button::builder()
             .label("Edit note")
@@ -199,16 +200,17 @@ impl NotePreview {
         let on_read_only_changed = Rc::new(RefCell::new(None::<ReadOnlyHandler>));
         {
             let current = current.clone();
-            let editing = editing.clone();
             let on_body_edited = on_body_edited.clone();
             let title = title.clone();
             title_entry.connect_changed(move |entry| {
-                if !editing.get() {
-                    return;
-                }
                 let Some(mut note) = current.borrow().clone() else {
                     return;
                 };
+                if note.editor_preferences.view_only
+                    || matches!(note.state, NoteState::Trashed { .. })
+                {
+                    return;
+                }
                 note.title = entry.text().trim().to_string();
                 title.set_text(if note.title.trim().is_empty() {
                     "Untitled note"
@@ -362,7 +364,8 @@ impl NotePreview {
         self.read_only.set_visible(false);
         self.toolbar.widget.set_visible(false);
         self.title_stack.set_visible(true);
-        self.title_stack.set_visible_child_name("label");
+        self.title_stack.set_visible_child_name("entry");
+        self.title_entry.set_editable(false);
         self.title.set_text("Select a note");
         self.metadata.set_text("Your note preview will appear here");
         self.metadata.set_visible(true);
@@ -385,9 +388,12 @@ impl NotePreview {
             false,
         );
         self.current.replace(Some(note.clone()));
-        self.title.set_visible(true);
         self.title_entry.set_text(note.display_title());
-        self.title_stack.set_visible_child_name("label");
+        self.title_stack.set_visible(true);
+        self.title_stack.set_visible_child_name("entry");
+        self.title_entry.set_editable(
+            !note.editor_preferences.view_only && !matches!(note.state, NoteState::Trashed { .. }),
+        );
         self.toolbar.widget.set_visible(false);
         self.edit.set_visible(true);
         self.read_only.set_visible(true);
@@ -515,7 +521,8 @@ fn set_editing(
     };
     edit.set_tooltip_text(Some(accessible_label));
     edit.update_property(&[gtk::accessible::Property::Label(accessible_label)]);
-    title_stack.set_visible_child_name(if enabled { "entry" } else { "label" });
+    title_stack.set_visible_child_name("entry");
+    title_entry.set_editable(enabled || title_entry.is_editable());
     toolbar.widget.set_visible(enabled);
     if enabled {
         title_entry.set_text(title_entry.text().as_str());
