@@ -23,6 +23,7 @@ use crate::services::trash_command;
 use crate::ui::appearance_button::AppearanceButton;
 use crate::ui::editor_canvas::{build_editor_canvas, configure_editor_canvas};
 use crate::ui::editor_header::EditorHeader;
+use crate::ui::editor_menu_bar::EditorMenuBar;
 use crate::ui::editor_presentation::EditorPresentation;
 use crate::ui::editor_status_bar::EditorStatusBar;
 use crate::ui::editor_toolbar::EditorToolbar;
@@ -81,6 +82,8 @@ impl NoteWindow {
         let library_pin = editor_header.library_pin.clone();
         let favorite = editor_header.favorite.clone();
         layout.append(&editor_header.widget);
+        let menu_bar = EditorMenuBar::new(&toolbar);
+        layout.append(&menu_bar.widget);
         layout.append(&toolbar.widget);
 
         let metadata = gtk::Box::new(gtk::Orientation::Horizontal, 6);
@@ -141,6 +144,7 @@ impl NoteWindow {
         }
         let rich_mode = current.editor_mode == EditorMode::Rich;
         toolbar.set_rich_formatting_enabled(rich_mode);
+        toolbar.set_editor_mode(current.editor_mode.clone());
         toolbar
             .word_wrap
             .set_active(current.editor_preferences.word_wrap);

@@ -6,6 +6,7 @@ use noor_domain::{EditorMode, Note, NoteId, NoteState};
 
 use crate::appearance::{EffectiveTheme, try_global};
 use crate::rich_buffer::RichBuffer;
+use crate::ui::editor_menu_bar::EditorMenuBar;
 use crate::ui::editor_toolbar::EditorToolbar;
 
 use super::editor_canvas::configure_editor_canvas;
@@ -31,6 +32,7 @@ pub struct NotePreview {
     edit: gtk::Button,
     read_only: gtk::Button,
     toolbar: EditorToolbar,
+    menu_bar: EditorMenuBar,
     current: Rc<RefCell<Option<Note>>>,
     editing: Rc<Cell<bool>>,
     on_edit_finished: EditFinishedHandler,
@@ -184,6 +186,9 @@ impl NotePreview {
         toolbar.widget.set_halign(gtk::Align::Start);
         crate::editor_actions::connect(&toolbar, &buffer, &editor);
         toolbar.set_rich_formatting_enabled(false);
+        let menu_bar = EditorMenuBar::new(&toolbar);
+        menu_bar.widget.set_visible(false);
+        document.append(&menu_bar.widget);
         document.append(&toolbar.widget);
         document.append(&body_stack);
 
@@ -236,6 +241,7 @@ impl NotePreview {
             let title_entry = title_entry.clone();
             let title_stack = title_stack.clone();
             let toolbar = toolbar.clone();
+            let menu_bar = menu_bar.clone();
             let on_body_edited = on_body_edited.clone();
             let on_edit_finished = on_edit_finished.clone();
             edit.connect_clicked(move |button| {
@@ -268,6 +274,7 @@ impl NotePreview {
                     &title_entry,
                     &title_stack,
                     &toolbar,
+                    &menu_bar,
                     enabled,
                 );
                 if !enabled {
@@ -347,6 +354,7 @@ impl NotePreview {
             edit,
             read_only,
             toolbar,
+            menu_bar,
             current,
             editing,
             on_edit_finished,
@@ -365,6 +373,7 @@ impl NotePreview {
             &self.title_entry,
             &self.title_stack,
             &self.toolbar,
+            &self.menu_bar,
             false,
         );
         self.edit.set_visible(false);
@@ -392,6 +401,7 @@ impl NotePreview {
             &self.title_entry,
             &self.title_stack,
             &self.toolbar,
+            &self.menu_bar,
             false,
         );
         self.current.replace(Some(note.clone()));
@@ -484,6 +494,7 @@ impl NotePreview {
             &self.title_entry,
             &self.title_stack,
             &self.toolbar,
+            &self.menu_bar,
             false,
         );
     }
@@ -511,6 +522,7 @@ fn set_editing(
     title_entry: &gtk::Entry,
     title_stack: &gtk::Stack,
     toolbar: &EditorToolbar,
+    menu_bar: &EditorMenuBar,
     enabled: bool,
 ) {
     editing.set(enabled);
@@ -531,6 +543,7 @@ fn set_editing(
     title_stack.set_visible_child_name("entry");
     title_entry.set_editable(enabled || title_entry.is_editable());
     toolbar.widget.set_visible(enabled);
+    menu_bar.widget.set_visible(enabled);
     if enabled {
         title_entry.set_text(title_entry.text().as_str());
         toolbar.set_rich_formatting_enabled(true);

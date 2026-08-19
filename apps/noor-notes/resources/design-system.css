@@ -110,6 +110,12 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-editor-toolbar button:disabled { opacity: .42; }
 .nn-editor-toolbar .nn-toolbar-font-size { min-width: 62px; min-height: 32px; border-radius: 6px; }
 .nn-editor-toolbar separator { margin: 6px 5px; background: @nn_border; }
+.nn-editor-menu-bar { min-height: 34px; padding: 3px 8px; background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; }
+.nn-editor-menu-button { min-height: 28px; padding: 0 10px; border-radius: 6px; color: @nn_text_secondary; }
+.nn-editor-menu-button:hover, .nn-editor-menu-button:checked { background: @nn_hover; color: @nn_text; }
+.nn-editor-menu-popover { min-width: 170px; padding: 6px; }
+.nn-editor-menu-popover button { min-height: 30px; padding: 0 10px; border-radius: 6px; text-align: left; }
+.nn-editor-menu-popover button:hover { background: @nn_hover; }
 .nn-editor-toolbar > flowboxchild { padding: 0; }
 .nn-formatting-popover { min-width: 320px; }
 .nn-format-section-label { margin-top: 2px; font-size: 12px; font-weight: 700; color: @nn_text_secondary; }

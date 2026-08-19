@@ -1,4 +1,5 @@
 use adw::prelude::*;
+use noor_domain::EditorMode;
 
 use crate::ui::formatting_popover::FormattingPopover;
 use crate::ui::rich_color_palette::RichColorPalette;
@@ -9,6 +10,8 @@ pub struct EditorToolbar {
     pub more: gtk::MenuButton,
     pub more_actions: gtk::FlowBox,
     pub format: gtk::MenuButton,
+    pub style: gtk::Button,
+    pub emoji: gtk::MenuButton,
     pub formatting: FormattingPopover,
     pub new_note: gtk::Button,
     pub undo: gtk::Button,
@@ -102,6 +105,16 @@ impl EditorToolbar {
             .popover(&formatting.widget)
             .build();
         format.add_css_class("toolbar-button");
+        let style = gtk::Button::with_label("Style ▾");
+        style.set_tooltip_text(Some("Text style and formatting"));
+        style.update_property(&[gtk::accessible::Property::Label(
+            "Text style and formatting",
+        )]);
+        style.add_css_class("toolbar-button");
+        {
+            let format = format.clone();
+            style.connect_clicked(move |_| format.popup());
+        }
 
         let emoji_grid = gtk::Grid::builder()
             .column_spacing(4)
@@ -294,15 +307,17 @@ impl EditorToolbar {
         widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
         widget.append(&find);
         widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
+        widget.append(&style);
+        widget.append(&quick_font_size);
+        widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
         widget.append(&bold);
         widget.append(&italic);
-        widget.append(&bullets);
         widget.append(&quick_underline);
         widget.append(&quick_strikethrough);
-        widget.append(&quick_numbered);
-        widget.append(&quick_font_size);
         widget.append(&format);
         widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
+        widget.append(&bullets);
+        widget.append(&quick_numbered);
         widget.append(&emoji);
         widget.append(&more);
         Self {
@@ -310,6 +325,8 @@ impl EditorToolbar {
             more,
             more_actions,
             format,
+            style,
+            emoji,
             formatting,
             new_note,
             undo,
@@ -366,6 +383,7 @@ impl EditorToolbar {
     pub fn set_rich_formatting_enabled(&self, enabled: bool) {
         for control in [
             self.format.upcast_ref::<gtk::Widget>(),
+            self.style.upcast_ref(),
             self.bold.upcast_ref::<gtk::Widget>(),
             self.italic.upcast_ref(),
             self.underline.upcast_ref(),
@@ -388,6 +406,25 @@ impl EditorToolbar {
         for button in &self.alignment_buttons {
             button.set_sensitive(enabled);
         }
+    }
+
+    pub fn set_editor_mode(&self, mode: EditorMode) {
+        let rich = mode == EditorMode::Rich;
+        for control in [
+            self.bold.upcast_ref::<gtk::Widget>(),
+            self.italic.upcast_ref(),
+            self.quick_underline.upcast_ref(),
+            self.quick_strikethrough.upcast_ref(),
+            self.bullets.upcast_ref(),
+            self.quick_numbered.upcast_ref(),
+            self.quick_font_size.upcast_ref(),
+            self.format.upcast_ref(),
+            self.style.upcast_ref(),
+            self.style.upcast_ref(),
+        ] {
+            control.set_visible(rich);
+        }
+        self.find.set_visible(!rich);
     }
 
     pub fn set_view_only_state(&self, enabled: bool) {
