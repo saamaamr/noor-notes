@@ -96,6 +96,8 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-preview-edit.suggested-action { background: @nn_accent; color: white; }
 .nn-preview-edit.suggested-action:hover { background: shade(@nn_accent, .9); }
 .nn-preview-read-only-button { min-width: 92px; min-height: 36px; padding: 0 12px; border-radius: 8px; }
+.nn-preview-title-entry { min-height: 40px; padding: 4px 10px; font-size: 28px; font-weight: 700; border-radius: 8px; }
+.nn-preview-format-toolbar { margin-top: 10px; margin-bottom: 10px; border: 1px solid @nn_border; border-radius: 9px; }
 .nn-preview-edit:hover { background: @nn_hover; color: @nn_text; }
 .nn-preview-editor { min-height: 280px; font-size: 16px; background: @nn_surface; color: @nn_text; border: 1px solid @nn_border_subtle; border-radius: 8px; }
 .nn-preview-editor:focus { border-color: alpha(@nn_accent, .45); }

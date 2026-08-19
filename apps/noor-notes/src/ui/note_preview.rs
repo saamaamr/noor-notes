@@ -162,6 +162,9 @@ impl NotePreview {
         toolbar.find.set_visible(false);
         toolbar.more.set_visible(false);
         toolbar.new_note.set_visible(false);
+        toolbar.format.set_label("Formatting");
+        toolbar.format.add_css_class("suggested-action");
+        toolbar.widget.add_css_class("nn-preview-format-toolbar");
         crate::editor_actions::connect(&toolbar, &buffer, &editor);
         toolbar.set_rich_formatting_enabled(false);
         document.append(&toolbar.widget);
@@ -225,20 +228,17 @@ impl NotePreview {
                     return;
                 }
                 let enabled = !editing.get();
-                let exited_view_only = if enabled {
+                let changed_note = if enabled {
                     let mut current = current.borrow_mut();
-                    current.as_mut().and_then(|note| {
-                        if note.editor_preferences.view_only {
-                            note.editor_preferences.view_only = false;
-                            Some(note.clone())
-                        } else {
-                            None
-                        }
+                    current.as_mut().map(|note| {
+                        note.editor_mode = EditorMode::Rich;
+                        note.editor_preferences.view_only = false;
+                        note.clone()
                     })
                 } else {
                     None
                 };
-                if let Some(note) = exited_view_only {
+                if let Some(note) = changed_note {
                     on_body_edited(note);
                 }
                 set_editing(
@@ -486,6 +486,9 @@ fn set_editing(
     editing.set(enabled);
     editor.set_editable(enabled);
     editor.set_cursor_visible(enabled);
+    if enabled {
+        editor.set_monospace(false);
+    }
     body_stack.set_visible_child_name(if enabled { "editor" } else { "preview" });
     edit.set_label(if enabled { "Done" } else { "Edit" });
     let accessible_label = if enabled {
