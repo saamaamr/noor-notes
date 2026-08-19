@@ -8,7 +8,7 @@ fn preview_owns_shared_editor_surface_and_read_only_sticky_flow() {
     assert!(PREVIEW.contains("on_read_only_changed"));
     assert!(PREVIEW.contains("title_entry"));
     assert!(PREVIEW.contains("EditorToolbar"));
-    assert!(PREVIEW.contains("toolbar.format.set_label(\"Formatting\")"));
+    assert!(PREVIEW.contains("toolbar.format.set_tooltip_text(Some(\"Formatting\"))"));
     assert!(PREVIEW.contains("note.editor_mode = EditorMode::Rich"));
     assert!(PREVIEW.contains("set_sticky_read_only"));
     assert!(LIB.contains("sticky_note_window"));

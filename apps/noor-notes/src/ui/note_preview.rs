@@ -85,9 +85,9 @@ impl NotePreview {
         title_stack.set_hexpand(true);
         heading.append(&title_stack);
         let edit = gtk::Button::builder()
-            .label("Edit")
+            .label("Edit note")
             .icon_name("document-edit-symbolic")
-            .tooltip_text("Edit note body")
+            .tooltip_text("Edit note title and body")
             .visible(false)
             .build();
         edit.add_css_class("flat");
@@ -96,6 +96,13 @@ impl NotePreview {
         edit.update_property(&[gtk::accessible::Property::Label("Edit note body")]);
         edit.set_valign(gtk::Align::Start);
         heading.append(&edit);
+        {
+            let edit = edit.clone();
+            let click = gtk::GestureClick::new();
+            click.connect_released(move |_, _, _, _| edit.emit_clicked());
+            title.add_controller(click);
+            title.set_tooltip_text(Some("Click to edit title and note body"));
+        }
         let read_only = gtk::Button::with_label("Read-only");
         read_only.set_tooltip_text(Some("Open this note in a read-only sticky window"));
         read_only.add_css_class("flat");
@@ -164,9 +171,10 @@ impl NotePreview {
         toolbar.find.set_visible(false);
         toolbar.more.set_visible(false);
         toolbar.new_note.set_visible(false);
-        toolbar.format.set_label("Formatting");
-        toolbar.format.add_css_class("suggested-action");
+        toolbar.format.set_tooltip_text(Some("Formatting"));
         toolbar.widget.add_css_class("nn-preview-format-toolbar");
+        toolbar.widget.set_hexpand(false);
+        toolbar.widget.set_halign(gtk::Align::Start);
         crate::editor_actions::connect(&toolbar, &buffer, &editor);
         toolbar.set_rich_formatting_enabled(false);
         document.append(&toolbar.widget);
@@ -499,11 +507,11 @@ fn set_editing(
         editor.set_monospace(false);
     }
     body_stack.set_visible_child_name(if enabled { "editor" } else { "preview" });
-    edit.set_label(if enabled { "Done" } else { "Edit" });
+    edit.set_label(if enabled { "Done" } else { "Edit note" });
     let accessible_label = if enabled {
         "Finish editing note body"
     } else {
-        "Edit note body"
+        "Edit note title and body"
     };
     edit.set_tooltip_text(Some(accessible_label));
     edit.update_property(&[gtk::accessible::Property::Label(accessible_label)]);
