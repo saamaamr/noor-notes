@@ -497,11 +497,17 @@ impl MainWindow {
             self.search.text().as_str(),
             sort_from_selected(self.sort.selected()),
         );
-        let notes = self.notes.borrow();
-        let visible: Vec<Note> = projected
-            .iter()
-            .filter_map(|item| notes.iter().find(|note| note.id == item.id).cloned())
-            .collect();
+        // Release the notes borrow before updating GTK widgets. `show_note`
+        // synchronizes the editable title, which can emit `changed` and feed
+        // back into the preview edit handler; keeping this borrow alive would
+        // trigger a RefCell borrow panic during the initial render.
+        let visible: Vec<Note> = {
+            let notes = self.notes.borrow();
+            projected
+                .iter()
+                .filter_map(|item| notes.iter().find(|note| note.id == item.id).cloned())
+                .collect()
+        };
         self.collection.set_notes(&visible);
         let searching = !self.search.text().trim().is_empty();
         if visible.is_empty() {
