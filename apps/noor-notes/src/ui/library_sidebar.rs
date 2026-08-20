@@ -37,6 +37,7 @@ impl LibrarySidebar {
         for section in LibrarySection::NAVIGATION {
             let row = gtk::ListBoxRow::new();
             row.add_css_class("nn-sidebar-row");
+            row.set_height_request(40);
             row.set_tooltip_text(Some(section.label()));
             let content = gtk::Box::new(gtk::Orientation::Horizontal, 10);
             let icon = gtk::Image::from_icon_name(section.icon_name());

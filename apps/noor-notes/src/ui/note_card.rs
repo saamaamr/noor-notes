@@ -14,6 +14,15 @@ pub enum CardAction {
 pub struct NoteCard {
     pub widget: gtk::Box,
     pub menu: gtk::MenuButton,
+    action_buttons: Vec<(CardAction, gtk::Button)>,
+}
+
+impl NoteCard {
+    pub fn action_button(&self, action: CardAction) -> Option<gtk::Button> {
+        self.action_buttons
+            .iter()
+            .find_map(|(candidate, button)| (*candidate == action).then(|| button.clone()))
+    }
 }
 
 pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
@@ -38,12 +47,16 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
         let icon = gtk::Image::from_icon_name("view-pin-symbolic");
         icon.add_css_class("nn-note-status-icon");
         icon.add_css_class("nn-icon-secondary");
+        icon.set_tooltip_text(Some("Pinned note"));
+        icon.update_property(&[gtk::accessible::Property::Label("Pinned note")]);
         heading.append(&icon);
     }
     if note.favorite {
         let icon = gtk::Image::from_icon_name("starred-symbolic");
         icon.add_css_class("nn-note-status-icon");
         icon.add_css_class("nn-icon-secondary");
+        icon.set_tooltip_text(Some("Favorite note"));
+        icon.update_property(&[gtk::accessible::Property::Label("Favorite note")]);
         heading.append(&icon);
     }
     text.append(&heading);
@@ -104,18 +117,38 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     popover_content.set_margin_bottom(6);
     popover_content.set_margin_start(6);
     popover_content.set_margin_end(6);
+    let popover = gtk::Popover::new();
+    popover.add_css_class("nn-menu-surface");
+    let mut action_buttons = Vec::new();
+    let mut separated_destructive_actions = false;
     for (label, card_action, destructive) in actions {
+        if destructive && !separated_destructive_actions {
+            let separator = gtk::Separator::new(gtk::Orientation::Horizontal);
+            separator.add_css_class("nn-menu-separator");
+            popover_content.append(&separator);
+            separated_destructive_actions = true;
+        }
         let button = gtk::Button::with_label(label);
         button.set_halign(gtk::Align::Fill);
+        button.set_tooltip_text(Some(label));
+        button.update_property(&[gtk::accessible::Property::Label(label)]);
+        button.add_css_class("flat");
+        button.add_css_class("nn-menu-row");
         if destructive {
             button.add_css_class("destructive-action");
+            button.add_css_class("nn-menu-danger");
         }
         let action = action.clone();
         let id = note.id;
-        button.connect_clicked(move |_| action(id, card_action));
+        let action_popover = popover.clone();
+        button.connect_clicked(move |_| {
+            action_popover.popdown();
+            action(id, card_action);
+        });
+        action_buttons.push((card_action, button.clone()));
         popover_content.append(&button);
     }
-    let popover = gtk::Popover::builder().child(&popover_content).build();
+    popover.set_child(Some(&popover_content));
     let menu = gtk::MenuButton::builder()
         .icon_name("view-more-symbolic")
         .tooltip_text("Note actions")
@@ -131,5 +164,9 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     gesture.connect_pressed(move |_, _, _, _| popover.popup());
     card.add_controller(gesture);
     card.append(&menu);
-    NoteCard { widget: card, menu }
+    NoteCard {
+        widget: card,
+        menu,
+        action_buttons,
+    }
 }

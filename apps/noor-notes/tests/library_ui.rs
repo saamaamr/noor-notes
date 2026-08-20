@@ -9,6 +9,7 @@ use noor_notes::ui::app_header::AppHeader;
 use noor_notes::ui::empty_state::EmptyState;
 use noor_notes::ui::library_sidebar::LibrarySidebar;
 use noor_notes::ui::note_card;
+use noor_notes::ui::note_card::CardAction;
 use noor_notes::ui::note_collection::NoteCollection;
 use noor_notes::ui::note_preview::NotePreview;
 use noor_storage::NoteSort;
@@ -54,6 +55,7 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     assert_eq!(list.selection_mode(), gtk::SelectionMode::Single);
     for index in 0..7 {
         let row = list.row_at_index(index).unwrap();
+        assert_eq!(row.height_request(), 40);
         assert!(row.tooltip_text().is_some());
         let content = row.child().and_downcast::<gtk::Box>().unwrap();
         let icon = content.first_child().unwrap();
@@ -92,6 +94,8 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     note.title = "A complete redesign".into();
     note.content = format!("{} বাংলা نص عربي", "A".repeat(300));
     note.tags = vec!["design".into(), "gtk".into(), "hidden".into()];
+    note.pinned = true;
+    note.favorite = true;
     collection.set_notes(&[note.clone()]);
     assert_eq!(collection.widget.model().unwrap().n_items(), 1);
 
@@ -119,8 +123,30 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     let color_rail = card.widget.first_child().expect("note color rail");
     assert!(color_rail.has_css_class("nn-color-strip"));
     assert_eq!(color_rail.width_request(), 4);
+    let text = color_rail
+        .next_sibling()
+        .and_downcast::<gtk::Box>()
+        .expect("card text stack");
+    let preview = text
+        .first_child()
+        .and_then(|heading| heading.next_sibling())
+        .and_downcast::<gtk::Label>()
+        .expect("two-line note preview");
+    assert_eq!(preview.lines(), 2);
     assert!(card.menu.has_css_class("nn-card-action"));
     assert_eq!(card.menu.valign(), gtk::Align::Center);
+    assert_eq!(card.menu.tooltip_text().as_deref(), Some("Note actions"));
+    assert!(
+        card.menu
+            .popover()
+            .is_some_and(|popover| popover.has_css_class("nn-menu-surface"))
+    );
+    let trash_action = card
+        .action_button(CardAction::Trash)
+        .expect("active note trash action");
+    assert!(trash_action.has_css_class("destructive-action"));
+    assert!(trash_action.has_css_class("nn-menu-danger"));
+    assert_eq!(trash_action.accessible_role(), gtk::AccessibleRole::Button);
     assert_eq!(card.menu.tooltip_text().as_deref(), Some("Note actions"));
     let card_descendants = descendants(card.widget.clone().upcast());
     assert!(

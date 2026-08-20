@@ -171,7 +171,7 @@ fn light_selected_note_explicitly_owns_readable_foreground_colors() {
 fn light_library_layers_sidebar_and_note_list_without_heavy_borders() {
     assert!(CSS.contains(".nn-sidebar { background: @nn_sidebar_bg;"));
     assert!(CSS.contains(".nn-note-list { background: @nn_note_list_bg;"));
-    assert!(CSS.contains(".nn-sidebar-row { min-height: 42px;"));
+    assert!(CSS.contains(".nn-sidebar-row { min-height: 40px;"));
     assert!(CSS.contains(".nn-pane-separator { min-width: 1px; background: @nn_border;"));
 }
 

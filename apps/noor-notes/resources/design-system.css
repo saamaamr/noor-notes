@@ -49,6 +49,11 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-control-primary { min-height: 36px; padding: 0 12px; border-radius: 8px; }
 .nn-surface-elevated { background: @nn_surface_raised; border: 1px solid @nn_border; border-radius: 12px; box-shadow: 0 4px 16px rgba(16,24,40,.08); }
 .nn-menu-surface { background: @nn_popover_bg; border: 1px solid @nn_border; border-radius: 10px; padding: 6px; }
+.nn-menu-row { min-height: 34px; padding: 0 10px; border-radius: 6px; color: @nn_text; }
+.nn-menu-row:hover { background: @nn_hover; }
+.nn-menu-separator { margin: 4px 6px; background: @nn_border_subtle; }
+.nn-menu-danger { color: @nn_danger; }
+.nn-menu-danger:hover { background: @nn_danger_soft; color: @nn_danger; }
 .nn-document-title { font-size: 30px; font-weight: 700; line-height: 1.2; color: @nn_text; }
 
 .nn-app-header { min-height: 44px; background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; box-shadow: none; }
@@ -62,7 +67,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 
 .nn-sidebar { background: @nn_sidebar_bg; border-right: 0; padding: 12px 8px; }
 .nn-pane-separator { min-width: 1px; background: @nn_border; }
-.nn-sidebar-row { min-height: 42px; margin: 2px 0; padding: 0 12px; border-radius: 8px; transition: 140ms ease; }
+.nn-sidebar-row { min-height: 40px; margin: 2px 0; padding: 0 12px; border-radius: 8px; transition: 140ms ease; }
 .nn-sidebar-row:hover { background: @nn_hover; }
 .nn-sidebar.collapsed { padding-left: 6px; padding-right: 6px; }
 .nn-sidebar.collapsed .nn-sidebar-row { padding-left: 10px; padding-right: 10px; }
@@ -78,6 +83,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
   border-color: alpha(@nn_accent, .35);
   box-shadow: 0 0 0 1px alpha(@nn_accent, .14);
 }
+.nn-note-list row:selected .nn-color-strip { min-width: 5px; }
 .nn-note-card {
   min-height: 92px;
   margin: 5px 4px;

@@ -46,6 +46,7 @@ impl NoteCollection {
         });
         let widget = gtk::ListView::new(Some(selection), Some(factory));
         widget.add_css_class("nn-note-list");
+        widget.update_property(&[gtk::accessible::Property::Label("Notes")]);
         widget.set_single_click_activate(false);
         widget.set_show_separators(false);
         Self {
