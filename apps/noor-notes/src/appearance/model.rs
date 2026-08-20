@@ -75,6 +75,15 @@ pub enum EffectiveTheme {
 }
 
 impl EffectiveTheme {
+    pub const ALL: [Self; 6] = [
+        Self::Light,
+        Self::WarmPaper,
+        Self::CoolMist,
+        Self::Graphite,
+        Self::Midnight,
+        Self::Oled,
+    ];
+
     pub const ALL_CLASSES: [&'static str; 6] = [
         "nn-theme-light",
         "nn-theme-warm-paper",
@@ -92,6 +101,17 @@ impl EffectiveTheme {
             Self::Graphite => "nn-theme-graphite",
             Self::Midnight => "nn-theme-midnight",
             Self::Oled => "nn-theme-oled",
+        }
+    }
+
+    pub const fn palette_prefix(self) -> &'static str {
+        match self {
+            Self::Light => "light",
+            Self::WarmPaper => "warm",
+            Self::CoolMist => "mist",
+            Self::Graphite => "graphite",
+            Self::Midnight => "midnight",
+            Self::Oled => "oled",
         }
     }
 

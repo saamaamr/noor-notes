@@ -1,3 +1,119 @@
+/* Complete namespaced palettes. GTK color definitions are global, so each
+ * effective theme owns a namespace and themed component rules consume it. */
+@define-color nn_light_app_bg #f7f8fa;
+@define-color nn_light_sidebar_bg #f6f7f9;
+@define-color nn_light_list_bg #fafafb;
+@define-color nn_light_editor_bg #ffffff;
+@define-color nn_light_surface #ffffff;
+@define-color nn_light_surface_raised #ffffff;
+@define-color nn_light_popover_bg #ffffff;
+@define-color nn_light_input_bg #ffffff;
+@define-color nn_light_text_primary #1f2937;
+@define-color nn_light_text_secondary #667085;
+@define-color nn_light_text_muted #6b7280;
+@define-color nn_light_border #e5e7eb;
+@define-color nn_light_border_strong #d0d5dd;
+@define-color nn_light_accent #4f6fe8;
+@define-color nn_light_accent_soft #eef2ff;
+@define-color nn_light_focus #4f6fe8;
+@define-color nn_light_danger #dc2626;
+@define-color nn_light_danger_soft #fef2f2;
+
+@define-color nn_warm_app_bg #f6f1e8;
+@define-color nn_warm_sidebar_bg #f3ede4;
+@define-color nn_warm_list_bg #faf7f1;
+@define-color nn_warm_editor_bg #fffdf8;
+@define-color nn_warm_surface #fffdf8;
+@define-color nn_warm_surface_raised #fffaf2;
+@define-color nn_warm_popover_bg #fffdf8;
+@define-color nn_warm_input_bg #fffdf8;
+@define-color nn_warm_text_primary #2c2925;
+@define-color nn_warm_text_secondary #6f675e;
+@define-color nn_warm_text_muted #81786d;
+@define-color nn_warm_border #e5ddd1;
+@define-color nn_warm_border_strong #d8cdbf;
+@define-color nn_warm_accent #4f6fe8;
+@define-color nn_warm_accent_soft #edf0ff;
+@define-color nn_warm_focus #4f6fe8;
+@define-color nn_warm_danger #b42318;
+@define-color nn_warm_danger_soft #fff1ef;
+
+@define-color nn_mist_app_bg #f2f6f8;
+@define-color nn_mist_sidebar_bg #eef3f6;
+@define-color nn_mist_list_bg #f6f9fa;
+@define-color nn_mist_editor_bg #fcfeff;
+@define-color nn_mist_surface #fcfeff;
+@define-color nn_mist_surface_raised #f9fcfd;
+@define-color nn_mist_popover_bg #fcfeff;
+@define-color nn_mist_input_bg #fcfeff;
+@define-color nn_mist_text_primary #20303b;
+@define-color nn_mist_text_secondary #60727e;
+@define-color nn_mist_text_muted #72838e;
+@define-color nn_mist_border #dce6eb;
+@define-color nn_mist_border_strong #ccdbe2;
+@define-color nn_mist_accent #4f6fe8;
+@define-color nn_mist_accent_soft #e9f0ff;
+@define-color nn_mist_focus #4f6fe8;
+@define-color nn_mist_danger #c4322b;
+@define-color nn_mist_danger_soft #fff1f0;
+
+@define-color nn_graphite_app_bg #1c1d20;
+@define-color nn_graphite_sidebar_bg #202226;
+@define-color nn_graphite_list_bg #1c1d20;
+@define-color nn_graphite_editor_bg #24262a;
+@define-color nn_graphite_surface #282a2f;
+@define-color nn_graphite_surface_raised #303238;
+@define-color nn_graphite_popover_bg #303238;
+@define-color nn_graphite_input_bg #2d3035;
+@define-color nn_graphite_text_primary #f3f4f6;
+@define-color nn_graphite_text_secondary #b8bbc3;
+@define-color nn_graphite_text_muted #9297a1;
+@define-color nn_graphite_border rgba(255,255,255,.10);
+@define-color nn_graphite_border_strong rgba(154,175,255,.26);
+@define-color nn_graphite_accent #9aafff;
+@define-color nn_graphite_accent_soft #30364a;
+@define-color nn_graphite_focus #9aafff;
+@define-color nn_graphite_danger #ff858b;
+@define-color nn_graphite_danger_soft rgba(255,133,139,.14);
+
+@define-color nn_midnight_app_bg #101722;
+@define-color nn_midnight_sidebar_bg #131c2a;
+@define-color nn_midnight_list_bg #101722;
+@define-color nn_midnight_editor_bg #172131;
+@define-color nn_midnight_surface #1a2638;
+@define-color nn_midnight_surface_raised #202d41;
+@define-color nn_midnight_popover_bg #202d41;
+@define-color nn_midnight_input_bg #1d2b40;
+@define-color nn_midnight_text_primary #edf5ff;
+@define-color nn_midnight_text_secondary #abc0da;
+@define-color nn_midnight_text_muted #849bb8;
+@define-color nn_midnight_border rgba(168,205,255,.12);
+@define-color nn_midnight_border_strong rgba(115,183,255,.28);
+@define-color nn_midnight_accent #73b7ff;
+@define-color nn_midnight_accent_soft #203858;
+@define-color nn_midnight_focus #73b7ff;
+@define-color nn_midnight_danger #ff8a91;
+@define-color nn_midnight_danger_soft rgba(255,138,145,.15);
+
+@define-color nn_oled_app_bg #050506;
+@define-color nn_oled_sidebar_bg #09090b;
+@define-color nn_oled_list_bg #050506;
+@define-color nn_oled_editor_bg #0d0d0f;
+@define-color nn_oled_surface #121216;
+@define-color nn_oled_surface_raised #18181d;
+@define-color nn_oled_popover_bg #18181d;
+@define-color nn_oled_input_bg #17171c;
+@define-color nn_oled_text_primary #f7f7fa;
+@define-color nn_oled_text_secondary #bdbdc7;
+@define-color nn_oled_text_muted #92929f;
+@define-color nn_oled_border rgba(255,255,255,.13);
+@define-color nn_oled_border_strong rgba(177,160,255,.30);
+@define-color nn_oled_accent #b1a0ff;
+@define-color nn_oled_accent_soft #211d38;
+@define-color nn_oled_focus #b1a0ff;
+@define-color nn_oled_danger #ff858b;
+@define-color nn_oled_danger_soft rgba(255,133,139,.16);
+
 @define-color nn_bg #f7f8fa;
 @define-color nn_app_bg #f7f8fa;
 @define-color nn_sidebar_bg #f6f7f9;
@@ -258,8 +374,8 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .empty-state { padding: 32px; color: @nn_text_secondary; }
 
 /* Effective light root. */
-.nn-theme-light { background: @nn_app_bg; color: @nn_text; }
-.nn-theme-light headerbar { background: @nn_surface; color: @nn_text; }
+.nn-theme-light { background: @nn_light_app_bg; color: @nn_light_text_primary; }
+.nn-theme-light headerbar { background: @nn_light_surface; color: @nn_light_text_primary; }
 .nn-theme-light .nn-icon-neutral { color: @nn_text_secondary; }
 .nn-theme-light .nn-icon-secondary { color: @nn_text_secondary; }
 .nn-theme-light .nn-icon-active { color: @nn_accent; }
@@ -285,108 +401,108 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-light scrollbar slider:hover { background: @nn_scrollbar_hover; }
 
 /* Warm Paper: gentle ivory layers with the existing restrained blue accent. */
-.nn-theme-warm-paper { background: #f6f1e8; color: #2c2925; }
-.nn-theme-warm-paper headerbar { background: #fffdf8; color: #2c2925; border-color: #e5ddd1; }
-.nn-theme-warm-paper .nn-sidebar { background: #f3ede4; color: #3d3934; }
+.nn-theme-warm-paper { background: @nn_warm_app_bg; color: @nn_warm_text_primary; }
+.nn-theme-warm-paper headerbar { background: @nn_warm_surface; color: @nn_warm_text_primary; border-color: @nn_warm_border; }
+.nn-theme-warm-paper .nn-sidebar { background: @nn_warm_sidebar_bg; color: @nn_warm_text_primary; }
 .nn-theme-warm-paper .nn-sidebar-row:hover { background: #ebe4da; }
-.nn-theme-warm-paper .nn-sidebar-row:selected { background: #edf0ff; color: #425fcc; box-shadow: inset 3px 0 #4f6fe8; }
-.nn-theme-warm-paper .nn-sidebar-icon, .nn-theme-warm-paper .nn-sidebar-count { color: #756d63; }
-.nn-theme-warm-paper .nn-sidebar-row:selected .nn-sidebar-icon { color: #4f6fe8; }
-.nn-theme-warm-paper .nn-note-list { background: #faf7f1; color: #2c2925; }
-.nn-theme-warm-paper .nn-note-card { background: #fffdf8; color: #2c2925; border-color: #e5ddd1; box-shadow: 0 1px 2px rgba(76,61,42,.04); }
-.nn-theme-warm-paper .nn-note-card:hover { border-color: #d8cdbf; box-shadow: 0 2px 5px rgba(76,61,42,.07); }
-.nn-theme-warm-paper .nn-note-list row:selected .nn-note-card { background: #edf0ff; color: #2c2925; border-color: #c7d2fe; box-shadow: 0 0 0 1px rgba(79,111,232,.12); }
+.nn-theme-warm-paper .nn-sidebar-row:selected { background: @nn_warm_accent_soft; color: @nn_warm_accent; box-shadow: inset 3px 0 @nn_warm_accent; }
+.nn-theme-warm-paper .nn-sidebar-icon, .nn-theme-warm-paper .nn-sidebar-count { color: @nn_warm_text_muted; }
+.nn-theme-warm-paper .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_warm_accent; }
+.nn-theme-warm-paper .nn-note-list { background: @nn_warm_list_bg; color: @nn_warm_text_primary; }
+.nn-theme-warm-paper .nn-note-card { background: @nn_warm_surface; color: @nn_warm_text_primary; border-color: @nn_warm_border; box-shadow: 0 1px 2px rgba(76,61,42,.04); }
+.nn-theme-warm-paper .nn-note-card:hover { border-color: @nn_warm_border_strong; box-shadow: 0 2px 5px rgba(76,61,42,.07); }
+.nn-theme-warm-paper .nn-note-list row:selected .nn-note-card { background: @nn_warm_accent_soft; color: @nn_warm_text_primary; border-color: alpha(@nn_warm_accent,.30); box-shadow: 0 0 0 1px alpha(@nn_warm_accent,.12); }
 .nn-theme-warm-paper .nn-note-card-preview,
 .nn-theme-warm-paper .nn-note-card-tags,
 .nn-theme-warm-paper .nn-note-status-icon,
-.nn-theme-warm-paper .nn-card-action { color: #6f675e; }
+.nn-theme-warm-paper .nn-card-action { color: @nn_warm_text_secondary; }
 .nn-theme-warm-paper .nn-note-card-meta,
 .nn-theme-warm-paper .nn-metadata,
-.nn-theme-warm-paper .nn-caption { color: #81786d; }
-.nn-theme-warm-paper .nn-preview-surface, .nn-theme-warm-paper .nn-preview { background: #fffdf8; color: #2c2925; }
-.nn-theme-warm-paper .nn-preview-title, .nn-theme-warm-paper .nn-preview-body { color: #2c2925; }
-.nn-theme-warm-paper .nn-preview-editor { background: #fffdf8; color: #2c2925; border-color: #e8e0d5; }
-.nn-theme-warm-paper .nn-sort-control { background: #eee8df; color: #2c2925; }
-.nn-theme-warm-paper .nn-pane-separator { background: #e5ddd1; }
-.nn-theme-warm-paper .nn-editor-toolbar { background: #fbf7f0; color: #2c2925; border-color: #e5ddd1; }
-.nn-theme-warm-paper .nn-rich-writing-canvas { background: #fffdf8; color: #2c2925; caret-color: #4f6fe8; }
-.nn-theme-warm-paper .nn-canvas-scroller, .nn-theme-warm-paper .nn-writing-clamp { background: #f6f1e8; }
-.nn-theme-warm-paper .nn-find-panel { background: #fffaf2; color: #2c2925; border-color: #e5ddd1; }
-.nn-theme-warm-paper .nn-statusbar { background: #f8f3eb; color: #756d63; border-color: #e8e0d5; }
-.nn-theme-warm-paper popover, .nn-theme-warm-paper entry { background: #fffdf8; color: #2c2925; }
-.nn-theme-warm-paper .nn-tag-strip { background: #fbf7f0; color: #6f675e; border-color: #e5ddd1; }
+.nn-theme-warm-paper .nn-caption { color: @nn_warm_text_muted; }
+.nn-theme-warm-paper .nn-preview-surface, .nn-theme-warm-paper .nn-preview { background: @nn_warm_editor_bg; color: @nn_warm_text_primary; }
+.nn-theme-warm-paper .nn-preview-title, .nn-theme-warm-paper .nn-preview-body { color: @nn_warm_text_primary; }
+.nn-theme-warm-paper .nn-preview-editor { background: @nn_warm_editor_bg; color: @nn_warm_text_primary; border-color: @nn_warm_border; }
+.nn-theme-warm-paper .nn-sort-control { background: @nn_warm_input_bg; color: @nn_warm_text_primary; }
+.nn-theme-warm-paper .nn-pane-separator { background: @nn_warm_border; }
+.nn-theme-warm-paper .nn-editor-toolbar { background: @nn_warm_surface_raised; color: @nn_warm_text_primary; border-color: @nn_warm_border; }
+.nn-theme-warm-paper .nn-rich-writing-canvas { background: @nn_warm_editor_bg; color: @nn_warm_text_primary; caret-color: @nn_warm_focus; }
+.nn-theme-warm-paper .nn-canvas-scroller, .nn-theme-warm-paper .nn-writing-clamp { background: @nn_warm_app_bg; }
+.nn-theme-warm-paper .nn-find-panel { background: @nn_warm_surface_raised; color: @nn_warm_text_primary; border-color: @nn_warm_border; }
+.nn-theme-warm-paper .nn-statusbar { background: @nn_warm_sidebar_bg; color: @nn_warm_text_muted; border-color: @nn_warm_border; }
+.nn-theme-warm-paper popover, .nn-theme-warm-paper entry { background: @nn_warm_popover_bg; color: @nn_warm_text_primary; }
+.nn-theme-warm-paper .nn-tag-strip { background: @nn_warm_surface_raised; color: @nn_warm_text_secondary; border-color: @nn_warm_border; }
 .nn-theme-warm-paper button:hover { background: #ebe4da; }
-.nn-theme-warm-paper button:checked { background: #edf0ff; color: #425fcc; }
-.nn-theme-warm-paper .nn-header-control { color: #6f675e; }
-.nn-theme-warm-paper .nn-icon-neutral, .nn-theme-warm-paper .nn-icon-secondary { color: #6f675e; }
-.nn-theme-warm-paper .nn-icon-active { color: #4f6fe8; }
+.nn-theme-warm-paper button:checked { background: @nn_warm_accent_soft; color: @nn_warm_accent; }
+.nn-theme-warm-paper .nn-header-control { color: @nn_warm_text_secondary; }
+.nn-theme-warm-paper .nn-icon-neutral, .nn-theme-warm-paper .nn-icon-secondary { color: @nn_warm_text_secondary; }
+.nn-theme-warm-paper .nn-icon-active { color: @nn_warm_accent; }
 .nn-theme-warm-paper windowcontrols button { color: #6f675e; background: transparent; }
 .nn-theme-warm-paper scrollbar slider { background: #c9c0b4; }
 
 /* Cool Mist: quiet blue-gray layers for a focused technical workspace. */
-.nn-theme-cool-mist { background: #f2f6f8; color: #20303b; }
-.nn-theme-cool-mist headerbar { background: #fcfeff; color: #20303b; border-color: #dce6eb; }
-.nn-theme-cool-mist .nn-sidebar { background: #eef3f6; color: #2b3d49; }
+.nn-theme-cool-mist { background: @nn_mist_app_bg; color: @nn_mist_text_primary; }
+.nn-theme-cool-mist headerbar { background: @nn_mist_surface; color: @nn_mist_text_primary; border-color: @nn_mist_border; }
+.nn-theme-cool-mist .nn-sidebar { background: @nn_mist_sidebar_bg; color: @nn_mist_text_primary; }
 .nn-theme-cool-mist .nn-sidebar-row:hover { background: #e5edf1; }
-.nn-theme-cool-mist .nn-sidebar-row:selected { background: #e9f0ff; color: #425fcc; box-shadow: inset 3px 0 #4f6fe8; }
-.nn-theme-cool-mist .nn-sidebar-icon, .nn-theme-cool-mist .nn-sidebar-count { color: #657783; }
-.nn-theme-cool-mist .nn-sidebar-row:selected .nn-sidebar-icon { color: #4f6fe8; }
-.nn-theme-cool-mist .nn-note-list { background: #f6f9fa; color: #20303b; }
-.nn-theme-cool-mist .nn-note-card { background: #fcfeff; color: #20303b; border-color: #dce6eb; box-shadow: 0 1px 2px rgba(24,55,72,.035); }
-.nn-theme-cool-mist .nn-note-card:hover { border-color: #ccdbe2; box-shadow: 0 2px 5px rgba(24,55,72,.06); }
-.nn-theme-cool-mist .nn-note-list row:selected .nn-note-card { background: #e9f0ff; color: #20303b; border-color: #c7d2fe; box-shadow: 0 0 0 1px rgba(79,111,232,.12); }
+.nn-theme-cool-mist .nn-sidebar-row:selected { background: @nn_mist_accent_soft; color: @nn_mist_accent; box-shadow: inset 3px 0 @nn_mist_accent; }
+.nn-theme-cool-mist .nn-sidebar-icon, .nn-theme-cool-mist .nn-sidebar-count { color: @nn_mist_text_muted; }
+.nn-theme-cool-mist .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_mist_accent; }
+.nn-theme-cool-mist .nn-note-list { background: @nn_mist_list_bg; color: @nn_mist_text_primary; }
+.nn-theme-cool-mist .nn-note-card { background: @nn_mist_surface; color: @nn_mist_text_primary; border-color: @nn_mist_border; box-shadow: 0 1px 2px rgba(24,55,72,.035); }
+.nn-theme-cool-mist .nn-note-card:hover { border-color: @nn_mist_border_strong; box-shadow: 0 2px 5px rgba(24,55,72,.06); }
+.nn-theme-cool-mist .nn-note-list row:selected .nn-note-card { background: @nn_mist_accent_soft; color: @nn_mist_text_primary; border-color: alpha(@nn_mist_accent,.30); box-shadow: 0 0 0 1px alpha(@nn_mist_accent,.12); }
 .nn-theme-cool-mist .nn-note-card-preview,
 .nn-theme-cool-mist .nn-note-card-tags,
 .nn-theme-cool-mist .nn-note-status-icon,
-.nn-theme-cool-mist .nn-card-action { color: #60727e; }
+.nn-theme-cool-mist .nn-card-action { color: @nn_mist_text_secondary; }
 .nn-theme-cool-mist .nn-note-card-meta,
 .nn-theme-cool-mist .nn-metadata,
-.nn-theme-cool-mist .nn-caption { color: #72838e; }
-.nn-theme-cool-mist .nn-preview-surface, .nn-theme-cool-mist .nn-preview { background: #fcfeff; color: #20303b; }
-.nn-theme-cool-mist .nn-preview-title, .nn-theme-cool-mist .nn-preview-body { color: #20303b; }
-.nn-theme-cool-mist .nn-preview-editor { background: #fcfeff; color: #20303b; border-color: #e1e9ed; }
-.nn-theme-cool-mist .nn-sort-control { background: #e8eff3; color: #20303b; }
-.nn-theme-cool-mist .nn-pane-separator { background: #dce6eb; }
-.nn-theme-cool-mist .nn-editor-toolbar { background: #f7fafb; color: #20303b; border-color: #dce6eb; }
-.nn-theme-cool-mist .nn-rich-writing-canvas { background: #fcfeff; color: #20303b; caret-color: #4f6fe8; }
-.nn-theme-cool-mist .nn-canvas-scroller, .nn-theme-cool-mist .nn-writing-clamp { background: #f2f6f8; }
-.nn-theme-cool-mist .nn-find-panel { background: #f9fcfd; color: #20303b; border-color: #dce6eb; }
-.nn-theme-cool-mist .nn-statusbar { background: #f1f6f8; color: #657783; border-color: #e1e9ed; }
-.nn-theme-cool-mist popover, .nn-theme-cool-mist entry { background: #fcfeff; color: #20303b; }
-.nn-theme-cool-mist .nn-tag-strip { background: #f7fafb; color: #60727e; border-color: #dce6eb; }
+.nn-theme-cool-mist .nn-caption { color: @nn_mist_text_muted; }
+.nn-theme-cool-mist .nn-preview-surface, .nn-theme-cool-mist .nn-preview { background: @nn_mist_editor_bg; color: @nn_mist_text_primary; }
+.nn-theme-cool-mist .nn-preview-title, .nn-theme-cool-mist .nn-preview-body { color: @nn_mist_text_primary; }
+.nn-theme-cool-mist .nn-preview-editor { background: @nn_mist_editor_bg; color: @nn_mist_text_primary; border-color: @nn_mist_border; }
+.nn-theme-cool-mist .nn-sort-control { background: @nn_mist_input_bg; color: @nn_mist_text_primary; }
+.nn-theme-cool-mist .nn-pane-separator { background: @nn_mist_border; }
+.nn-theme-cool-mist .nn-editor-toolbar { background: @nn_mist_surface_raised; color: @nn_mist_text_primary; border-color: @nn_mist_border; }
+.nn-theme-cool-mist .nn-rich-writing-canvas { background: @nn_mist_editor_bg; color: @nn_mist_text_primary; caret-color: @nn_mist_focus; }
+.nn-theme-cool-mist .nn-canvas-scroller, .nn-theme-cool-mist .nn-writing-clamp { background: @nn_mist_app_bg; }
+.nn-theme-cool-mist .nn-find-panel { background: @nn_mist_surface_raised; color: @nn_mist_text_primary; border-color: @nn_mist_border; }
+.nn-theme-cool-mist .nn-statusbar { background: @nn_mist_sidebar_bg; color: @nn_mist_text_muted; border-color: @nn_mist_border; }
+.nn-theme-cool-mist popover, .nn-theme-cool-mist entry { background: @nn_mist_popover_bg; color: @nn_mist_text_primary; }
+.nn-theme-cool-mist .nn-tag-strip { background: @nn_mist_surface_raised; color: @nn_mist_text_secondary; border-color: @nn_mist_border; }
 .nn-theme-cool-mist button:hover { background: #e5edf1; }
-.nn-theme-cool-mist button:checked { background: #e9f0ff; color: #425fcc; }
-.nn-theme-cool-mist .nn-header-control { color: #60727e; }
-.nn-theme-cool-mist .nn-icon-neutral, .nn-theme-cool-mist .nn-icon-secondary { color: #60727e; }
-.nn-theme-cool-mist .nn-icon-active { color: #4f6fe8; }
+.nn-theme-cool-mist button:checked { background: @nn_mist_accent_soft; color: @nn_mist_accent; }
+.nn-theme-cool-mist .nn-header-control { color: @nn_mist_text_secondary; }
+.nn-theme-cool-mist .nn-icon-neutral, .nn-theme-cool-mist .nn-icon-secondary { color: @nn_mist_text_secondary; }
+.nn-theme-cool-mist .nn-icon-active { color: @nn_mist_accent; }
 .nn-theme-cool-mist windowcontrols button { color: #60727e; background: transparent; }
 .nn-theme-cool-mist scrollbar slider { background: #becbd2; }
 
 /* Graphite: warm neutral charcoal with restrained indigo. */
-.nn-theme-graphite { background: #1c1d20; color: #f3f4f6; }
-.nn-theme-graphite headerbar { background: #24262a; color: #f3f4f6; border-color: rgba(255,255,255,.10); }
-.nn-theme-graphite .nn-sidebar { background: #202226; color: #dfe1e6; border-color: rgba(255,255,255,.09); }
+.nn-theme-graphite { background: @nn_graphite_app_bg; color: @nn_graphite_text_primary; }
+.nn-theme-graphite headerbar { background: @nn_graphite_editor_bg; color: @nn_graphite_text_primary; border-color: @nn_graphite_border; }
+.nn-theme-graphite .nn-sidebar { background: @nn_graphite_sidebar_bg; color: @nn_graphite_text_primary; border-color: @nn_graphite_border; }
 .nn-theme-graphite .nn-sidebar-row:hover { background: #2e3137; }
-.nn-theme-graphite .nn-sidebar-row:selected { background: #30364a; color: #ffffff; box-shadow: inset 3px 0 #9aafff; }
-.nn-theme-graphite .nn-sidebar-icon { color: #b8bbc3; }
-.nn-theme-graphite .nn-sidebar-row:selected .nn-sidebar-icon { color: #9aafff; }
-.nn-theme-graphite .nn-note-list { background: #1c1d20; color: #f3f4f6; }
-.nn-theme-graphite .nn-note-card-tags { color: #b8bbc3; }
-.nn-theme-graphite .nn-note-card { background: #282a2f; color: #f5f6f8; border-color: rgba(255,255,255,.10); box-shadow: 0 1px 3px rgba(0,0,0,.32); }
-.nn-theme-graphite .nn-note-card:hover { background: #2e3137; border-color: rgba(154,175,255,.26); }
-.nn-theme-graphite .nn-note-list row:selected .nn-note-card { background: #30364a; border-color: #9aafff; box-shadow: 0 0 0 1px rgba(154,175,255,.18); }
-.nn-theme-graphite .nn-preview-surface, .nn-theme-graphite .nn-preview { background: #24262a; color: #f3f4f6; }
-.nn-theme-graphite .nn-preview-title, .nn-theme-graphite .nn-preview-body { color: #f3f4f6; }
-.nn-theme-graphite .nn-preview-editor { background: #282a2f; color: #f5f6f8; border-color: rgba(255,255,255,.10); }
-.nn-theme-graphite .nn-sort-control { background: #2d3035; color: #f3f4f6; }
+.nn-theme-graphite .nn-sidebar-row:selected { background: @nn_graphite_accent_soft; color: @nn_graphite_text_primary; box-shadow: inset 3px 0 @nn_graphite_accent; }
+.nn-theme-graphite .nn-sidebar-icon { color: @nn_graphite_text_secondary; }
+.nn-theme-graphite .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_graphite_accent; }
+.nn-theme-graphite .nn-note-list { background: @nn_graphite_list_bg; color: @nn_graphite_text_primary; }
+.nn-theme-graphite .nn-note-card-tags { color: @nn_graphite_text_secondary; }
+.nn-theme-graphite .nn-note-card { background: @nn_graphite_surface; color: @nn_graphite_text_primary; border-color: @nn_graphite_border; box-shadow: 0 1px 3px rgba(0,0,0,.32); }
+.nn-theme-graphite .nn-note-card:hover { background: @nn_graphite_surface_raised; border-color: @nn_graphite_border_strong; }
+.nn-theme-graphite .nn-note-list row:selected .nn-note-card { background: @nn_graphite_accent_soft; border-color: @nn_graphite_accent; box-shadow: 0 0 0 1px alpha(@nn_graphite_accent,.18); }
+.nn-theme-graphite .nn-preview-surface, .nn-theme-graphite .nn-preview { background: @nn_graphite_editor_bg; color: @nn_graphite_text_primary; }
+.nn-theme-graphite .nn-preview-title, .nn-theme-graphite .nn-preview-body { color: @nn_graphite_text_primary; }
+.nn-theme-graphite .nn-preview-editor { background: @nn_graphite_surface; color: @nn_graphite_text_primary; border-color: @nn_graphite_border; }
+.nn-theme-graphite .nn-sort-control { background: @nn_graphite_input_bg; color: @nn_graphite_text_primary; }
 .nn-theme-graphite .nn-pane-separator { background: rgba(255,255,255,.09); }
 .nn-theme-graphite .nn-editor-toolbar { background: #222428; color: #e8e9ed; border-color: rgba(255,255,255,.09); }
 .nn-theme-graphite .nn-rich-writing-canvas { background: #282a2f; color: #f5f6f8; caret-color: #9aafff; }
 .nn-theme-graphite .nn-canvas-scroller, .nn-theme-graphite .nn-writing-clamp { background: #1c1d20; }
 .nn-theme-graphite .nn-find-panel { background: #24262a; color: #f3f4f6; border-color: rgba(255,255,255,.10); }
 .nn-theme-graphite .nn-statusbar { background: #202226; color: #b8bbc3; border-color: rgba(255,255,255,.09); }
-.nn-theme-graphite popover { background: #303238; color: #f3f4f6; }
-.nn-theme-graphite entry { background: #2d3035; color: #f3f4f6; caret-color: #9aafff; }
+.nn-theme-graphite popover { background: @nn_graphite_popover_bg; color: @nn_graphite_text_primary; }
+.nn-theme-graphite entry { background: @nn_graphite_input_bg; color: @nn_graphite_text_primary; caret-color: @nn_graphite_focus; }
 .nn-theme-graphite .nn-metadata, .nn-theme-graphite .nn-caption, .nn-theme-graphite .nn-tag-strip { color: #b8bbc3; }
 .nn-theme-graphite .nn-tag-strip { background: #282a2f; border-color: rgba(255,255,255,.09); }
 .nn-theme-graphite button:hover { background: rgba(154,175,255,.13); }
@@ -394,30 +510,30 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-graphite .nn-header-control { color: #b8bbc3; }
 
 /* Midnight: deep navy layers with calm sky-blue interaction. */
-.nn-theme-midnight { background: #101722; color: #edf5ff; }
-.nn-theme-midnight headerbar { background: #172131; color: #f2f7ff; border-color: rgba(168,205,255,.12); }
-.nn-theme-midnight .nn-sidebar { background: #131c2a; color: #dbeaff; border-color: rgba(168,205,255,.10); }
+.nn-theme-midnight { background: @nn_midnight_app_bg; color: @nn_midnight_text_primary; }
+.nn-theme-midnight headerbar { background: @nn_midnight_editor_bg; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
+.nn-theme-midnight .nn-sidebar { background: @nn_midnight_sidebar_bg; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
 .nn-theme-midnight .nn-sidebar-row:hover { background: #203049; }
-.nn-theme-midnight .nn-sidebar-row:selected { background: #203858; color: #ffffff; box-shadow: inset 3px 0 #73b7ff; }
-.nn-theme-midnight .nn-sidebar-icon { color: #abc0da; }
-.nn-theme-midnight .nn-sidebar-row:selected .nn-sidebar-icon { color: #73b7ff; }
-.nn-theme-midnight .nn-note-list { background: #101722; color: #edf5ff; }
-.nn-theme-midnight .nn-note-card-tags { color: #abc0da; }
-.nn-theme-midnight .nn-note-card { background: #1a2638; color: #f2f7ff; border-color: rgba(168,205,255,.12); box-shadow: 0 1px 4px rgba(0,5,14,.40); }
-.nn-theme-midnight .nn-note-card:hover { background: #203049; border-color: rgba(115,183,255,.28); }
-.nn-theme-midnight .nn-note-list row:selected .nn-note-card { background: #203858; border-color: #73b7ff; box-shadow: 0 0 0 1px rgba(115,183,255,.18); }
-.nn-theme-midnight .nn-preview-surface, .nn-theme-midnight .nn-preview { background: #172131; color: #edf5ff; }
-.nn-theme-midnight .nn-preview-title, .nn-theme-midnight .nn-preview-body { color: #edf5ff; }
-.nn-theme-midnight .nn-preview-editor { background: #1a2638; color: #f2f7ff; border-color: rgba(168,205,255,.12); }
-.nn-theme-midnight .nn-sort-control { background: #1d2b40; color: #f2f7ff; }
+.nn-theme-midnight .nn-sidebar-row:selected { background: @nn_midnight_accent_soft; color: @nn_midnight_text_primary; box-shadow: inset 3px 0 @nn_midnight_accent; }
+.nn-theme-midnight .nn-sidebar-icon { color: @nn_midnight_text_secondary; }
+.nn-theme-midnight .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_midnight_accent; }
+.nn-theme-midnight .nn-note-list { background: @nn_midnight_list_bg; color: @nn_midnight_text_primary; }
+.nn-theme-midnight .nn-note-card-tags { color: @nn_midnight_text_secondary; }
+.nn-theme-midnight .nn-note-card { background: @nn_midnight_surface; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; box-shadow: 0 1px 4px rgba(0,5,14,.40); }
+.nn-theme-midnight .nn-note-card:hover { background: @nn_midnight_surface_raised; border-color: @nn_midnight_border_strong; }
+.nn-theme-midnight .nn-note-list row:selected .nn-note-card { background: @nn_midnight_accent_soft; border-color: @nn_midnight_accent; box-shadow: 0 0 0 1px alpha(@nn_midnight_accent,.18); }
+.nn-theme-midnight .nn-preview-surface, .nn-theme-midnight .nn-preview { background: @nn_midnight_editor_bg; color: @nn_midnight_text_primary; }
+.nn-theme-midnight .nn-preview-title, .nn-theme-midnight .nn-preview-body { color: @nn_midnight_text_primary; }
+.nn-theme-midnight .nn-preview-editor { background: @nn_midnight_surface; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
+.nn-theme-midnight .nn-sort-control { background: @nn_midnight_input_bg; color: @nn_midnight_text_primary; }
 .nn-theme-midnight .nn-pane-separator { background: rgba(168,205,255,.10); }
 .nn-theme-midnight .nn-editor-toolbar { background: #141e2c; color: #e4efff; border-color: rgba(168,205,255,.10); }
 .nn-theme-midnight .nn-rich-writing-canvas { background: #1a2638; color: #f2f7ff; caret-color: #73b7ff; }
 .nn-theme-midnight .nn-canvas-scroller, .nn-theme-midnight .nn-writing-clamp { background: #101722; }
 .nn-theme-midnight .nn-find-panel { background: #172131; color: #edf5ff; border-color: rgba(168,205,255,.12); }
 .nn-theme-midnight .nn-statusbar { background: #131c2a; color: #abc0da; border-color: rgba(168,205,255,.10); }
-.nn-theme-midnight popover { background: #202d41; color: #f2f7ff; }
-.nn-theme-midnight entry { background: #1d2b40; color: #f2f7ff; caret-color: #73b7ff; }
+.nn-theme-midnight popover { background: @nn_midnight_popover_bg; color: @nn_midnight_text_primary; }
+.nn-theme-midnight entry { background: @nn_midnight_input_bg; color: @nn_midnight_text_primary; caret-color: @nn_midnight_focus; }
 .nn-theme-midnight .nn-metadata, .nn-theme-midnight .nn-caption, .nn-theme-midnight .nn-tag-strip { color: #abc0da; }
 .nn-theme-midnight .nn-tag-strip { background: #1a2638; border-color: rgba(168,205,255,.10); }
 .nn-theme-midnight button:hover { background: rgba(115,183,255,.14); }
@@ -425,30 +541,30 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-midnight .nn-header-control { color: #abc0da; }
 
 /* OLED: near-black canvas with carefully separated elevated layers. */
-.nn-theme-oled { background: #050506; color: #f7f7fa; }
-.nn-theme-oled headerbar { background: #0d0d0f; color: #fafaff; border-color: rgba(255,255,255,.13); }
-.nn-theme-oled .nn-sidebar { background: #09090b; color: #e7e7ed; border-color: rgba(255,255,255,.11); }
+.nn-theme-oled { background: @nn_oled_app_bg; color: @nn_oled_text_primary; }
+.nn-theme-oled headerbar { background: @nn_oled_editor_bg; color: @nn_oled_text_primary; border-color: @nn_oled_border; }
+.nn-theme-oled .nn-sidebar { background: @nn_oled_sidebar_bg; color: @nn_oled_text_primary; border-color: @nn_oled_border; }
 .nn-theme-oled .nn-sidebar-row:hover { background: #19191f; }
-.nn-theme-oled .nn-sidebar-row:selected { background: #211d38; color: #ffffff; box-shadow: inset 3px 0 #b1a0ff; }
-.nn-theme-oled .nn-sidebar-icon { color: #bdbdc7; }
-.nn-theme-oled .nn-sidebar-row:selected .nn-sidebar-icon { color: #b1a0ff; }
-.nn-theme-oled .nn-note-list { background: #050506; color: #f7f7fa; }
-.nn-theme-oled .nn-note-card-tags { color: #bdbdc7; }
-.nn-theme-oled .nn-note-card { background: #121216; color: #fafaff; border-color: rgba(255,255,255,.13); box-shadow: 0 1px 4px rgba(0,0,0,.65); }
-.nn-theme-oled .nn-note-card:hover { background: #19191f; border-color: rgba(177,160,255,.30); }
-.nn-theme-oled .nn-note-list row:selected .nn-note-card { background: #211d38; border-color: #b1a0ff; box-shadow: 0 0 0 1px rgba(177,160,255,.20); }
-.nn-theme-oled .nn-preview-surface, .nn-theme-oled .nn-preview { background: #0d0d0f; color: #f7f7fa; }
-.nn-theme-oled .nn-preview-title, .nn-theme-oled .nn-preview-body { color: #f7f7fa; }
-.nn-theme-oled .nn-preview-editor { background: #121216; color: #fafaff; border-color: rgba(255,255,255,.13); }
-.nn-theme-oled .nn-sort-control { background: #17171c; color: #fafaff; }
+.nn-theme-oled .nn-sidebar-row:selected { background: @nn_oled_accent_soft; color: @nn_oled_text_primary; box-shadow: inset 3px 0 @nn_oled_accent; }
+.nn-theme-oled .nn-sidebar-icon { color: @nn_oled_text_secondary; }
+.nn-theme-oled .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_oled_accent; }
+.nn-theme-oled .nn-note-list { background: @nn_oled_list_bg; color: @nn_oled_text_primary; }
+.nn-theme-oled .nn-note-card-tags { color: @nn_oled_text_secondary; }
+.nn-theme-oled .nn-note-card { background: @nn_oled_surface; color: @nn_oled_text_primary; border-color: @nn_oled_border; box-shadow: 0 1px 4px rgba(0,0,0,.65); }
+.nn-theme-oled .nn-note-card:hover { background: @nn_oled_surface_raised; border-color: @nn_oled_border_strong; }
+.nn-theme-oled .nn-note-list row:selected .nn-note-card { background: @nn_oled_accent_soft; border-color: @nn_oled_accent; box-shadow: 0 0 0 1px alpha(@nn_oled_accent,.20); }
+.nn-theme-oled .nn-preview-surface, .nn-theme-oled .nn-preview { background: @nn_oled_editor_bg; color: @nn_oled_text_primary; }
+.nn-theme-oled .nn-preview-title, .nn-theme-oled .nn-preview-body { color: @nn_oled_text_primary; }
+.nn-theme-oled .nn-preview-editor { background: @nn_oled_surface; color: @nn_oled_text_primary; border-color: @nn_oled_border; }
+.nn-theme-oled .nn-sort-control { background: @nn_oled_input_bg; color: @nn_oled_text_primary; }
 .nn-theme-oled .nn-pane-separator { background: rgba(255,255,255,.11); }
 .nn-theme-oled .nn-editor-toolbar { background: #0a0a0c; color: #eeeeF4; border-color: rgba(255,255,255,.11); }
 .nn-theme-oled .nn-rich-writing-canvas { background: #121216; color: #fafaff; caret-color: #b1a0ff; }
 .nn-theme-oled .nn-canvas-scroller, .nn-theme-oled .nn-writing-clamp { background: #050506; }
 .nn-theme-oled .nn-find-panel { background: #0d0d0f; color: #f7f7fa; border-color: rgba(255,255,255,.13); }
 .nn-theme-oled .nn-statusbar { background: #09090b; color: #bdbdc7; border-color: rgba(255,255,255,.11); }
-.nn-theme-oled popover { background: #18181d; color: #fafaff; }
-.nn-theme-oled entry { background: #17171c; color: #fafaff; caret-color: #b1a0ff; }
+.nn-theme-oled popover { background: @nn_oled_popover_bg; color: @nn_oled_text_primary; }
+.nn-theme-oled entry { background: @nn_oled_input_bg; color: @nn_oled_text_primary; caret-color: @nn_oled_focus; }
 .nn-theme-oled .nn-metadata, .nn-theme-oled .nn-caption, .nn-theme-oled .nn-tag-strip { color: #bdbdc7; }
 .nn-theme-oled .nn-tag-strip { background: #121216; border-color: rgba(255,255,255,.11); }
 .nn-theme-oled button:hover { background: rgba(177,160,255,.16); }

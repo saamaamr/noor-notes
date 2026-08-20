@@ -1,6 +1,36 @@
 const CSS: &str = include_str!("../resources/design-system.css");
 
 #[test]
+fn every_effective_theme_defines_the_complete_semantic_palette() {
+    for theme in noor_notes::appearance::EffectiveTheme::ALL {
+        let theme = theme.palette_prefix();
+        for role in [
+            "app_bg",
+            "sidebar_bg",
+            "list_bg",
+            "editor_bg",
+            "surface",
+            "surface_raised",
+            "popover_bg",
+            "input_bg",
+            "text_primary",
+            "text_secondary",
+            "text_muted",
+            "border",
+            "border_strong",
+            "accent",
+            "accent_soft",
+            "focus",
+            "danger",
+            "danger_soft",
+        ] {
+            let token = format!("@define-color nn_{theme}_{role}");
+            assert!(CSS.contains(&token), "{theme} is missing {role}");
+        }
+    }
+}
+
+#[test]
 fn professional_system_defines_complete_semantic_roles() {
     for token in [
         "@define-color nn_popover_bg",
@@ -203,7 +233,9 @@ fn light_header_search_sort_and_status_share_compact_chrome() {
     ] {
         assert!(CSS.contains(rule), "missing compact chrome rule: {rule}");
     }
-    assert!(CSS.contains(".nn-theme-light { background: @nn_app_bg; color: @nn_text; }"));
+    assert!(CSS.contains(
+        ".nn-theme-light { background: @nn_light_app_bg; color: @nn_light_text_primary; }"
+    ));
     assert!(CSS.contains(".nn-theme-light windowcontrols button"));
 }
 

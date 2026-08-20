@@ -9,12 +9,16 @@ fn manager_updates_windows_cycles_palettes_and_persists_the_active_mode() {
     let manager = AppearanceManager::new(store.clone());
     let first = gtk::Window::new();
     let second = gtk::Window::new();
+    let preferences = gtk::Window::new();
+    let sticky = gtk::Window::new();
     manager.register_window(&first);
     manager.register_window(&second);
+    manager.register_window(&preferences);
+    manager.register_window(&sticky);
 
     manager.set_mode(AppearanceMode::Midnight).unwrap();
     assert_eq!(manager.effective_theme(), EffectiveTheme::Midnight);
-    for window in [&first, &second] {
+    for window in [&first, &second, &preferences, &sticky] {
         assert!(window.has_css_class("nn-theme-midnight"));
         assert_eq!(
             EffectiveTheme::ALL_CLASSES
@@ -58,6 +62,9 @@ fn manager_updates_windows_cycles_palettes_and_persists_the_active_mode() {
 
     manager.set_mode(AppearanceMode::Light).unwrap();
     assert_eq!(manager.active_label(), "Snow");
+    for window in [&first, &second, &preferences, &sticky] {
+        assert!(window.has_css_class("nn-theme-light"));
+    }
     assert_eq!(manager.cycle_palette().unwrap(), EffectiveTheme::WarmPaper);
     assert!(first.has_css_class("nn-theme-warm-paper"));
     assert_eq!(manager.cycle_palette().unwrap(), EffectiveTheme::CoolMist);
@@ -70,4 +77,14 @@ fn manager_updates_windows_cycles_palettes_and_persists_the_active_mode() {
     assert_eq!(manager.cycle_palette().unwrap(), EffectiveTheme::Oled);
     assert_eq!(manager.cycle_palette().unwrap(), EffectiveTheme::Graphite);
     assert_eq!(store.load().mode, AppearanceMode::Graphite);
+    for window in [&first, &second, &preferences, &sticky] {
+        assert!(window.has_css_class("nn-theme-graphite"));
+        assert_eq!(
+            EffectiveTheme::ALL_CLASSES
+                .iter()
+                .filter(|class| window.has_css_class(class))
+                .count(),
+            1
+        );
+    }
 }
