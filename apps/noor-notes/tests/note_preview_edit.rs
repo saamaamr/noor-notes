@@ -3,9 +3,12 @@ use std::rc::Rc;
 
 use adw::prelude::*;
 use chrono::Utc;
-use noor_domain::{Note, NoteState, RichBlock, RichDocument, RichSpan, TextMarks};
+use noor_domain::{
+    EditorMode, Note, NoteState, RichBlock, RichDocument, RichSpan, SourceLanguage, TextMarks,
+};
 use noor_notes::appearance::{AppearanceManager, AppearanceStore, install_global};
 use noor_notes::ui::note_preview::NotePreview;
+use sourceview5::prelude::*;
 
 #[test]
 fn active_note_body_edits_inline_and_preserves_rich_content() {
@@ -135,6 +138,80 @@ fn active_note_body_edits_inline_and_preserves_rich_content() {
     assert!(!edit.is_sensitive());
     assert!(!editor.is_editable());
     assert_eq!(saved.borrow().len(), save_count);
+
+    let mut code = Note::new(Utc::now());
+    code.title = "Rust example".into();
+    code.content = "fn main() {}".into();
+    code.editor_mode = EditorMode::Code;
+    code.source_language = SourceLanguage::new("rust").unwrap();
+    code.editor_preferences.word_wrap = false;
+    preview.show_note(&code);
+    assert_eq!(preview.active_mode(), EditorMode::Code);
+    assert_eq!(
+        preview.source_buffer().language().unwrap().id().as_str(),
+        "rust"
+    );
+    assert!(preview.source_view().shows_line_numbers());
+    assert_eq!(preview.source_view().wrap_mode(), gtk::WrapMode::None);
+    preview.begin_editing();
+    assert!(!preview.toolbar().bold.is_visible());
+    assert!(!preview.toolbar().bold.is_sensitive());
+    let code_buffer = preview.source_buffer();
+    let mut code_end = code_buffer.end_iter();
+    code_buffer.insert(&mut code_end, "\n// saved mode");
+    let code_draft = saved.borrow().last().cloned().expect("code draft");
+    assert_eq!(code_draft.editor_mode, EditorMode::Code);
+    assert!(code_draft.rich_content.is_none());
+    assert!(code_draft.content.ends_with("// saved mode"));
+    assert!(preview.toolbar().undo.is_sensitive());
+    preview.toolbar().undo.emit_clicked();
+    assert_eq!(
+        preview
+            .source_buffer()
+            .text(
+                &preview.source_buffer().start_iter(),
+                &preview.source_buffer().end_iter(),
+                true,
+            )
+            .as_str(),
+        "fn main() {}"
+    );
+    preview.toolbar().redo.emit_clicked();
+    assert!(
+        preview
+            .source_buffer()
+            .text(
+                &preview.source_buffer().start_iter(),
+                &preview.source_buffer().end_iter(),
+                true,
+            )
+            .ends_with("// saved mode")
+    );
+    preview.finish_editing();
+
+    let mut markdown = Note::new(Utc::now());
+    markdown.content = "# Heading".into();
+    markdown.editor_mode = EditorMode::Markdown;
+    markdown.source_language = SourceLanguage::Markdown;
+    preview.show_note(&markdown);
+    assert_eq!(preview.active_mode(), EditorMode::Markdown);
+    assert_eq!(
+        preview.source_buffer().language().unwrap().id().as_str(),
+        "markdown"
+    );
+    assert!(preview.source_buffer().is_highlight_syntax());
+    preview.begin_editing();
+    assert!(preview.toolbar().emoji.is_visible());
+    assert!(!preview.toolbar().bold.is_visible());
+    preview.finish_editing();
+
+    let mut plain = Note::new(Utc::now());
+    plain.content = "Plain text".into();
+    plain.editor_mode = EditorMode::PlainText;
+    preview.show_note(&plain);
+    assert_eq!(preview.active_mode(), EditorMode::PlainText);
+    assert!(preview.source_buffer().language().is_none());
+    assert!(!preview.source_buffer().is_highlight_syntax());
 }
 
 fn descendants(root: gtk::Widget) -> Vec<gtk::Widget> {

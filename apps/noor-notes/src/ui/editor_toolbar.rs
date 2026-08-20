@@ -1,6 +1,6 @@
 use adw::prelude::*;
 use noor_domain::EditorMode;
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use crate::ui::formatting_popover::FormattingPopover;
@@ -71,6 +71,7 @@ pub struct EditorToolbar {
     groups: Vec<ToolbarGroup>,
     group_separators: Vec<gtk::Separator>,
     can_edit: Rc<Cell<bool>>,
+    active_mode: Rc<RefCell<EditorMode>>,
 }
 
 impl EditorToolbar {
@@ -391,30 +392,20 @@ impl EditorToolbar {
             groups,
             group_separators,
             can_edit: Rc::new(Cell::new(true)),
+            active_mode: Rc::new(RefCell::new(EditorMode::Rich)),
         }
     }
 
     pub fn set_editable(&self, enabled: bool) {
         self.can_edit.set(enabled);
-        for control in [
-            self.bold.upcast_ref::<gtk::Widget>(),
-            self.italic.upcast_ref(),
-            self.quick_underline.upcast_ref(),
-            self.quick_strikethrough.upcast_ref(),
-            self.bullets.upcast_ref(),
-            self.formatting.bullets.upcast_ref(),
-            self.quick_numbered.upcast_ref(),
-            self.quick_font_size.upcast_ref(),
-            self.format.upcast_ref(),
-            self.emoji.upcast_ref(),
-        ] {
-            control.set_sensitive(enabled);
-        }
+        let mode = self.active_mode.borrow().clone();
+        self.set_rich_formatting_enabled(enabled && mode == EditorMode::Rich);
+        self.emoji
+            .set_sensitive(enabled && mode != EditorMode::Code);
         if !enabled {
             self.undo.set_sensitive(false);
             self.redo.set_sensitive(false);
         }
-        self.set_rich_formatting_enabled(enabled);
     }
 
     pub fn is_editable(&self) -> bool {
@@ -454,6 +445,7 @@ impl EditorToolbar {
     }
 
     pub fn set_editor_mode(&self, mode: EditorMode) {
+        self.active_mode.replace(mode.clone());
         let rich = mode == EditorMode::Rich;
         for control in [
             self.bold.upcast_ref::<gtk::Widget>(),
@@ -468,7 +460,18 @@ impl EditorToolbar {
             control.set_visible(rich);
         }
         self.emoji.set_visible(mode != EditorMode::Code);
+        self.emoji
+            .set_sensitive(self.can_edit.get() && mode != EditorMode::Code);
         self.find.set_visible(!rich);
+        self.set_rich_formatting_enabled(self.can_edit.get() && rich);
+    }
+
+    pub fn active_mode(&self) -> EditorMode {
+        self.active_mode.borrow().clone()
+    }
+
+    pub fn mode_state(&self) -> Rc<RefCell<EditorMode>> {
+        self.active_mode.clone()
     }
 
     pub fn group_count(&self) -> usize {

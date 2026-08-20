@@ -3,8 +3,10 @@ use std::rc::Rc;
 
 use adw::prelude::*;
 use noor_domain::{EditorMode, Note, NoteId, NoteState};
+use sourceview5::prelude::*;
 
 use crate::appearance::{EffectiveTheme, try_global};
+use crate::editor::{resolve_language, source_palette};
 use crate::rich_buffer::RichBuffer;
 use crate::ui::editor_menu_bar::EditorMenuBar;
 use crate::ui::editor_toolbar::EditorToolbar;
@@ -28,7 +30,7 @@ pub struct NotePreview {
     divider: gtk::Separator,
     body: gtk::Label,
     body_stack: gtk::Stack,
-    editor: gtk::TextView,
+    editor: sourceview5::View,
     edit: gtk::Button,
     read_only: gtk::Button,
     toolbar: EditorToolbar,
@@ -146,20 +148,30 @@ impl NotePreview {
         body.set_attributes(Some(&body_attributes));
         body.set_selectable(true);
 
-        let editor = gtk::TextView::new();
+        let source_buffer = sourceview5::Buffer::builder()
+            .enable_undo(true)
+            .highlight_syntax(false)
+            .highlight_matching_brackets(false)
+            .build();
+        let editor = sourceview5::View::with_buffer(&source_buffer);
         editor.add_css_class("nn-preview-editor");
         editor.set_editable(false);
         editor.set_cursor_visible(false);
         editor.set_wrap_mode(gtk::WrapMode::WordChar);
         editor.set_hexpand(true);
         editor.set_vexpand(true);
-        configure_editor_canvas(&editor, true);
-        let buffer = editor.buffer();
+        configure_editor_canvas(editor.upcast_ref(), true);
+        let buffer: gtk::TextBuffer = source_buffer.clone().upcast();
+        RichBuffer::prepare(&buffer);
         if let Some(appearance) = try_global() {
             let buffer_weak = buffer.downgrade();
+            let source_buffer_weak = source_buffer.downgrade();
             appearance.subscribe(move |_, theme| {
                 if let Some(buffer) = buffer_weak.upgrade() {
                     RichBuffer::apply_color_theme(&buffer, theme);
+                }
+                if let Some(buffer) = source_buffer_weak.upgrade() {
+                    source_palette::apply(&buffer, theme);
                 }
             });
         }
@@ -184,7 +196,7 @@ impl NotePreview {
         toolbar.widget.add_css_class("nn-preview-format-toolbar");
         toolbar.widget.set_hexpand(false);
         toolbar.widget.set_halign(gtk::Align::Start);
-        crate::editor_actions::connect(&toolbar, &buffer, &editor);
+        crate::editor_actions::connect(&toolbar, &buffer, editor.upcast_ref());
         toolbar.set_rich_formatting_enabled(false);
         let menu_bar = EditorMenuBar::new_preview(&toolbar);
         menu_bar.widget.set_visible(false);
@@ -259,10 +271,12 @@ impl NotePreview {
                 let enabled = !editing.get();
                 let changed_note = if enabled {
                     let mut current = current.borrow_mut();
-                    current.as_mut().map(|note| {
-                        note.editor_mode = EditorMode::Rich;
+                    current.as_mut().and_then(|note| {
+                        if !note.editor_preferences.view_only {
+                            return None;
+                        }
                         note.editor_preferences.view_only = false;
-                        note.clone()
+                        Some(note.clone())
                     })
                 } else {
                     None
@@ -270,6 +284,11 @@ impl NotePreview {
                 if let Some(note) = changed_note {
                     on_body_edited(note);
                 }
+                let mode = current
+                    .borrow()
+                    .as_ref()
+                    .map(|note| note.editor_mode.clone())
+                    .unwrap_or(EditorMode::Rich);
                 set_editing(
                     &editing,
                     &body_stack,
@@ -279,6 +298,7 @@ impl NotePreview {
                     &title_stack,
                     &toolbar,
                     &menu_bar,
+                    &mode,
                     enabled,
                 );
                 if !enabled {
@@ -378,6 +398,7 @@ impl NotePreview {
             &self.title_stack,
             &self.toolbar,
             &self.menu_bar,
+            &EditorMode::Rich,
             false,
         );
         self.edit.set_visible(false);
@@ -406,6 +427,7 @@ impl NotePreview {
             &self.title_stack,
             &self.toolbar,
             &self.menu_bar,
+            &note.editor_mode,
             false,
         );
         self.current.replace(Some(note.clone()));
@@ -449,23 +471,22 @@ impl NotePreview {
             &note.content
         });
 
-        let rich_mode = note.editor_mode == EditorMode::Rich;
-        configure_editor_canvas(&self.editor, rich_mode);
-        self.editor
-            .set_monospace(note.editor_mode == EditorMode::Code);
-        self.editor.set_wrap_mode(gtk::WrapMode::WordChar);
-        let buffer = self.editor.buffer();
-        if rich_mode {
-            RichBuffer::load(&buffer, &note.content, note.rich_content.as_ref());
-            RichBuffer::apply_color_theme(
-                &buffer,
-                try_global()
-                    .map(|appearance| appearance.effective_theme())
-                    .unwrap_or(EffectiveTheme::Light),
-            );
-        } else {
-            buffer.set_text(&note.content);
-        }
+        configure_note_mode(&self.editor, &self.toolbar, note);
+        let source_buffer = preview_source_buffer(&self.editor);
+        let buffer: gtk::TextBuffer = source_buffer.clone().upcast();
+        RichBuffer::load(
+            &buffer,
+            &note.content,
+            (note.editor_mode == EditorMode::Rich)
+                .then_some(note.rich_content.as_ref())
+                .flatten(),
+        );
+        RichBuffer::apply_color_theme(
+            &buffer,
+            try_global()
+                .map(|appearance| appearance.effective_theme())
+                .unwrap_or(EffectiveTheme::Light),
+        );
     }
 
     pub fn set_compact(&self, compact: bool) {
@@ -490,7 +511,27 @@ impl NotePreview {
     }
 
     pub fn editor(&self) -> gtk::TextView {
+        self.editor.clone().upcast()
+    }
+
+    pub fn source_view(&self) -> sourceview5::View {
         self.editor.clone()
+    }
+
+    pub fn source_buffer(&self) -> sourceview5::Buffer {
+        preview_source_buffer(&self.editor)
+    }
+
+    pub fn toolbar(&self) -> EditorToolbar {
+        self.toolbar.clone()
+    }
+
+    pub fn active_mode(&self) -> EditorMode {
+        self.current
+            .borrow()
+            .as_ref()
+            .map(|note| note.editor_mode.clone())
+            .unwrap_or(EditorMode::Rich)
     }
 
     pub fn begin_editing(&self) {
@@ -513,6 +554,7 @@ impl NotePreview {
         self.metadata.set_visible(false);
         self.divider.set_visible(false);
         self.toolbar.widget.set_visible(false);
+        let mode = self.active_mode();
         set_editing(
             &self.editing,
             &self.body_stack,
@@ -522,6 +564,7 @@ impl NotePreview {
             &self.title_stack,
             &self.toolbar,
             &self.menu_bar,
+            &mode,
             false,
         );
     }
@@ -544,21 +587,20 @@ impl Default for NotePreview {
 fn set_editing(
     editing: &Cell<bool>,
     body_stack: &gtk::Stack,
-    editor: &gtk::TextView,
+    editor: &sourceview5::View,
     edit: &gtk::Button,
     title_entry: &gtk::Entry,
     title_stack: &gtk::Stack,
     toolbar: &EditorToolbar,
     menu_bar: &EditorMenuBar,
+    mode: &EditorMode,
     enabled: bool,
 ) {
     editing.set(enabled);
     editor.set_editable(enabled);
+    toolbar.set_editor_mode(mode.clone());
     toolbar.set_editable(enabled);
     editor.set_cursor_visible(enabled);
-    if enabled {
-        editor.set_monospace(false);
-    }
     body_stack.set_visible_child_name(if enabled { "editor" } else { "preview" });
     edit.set_label(if enabled { "Done" } else { "Edit" });
     let accessible_label = if enabled {
@@ -573,9 +615,48 @@ fn set_editing(
     toolbar.widget.set_visible(enabled);
     menu_bar.widget.set_visible(enabled);
     if enabled {
-        toolbar.set_rich_formatting_enabled(true);
         editor.grab_focus();
-    } else {
-        toolbar.set_rich_formatting_enabled(false);
     }
+}
+
+fn configure_note_mode(editor: &sourceview5::View, toolbar: &EditorToolbar, note: &Note) {
+    let rich = note.editor_mode == EditorMode::Rich;
+    let source_buffer = preview_source_buffer(editor);
+    let manager = sourceview5::LanguageManager::default();
+    let language = match &note.editor_mode {
+        EditorMode::Markdown | EditorMode::Code => {
+            resolve_language(&manager, &note.source_language)
+        }
+        EditorMode::Rich | EditorMode::PlainText => None,
+    };
+    source_buffer.set_language(language.as_ref());
+    source_buffer.set_highlight_syntax(matches!(
+        &note.editor_mode,
+        EditorMode::Markdown | EditorMode::Code
+    ));
+    source_buffer.set_highlight_matching_brackets(!rich);
+    source_palette::apply(
+        &source_buffer,
+        try_global()
+            .map(|appearance| appearance.effective_theme())
+            .unwrap_or(EffectiveTheme::Light),
+    );
+    editor.set_show_line_numbers(!rich);
+    editor.set_highlight_current_line(!rich);
+    editor.set_auto_indent(!rich);
+    editor.set_monospace(note.editor_mode == EditorMode::Code);
+    editor.set_wrap_mode(if note.editor_preferences.word_wrap {
+        gtk::WrapMode::WordChar
+    } else {
+        gtk::WrapMode::None
+    });
+    configure_editor_canvas(editor.upcast_ref(), rich);
+    toolbar.set_editor_mode(note.editor_mode.clone());
+}
+
+fn preview_source_buffer(editor: &sourceview5::View) -> sourceview5::Buffer {
+    editor
+        .buffer()
+        .downcast::<sourceview5::Buffer>()
+        .expect("NotePreview always owns a GtkSourceView buffer")
 }

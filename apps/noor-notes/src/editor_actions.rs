@@ -1,7 +1,7 @@
 use adw::prelude::*;
 use noor_domain::{Alignment, ListKind};
 
-use crate::editor_commands::{EditorCommand, execute};
+use crate::editor_commands::{EditorCommand, execute, supports_command};
 use crate::rich_buffer::{RichBuffer, SavedTextRange};
 use crate::rich_color::{ColorRole, presets};
 use crate::ui::editor_toolbar::EditorToolbar;
@@ -62,10 +62,11 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         let editor = editor.clone();
         let toolbar = toolbar.clone();
         let editable = editable.clone();
+        let mode = toolbar.mode_state();
         let syncing = syncing.clone();
         let saved_range = saved_range.clone();
         button.connect_toggled(move |_| {
-            if syncing.get() || !editable.get() {
+            if syncing.get() || !editable.get() || !supports_command(&mode.borrow(), action) {
                 return;
             }
             run_command(action, &buffer, &editor, &saved_range, None);
@@ -82,23 +83,19 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         let editor = editor.clone();
         let state_toolbar = toolbar.clone();
         let editable = editable.clone();
+        let mode = toolbar.mode_state();
         let syncing = syncing.clone();
         let saved_range = saved_range.clone();
         button.connect_clicked(move |_| {
-            if syncing.get() || !editable.get() {
+            let command = if kind == ListKind::Bullet {
+                EditorCommand::ToggleBulletList
+            } else {
+                EditorCommand::ToggleNumberedList
+            };
+            if syncing.get() || !editable.get() || !supports_command(&mode.borrow(), command) {
                 return;
             }
-            run_command(
-                if kind == ListKind::Bullet {
-                    EditorCommand::ToggleBulletList
-                } else {
-                    EditorCommand::ToggleNumberedList
-                },
-                &buffer,
-                &editor,
-                &saved_range,
-                None,
-            );
+            run_command(command, &buffer, &editor, &saved_range, None);
             syncing.set(true);
             sync_list_buttons(&buffer, &state_toolbar);
             syncing.set(false);
@@ -274,6 +271,7 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
     let go_to_line = toolbar.go_to_line.clone();
     let fullscreen = toolbar.fullscreen.clone();
     let editable_for_keys = editable.clone();
+    let mode_for_keys = toolbar.mode_state();
     let shortcut_editor = editor.clone();
     let shortcut_range = saved_range.clone();
     shortcuts.connect_key_pressed(move |_, key, _, state| {
@@ -354,7 +352,9 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
             );
             true
         } else if key == gtk::gdk::Key::b {
-            if !editable_for_keys.get() {
+            if !editable_for_keys.get()
+                || !supports_command(&mode_for_keys.borrow(), EditorCommand::Bold)
+            {
                 return gtk::glib::Propagation::Proceed;
             }
             run_command(
@@ -366,7 +366,9 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
             );
             true
         } else if key == gtk::gdk::Key::i {
-            if !editable_for_keys.get() {
+            if !editable_for_keys.get()
+                || !supports_command(&mode_for_keys.borrow(), EditorCommand::Italic)
+            {
                 return gtk::glib::Propagation::Proceed;
             }
             run_command(
@@ -378,7 +380,9 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
             );
             true
         } else if key == gtk::gdk::Key::u {
-            if !editable_for_keys.get() {
+            if !editable_for_keys.get()
+                || !supports_command(&mode_for_keys.borrow(), EditorCommand::Underline)
+            {
                 return gtk::glib::Propagation::Proceed;
             }
             run_command(
@@ -405,9 +409,10 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         let editor = editor.clone();
         let emoji_menu = toolbar.emoji.clone();
         let editable = editable.clone();
+        let mode = toolbar.mode_state();
         let saved_range = saved_range.clone();
         button.connect_clicked(move |button| {
-            if !editable.get() {
+            if !editable.get() || !supports_command(&mode.borrow(), EditorCommand::InsertEmoji) {
                 return;
             }
             if let Some(emoji) = button.label() {
