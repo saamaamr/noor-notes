@@ -126,3 +126,30 @@ pub fn apply_paned_layout(
     content.set_visible(visibility.content);
     panes.set_position(mode.pane_position(window_width, showing_content));
 }
+
+pub fn apply_library_layout(
+    panes: &gtk::Paned,
+    navigation: &impl IsA<gtk::Widget>,
+    sidebar: &impl IsA<gtk::Widget>,
+    collection: &impl IsA<gtk::Widget>,
+    content: &impl IsA<gtk::Widget>,
+    mode: LibraryLayoutMode,
+    window_width: i32,
+    showing_content: bool,
+) {
+    let visibility = mode.visibility(showing_content);
+    let allocation = allocation_for_width(mode, window_width, showing_content);
+
+    sidebar.set_width_request(allocation.sidebar);
+    sidebar.set_visible(visibility.sidebar);
+    collection.set_width_request(allocation.collection);
+    collection.set_visible(visibility.collection);
+    apply_paned_layout(
+        panes,
+        navigation,
+        content,
+        mode,
+        window_width,
+        showing_content,
+    );
+}

@@ -1,6 +1,6 @@
 use adw::prelude::*;
 use noor_notes::ui::adaptive_layout::{
-    LibraryLayoutMode, LibraryPaneVisibility, allocation_for_width, apply_paned_layout,
+    LibraryLayoutMode, LibraryPaneVisibility, allocation_for_width, apply_library_layout,
 };
 
 #[test]
@@ -99,24 +99,50 @@ fn narrow_mode_switches_between_collection_and_content_with_back_navigation() {
 }
 
 #[test]
-fn narrow_paned_allocation_gives_the_visible_preview_the_window_width() {
+fn real_shell_allocation_tracks_ratios_and_gives_narrow_preview_the_window_width() {
     gtk::init().unwrap();
     let window = gtk::Window::builder()
-        .default_width(620)
+        .default_width(1_180)
         .default_height(480)
         .build();
     let panes = gtk::Paned::new(gtk::Orientation::Horizontal);
     let navigation = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+    let sidebar = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    let collection = gtk::Box::new(gtk::Orientation::Vertical, 0);
     let preview = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    navigation.append(&sidebar);
+    navigation.append(&collection);
     panes.set_start_child(Some(&navigation));
     panes.set_end_child(Some(&preview));
+    panes.set_resize_start_child(false);
+    panes.set_shrink_start_child(false);
     window.set_child(Some(&panes));
     window.present();
     while gtk::glib::MainContext::default().iteration(false) {}
 
-    apply_paned_layout(
+    apply_library_layout(
         &panes,
         &navigation,
+        &sidebar,
+        &collection,
+        &preview,
+        LibraryLayoutMode::Wide,
+        1_180,
+        false,
+    );
+    panes.allocate(1_180, 480, -1, None);
+    while gtk::glib::MainContext::default().iteration(false) {}
+
+    assert_eq!(sidebar.width_request(), 160);
+    assert_eq!(collection.width_request(), 280);
+    assert_eq!(panes.position(), 440);
+    assert!(preview.width() >= 700, "preview={}", preview.width());
+
+    apply_library_layout(
+        &panes,
+        &navigation,
+        &sidebar,
+        &collection,
         &preview,
         LibraryLayoutMode::Narrow,
         620,

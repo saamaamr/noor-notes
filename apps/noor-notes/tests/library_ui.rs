@@ -29,12 +29,20 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
         Some("Search notes (Ctrl+F)")
     );
     assert!(header.new_note.has_css_class("suggested-action"));
-    assert_eq!(header.new_note.action_name().as_deref(), Some("app.new-note"));
-    assert_eq!(header.main_menu.tooltip_text().as_deref(), Some("Main menu"));
+    assert_eq!(
+        header.new_note.action_name().as_deref(),
+        Some("app.new-note")
+    );
+    assert_eq!(
+        header.main_menu.tooltip_text().as_deref(),
+        Some("Main menu")
+    );
 
     let sidebar = LibrarySidebar::new();
     assert!(sidebar.widget.has_css_class("nn-sidebar"));
-    assert_eq!(sidebar.widget.width_request(), 180);
+    assert_eq!(sidebar.widget.width_request(), -1);
+    sidebar.set_allocated_width(192);
+    assert_eq!(sidebar.widget.width_request(), 192);
     sidebar.set_count(LibrarySection::AllNotes, 42);
     let list = sidebar
         .widget
@@ -68,7 +76,7 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
         assert!(row.tooltip_text().is_some());
     }
     sidebar.set_collapsed(false);
-    assert_eq!(sidebar.widget.width_request(), 180);
+    assert_eq!(sidebar.widget.width_request(), 192);
 
     let collection = NoteCollection::new(Rc::new(|_, _| {}));
     assert!(collection.widget.has_css_class("nn-note-list"));

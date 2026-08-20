@@ -9,7 +9,7 @@ use chrono::{DateTime, Utc};
 use noor_domain::{Note, NoteId};
 use noor_storage::{NoteSort, SqliteNoteRepository, StorageError};
 
-use super::adaptive_layout::{LibraryLayoutMode, apply_paned_layout};
+use super::adaptive_layout::{LibraryLayoutMode, allocation_for_width, apply_library_layout};
 use super::app_header::AppHeader;
 use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::library::{LibrarySection, LibraryState};
@@ -51,6 +51,7 @@ pub struct MainWindow {
     pub window: adw::ApplicationWindow,
     search_bar: gtk::SearchBar,
     search: gtk::SearchEntry,
+    app_header: AppHeader,
     sort: gtk::DropDown,
     sidebar: LibrarySidebar,
     panes: gtk::Paned,
@@ -146,7 +147,6 @@ impl MainWindow {
         collection_stack.add_named(&list_scroll, Some("notes"));
         collection_stack.add_named(&empty.widget, Some("empty"));
         collection_stack.set_visible_child_name("empty");
-        collection_stack.set_width_request(300);
         let notes = Rc::new(RefCell::new(Vec::new()));
         let sticky_window = Rc::new(RefCell::new(None));
         let collection_cache = collection.clone();
@@ -177,7 +177,6 @@ impl MainWindow {
         navigation.append(&collection_stack);
         panes.set_start_child(Some(&navigation));
         panes.set_end_child(Some(&preview.widget));
-        panes.set_position(481);
         panes.set_resize_start_child(false);
         panes.set_shrink_start_child(false);
         panes.set_vexpand(true);
@@ -201,6 +200,7 @@ impl MainWindow {
             window,
             search_bar,
             search,
+            app_header,
             sort,
             sidebar,
             panes,
@@ -345,20 +345,29 @@ impl MainWindow {
     }
 
     fn apply_layout(&self) {
-        let mode =
-            LibraryLayoutMode::for_window_width(self.window.width(), self.window.default_width());
+        let allocated_width = self.window.width();
+        let window_width = if allocated_width <= 1 {
+            self.window.default_width()
+        } else {
+            allocated_width
+        };
+        let mode = LibraryLayoutMode::for_width(window_width);
         let visibility = mode.visibility(self.showing_content.get());
-        self.sidebar.widget.set_visible(visibility.sidebar);
+        let allocation = allocation_for_width(mode, window_width, self.showing_content.get());
+        self.sidebar.set_allocated_width(allocation.sidebar);
         self.sidebar_separator.set_visible(visibility.sidebar);
-        self.collection_stack.set_visible(visibility.collection);
+        self.app_header
+            .set_compact(mode == LibraryLayoutMode::Narrow);
         self.preview.set_compact(mode == LibraryLayoutMode::Narrow);
         self.back.set_visible(visibility.back);
-        apply_paned_layout(
+        apply_library_layout(
             &self.panes,
             &self.navigation,
+            &self.sidebar.widget,
+            &self.collection_stack,
             &self.preview.widget,
             mode,
-            self.window.width(),
+            window_width,
             self.showing_content.get(),
         );
     }

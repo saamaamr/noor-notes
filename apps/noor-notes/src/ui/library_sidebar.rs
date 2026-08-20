@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::collections::HashMap;
 
 use adw::prelude::*;
@@ -12,13 +13,14 @@ pub struct LibrarySidebar {
     labels: Vec<gtk::Label>,
     heading: gtk::Label,
     privacy: gtk::Label,
+    collapsed: Cell<bool>,
+    expanded_width: Cell<i32>,
 }
 
 impl LibrarySidebar {
     pub fn new() -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 8);
         widget.add_css_class("nn-sidebar");
-        widget.set_width_request(180);
 
         let heading = gtk::Label::new(Some("Library"));
         heading.add_css_class("nn-caption");
@@ -75,12 +77,27 @@ impl LibrarySidebar {
             labels,
             heading,
             privacy,
+            collapsed: Cell::new(false),
+            expanded_width: Cell::new(160),
+        }
+    }
+
+    pub fn set_allocated_width(&self, width: i32) {
+        if width > 0 {
+            self.expanded_width.set(width);
+        }
+        if !self.collapsed.get() {
+            self.widget.set_width_request(width);
         }
     }
 
     pub fn set_collapsed(&self, collapsed: bool) {
-        self.widget
-            .set_width_request(if collapsed { 64 } else { 180 });
+        self.collapsed.set(collapsed);
+        self.widget.set_width_request(if collapsed {
+            64
+        } else {
+            self.expanded_width.get()
+        });
         self.heading.set_visible(!collapsed);
         self.privacy.set_visible(!collapsed);
         for label in &self.labels {
