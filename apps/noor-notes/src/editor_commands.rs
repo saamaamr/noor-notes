@@ -1,3 +1,4 @@
+use crate::editor::AdapterCapabilities;
 use crate::rich_buffer::RichBuffer;
 use noor_domain::EditorMode;
 use noor_domain::ListKind;
@@ -17,6 +18,38 @@ pub enum EditorCommand {
     FontSize,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct EditorCommandSpec {
+    pub command: EditorCommand,
+    pub id: &'static str,
+    pub label: &'static str,
+    pub shortcut: Option<&'static str>,
+    pub mutates_document: bool,
+}
+
+pub const fn spec(command: EditorCommand) -> EditorCommandSpec {
+    let (id, label, shortcut) = match command {
+        EditorCommand::Undo => ("undo", "Undo", Some("Ctrl+Z")),
+        EditorCommand::Redo => ("redo", "Redo", Some("Ctrl+Shift+Z")),
+        EditorCommand::Bold => ("bold", "Bold", Some("Ctrl+B")),
+        EditorCommand::Italic => ("italic", "Italic", Some("Ctrl+I")),
+        EditorCommand::Underline => ("underline", "Underline", Some("Ctrl+U")),
+        EditorCommand::Strikethrough => ("strikethrough", "Strikethrough", None),
+        EditorCommand::ToggleBulletList => ("bullet-list", "Bullet List", None),
+        EditorCommand::ToggleNumberedList => ("numbered-list", "Numbered List", None),
+        EditorCommand::ClearFormatting => ("clear-formatting", "Clear Formatting", None),
+        EditorCommand::InsertEmoji => ("insert-emoji", "Emoji", None),
+        EditorCommand::FontSize => ("font-size", "Font Size", None),
+    };
+    EditorCommandSpec {
+        command,
+        id,
+        label,
+        shortcut,
+        mutates_document: true,
+    }
+}
+
 pub fn supports_command(mode: &EditorMode, command: EditorCommand) -> bool {
     match command {
         EditorCommand::Undo | EditorCommand::Redo => true,
@@ -29,6 +62,35 @@ pub fn supports_command(mode: &EditorMode, command: EditorCommand) -> bool {
         | EditorCommand::ClearFormatting
         | EditorCommand::FontSize => matches!(mode, EditorMode::Rich),
         EditorCommand::InsertEmoji => !matches!(mode, EditorMode::Code),
+    }
+}
+
+pub fn is_available(
+    command: EditorCommand,
+    mode: &EditorMode,
+    capabilities: AdapterCapabilities,
+    editable: bool,
+) -> bool {
+    let command_spec = spec(command);
+    if command_spec.mutates_document && !editable {
+        return false;
+    }
+    if !supports_command(mode, command) {
+        return false;
+    }
+
+    match command {
+        EditorCommand::Undo => capabilities.undo,
+        EditorCommand::Redo => capabilities.redo,
+        EditorCommand::Bold
+        | EditorCommand::Italic
+        | EditorCommand::Underline
+        | EditorCommand::Strikethrough
+        | EditorCommand::ToggleBulletList
+        | EditorCommand::ToggleNumberedList
+        | EditorCommand::ClearFormatting
+        | EditorCommand::FontSize => capabilities.formatting,
+        EditorCommand::InsertEmoji => true,
     }
 }
 
