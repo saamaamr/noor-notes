@@ -10,7 +10,7 @@ use noor_domain::{Note, NoteId};
 use noor_storage::{NoteSort, SqliteNoteRepository, StorageError};
 
 use super::adaptive_layout::{LibraryLayoutMode, apply_paned_layout};
-use super::appearance_button::AppearanceButton;
+use super::app_header::AppHeader;
 use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::library::{LibrarySection, LibraryState};
 use crate::library_preferences::LibraryPreferences;
@@ -95,86 +95,14 @@ impl MainWindow {
         appearance.register_window(&window);
 
         let toolbar = adw::ToolbarView::new();
-        let header = adw::HeaderBar::new();
-        header.add_css_class("nn-app-header");
-        let title = crate::identity::window_title();
-        header.set_title_widget(Some(&title));
-        let back = gtk::Button::builder()
-            .icon_name("go-previous-symbolic")
-            .tooltip_text("Back to notes")
-            .visible(false)
-            .build();
-        back.add_css_class("flat");
-        back.add_css_class("nn-header-control");
-        back.add_css_class("nn-icon-neutral");
-        header.pack_start(&back);
-        let new_button = gtk::Button::builder()
-            .label("New Note")
-            .icon_name("list-add-symbolic")
-            .tooltip_text("Create a new note (Ctrl+N)")
-            .action_name("app.new-note")
-            .build();
-        new_button.add_css_class("suggested-action");
-        new_button.add_css_class("nn-new-note");
-        header.pack_start(&new_button);
-        let search_button = gtk::ToggleButton::builder()
-            .icon_name("system-search-symbolic")
-            .tooltip_text("Search notes (Ctrl+F)")
-            .build();
-        search_button.add_css_class("flat");
-        search_button.add_css_class("nn-header-control");
-        search_button.add_css_class("nn-icon-neutral");
-        header.pack_end(&search_button);
-        let sort = gtk::DropDown::from_strings(&[
-            "Recently updated",
-            "Recently created",
-            "Title A–Z",
-            "Title Z–A",
-        ]);
-        sort.set_tooltip_text(Some("Sort notes"));
-        sort.add_css_class("flat");
-        sort.add_css_class("nn-sort-control");
-        sort.set_selected(match LibraryPreferences::for_current_user().load_sort() {
-            NoteSort::UpdatedDesc => 0,
-            NoteSort::CreatedDesc => 1,
-            NoteSort::TitleAsc => 2,
-            NoteSort::TitleDesc => 3,
-        });
-        header.pack_end(&sort);
-        let menu = gtk::gio::Menu::new();
-        let appearance_button = AppearanceButton::new(appearance);
-        appearance_button.button.add_css_class("nn-header-control");
-        header.pack_end(&appearance_button.button);
-        menu.append(Some("Import Xpad Notes…"), Some("app.import-xpad"));
-        menu.append(Some("Keyboard Shortcuts"), Some("app.shortcuts"));
-        let appearance_menu = gtk::gio::Menu::new();
-        appearance_menu.append(Some("System"), Some("app.appearance::system"));
-        appearance_menu.append(Some("Snow"), Some("app.appearance::light"));
-        appearance_menu.append(Some("Warm Paper"), Some("app.appearance::warm-paper"));
-        appearance_menu.append(Some("Cool Mist"), Some("app.appearance::cool-mist"));
-        appearance_menu.append(Some("Graphite"), Some("app.appearance::graphite"));
-        appearance_menu.append(Some("Midnight"), Some("app.appearance::midnight"));
-        appearance_menu.append(Some("OLED"), Some("app.appearance::oled"));
-        menu.append_submenu(Some("Appearance"), &appearance_menu);
-        menu.append(
-            Some("Appearance Settings…"),
-            Some("app.appearance-settings"),
+        let app_header = AppHeader::new(
+            appearance,
+            LibraryPreferences::for_current_user().load_sort(),
         );
-        menu.append(
-            Some("Writing Assistance…"),
-            Some("app.writing-assistance-settings"),
-        );
-        menu.append(Some("Quit"), Some("app.quit"));
-        let menu_button = gtk::MenuButton::builder()
-            .icon_name("open-menu-symbolic")
-            .tooltip_text("Main menu")
-            .menu_model(&menu)
-            .build();
-        menu_button.add_css_class("flat");
-        menu_button.add_css_class("nn-header-control");
-        menu_button.add_css_class("nn-icon-neutral");
-        header.pack_end(&menu_button);
-        toolbar.add_top_bar(&header);
+        let back = app_header.back.clone();
+        let search_button = app_header.search_toggle.clone();
+        let sort = app_header.sort.clone();
+        toolbar.add_top_bar(&app_header.widget);
 
         let page = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let search = gtk::SearchEntry::builder()

@@ -3,16 +3,35 @@ use std::rc::Rc;
 use adw::prelude::*;
 use chrono::Utc;
 use noor_domain::Note;
+use noor_notes::appearance::{AppearanceManager, AppearanceStore};
 use noor_notes::library::LibrarySection;
+use noor_notes::ui::app_header::AppHeader;
 use noor_notes::ui::empty_state::EmptyState;
 use noor_notes::ui::library_sidebar::LibrarySidebar;
 use noor_notes::ui::note_card;
 use noor_notes::ui::note_collection::NoteCollection;
 use noor_notes::ui::note_preview::NotePreview;
+use noor_storage::NoteSort;
 
 #[test]
 fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     gtk::init().unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let manager = AppearanceManager::new(AppearanceStore::at(
+        directory.path().join("appearance.json"),
+    ));
+    let header = AppHeader::new(manager, NoteSort::UpdatedDesc);
+    assert!(header.widget.has_css_class("nn-app-header"));
+    assert_eq!(header.sort.selected(), 0);
+    assert_eq!(header.back.tooltip_text().as_deref(), Some("Back to notes"));
+    assert_eq!(
+        header.search_toggle.tooltip_text().as_deref(),
+        Some("Search notes (Ctrl+F)")
+    );
+    assert!(header.new_note.has_css_class("suggested-action"));
+    assert_eq!(header.new_note.action_name().as_deref(), Some("app.new-note"));
+    assert_eq!(header.main_menu.tooltip_text().as_deref(), Some("Main menu"));
+
     let sidebar = LibrarySidebar::new();
     assert!(sidebar.widget.has_css_class("nn-sidebar"));
     assert_eq!(sidebar.widget.width_request(), 180);

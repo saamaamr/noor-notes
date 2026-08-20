@@ -1,4 +1,5 @@
 pub mod adaptive_layout;
+pub mod app_header;
 pub mod appearance_button;
 pub mod appearance_settings;
 pub mod editor_canvas;
