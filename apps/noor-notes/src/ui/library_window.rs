@@ -18,6 +18,7 @@ use crate::services::trash_command;
 use crate::sticky_note_window::StickyNoteWindow;
 use crate::writing_assistance::WritingAssistanceRuntime;
 
+use super::dialog_primitives;
 use super::empty_state::EmptyState;
 use super::library_sidebar::LibrarySidebar;
 use super::note_card::CardAction;
@@ -472,16 +473,14 @@ impl MainWindow {
                 return;
             }
             if action == CardAction::DeletePermanently {
-                let dialog = adw::AlertDialog::new(
-                    Some("Permanently delete this note?"),
-                    Some("This cannot be undone. The note and its local history will be removed."),
-                );
-                dialog.add_response("cancel", "Cancel");
-                dialog.add_response("delete", "Delete Permanently");
-                dialog.set_default_response(Some("cancel"));
-                dialog.set_close_response("cancel");
-                dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
-                if dialog.choose_future(Some(&this.window)).await != "delete" {
+                if !dialog_primitives::confirm_destructive(
+                    &this.window,
+                    "Permanently delete this note?",
+                    "This cannot be undone. The note and its local history will be removed.",
+                    "Permanently Delete",
+                )
+                .await
+                {
                     return;
                 }
             }

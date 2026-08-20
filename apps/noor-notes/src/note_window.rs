@@ -21,6 +21,7 @@ use crate::rich_buffer::RichBuffer;
 use crate::safe_export::{ExportExtension, sanitize_export_name, set_owner_only};
 use crate::services::trash_command;
 use crate::ui::appearance_button::AppearanceButton;
+use crate::ui::dialog_primitives;
 use crate::ui::editor_canvas::{build_editor_canvas, configure_editor_canvas};
 use crate::ui::editor_header::EditorHeader;
 use crate::ui::editor_menu_bar::EditorMenuBar;
@@ -562,9 +563,11 @@ impl NoteWindow {
             let window = window.clone();
             let buffer = buffer.clone();
             let editor = editor.clone();
-            toolbar
-                .go_to_line
-                .connect_clicked(move |_| show_go_to_line(&window, &buffer, &editor));
+            let more_popover = toolbar.more_popover.clone();
+            toolbar.go_to_line.connect_clicked(move |_| {
+                dialog_primitives::popdown_before_dialog(&more_popover);
+                show_go_to_line(&window, &buffer, &editor);
+            });
         }
         {
             let mut state = autosave.subscribe(current.id);
@@ -635,6 +638,7 @@ impl NoteWindow {
             controller: controller.clone(),
             writing_runtime: writing_runtime.clone(),
             busy: mode_switch_busy,
+            more_popover: toolbar.more_popover.clone(),
             buttons: vec![
                 toolbar.mode_rich.clone(),
                 toolbar.mode_markdown.clone(),
@@ -738,27 +742,25 @@ impl NoteWindow {
             let autosave = autosave.clone();
             let window = window.clone();
             let title_entry = title_entry.clone();
+            let more_popover = toolbar.more_popover.clone();
             toolbar.rename.connect_clicked(move |_| {
+                dialog_primitives::popdown_before_dialog(&more_popover);
                 let note = note.clone();
                 let autosave = autosave.clone();
                 let window = window.clone();
                 let title_entry = title_entry.clone();
                 gtk::glib::MainContext::default().spawn_local(async move {
-                    let rename_entry = gtk::Entry::builder()
-                        .text(note.borrow().display_title())
-                        .activates_default(true)
-                        .build();
-                    let dialog = adw::AlertDialog::builder()
-                        .heading("Rename note")
-                        .body("Choose a clear name for this note.")
-                        .extra_child(&rename_entry)
-                        .build();
-                    dialog.add_response("cancel", "Cancel");
-                    dialog.add_response("rename", "Rename");
-                    dialog.set_default_response(Some("rename"));
-                    dialog.set_close_response("cancel");
-                    if dialog.choose_future(Some(&window)).await == "rename" {
-                        let title = rename_entry.text().trim().to_string();
+                    let initial = note.borrow().display_title().to_owned();
+                    if let Some(title) = dialog_primitives::request_text(
+                        &window,
+                        "Rename note",
+                        "Choose a clear name for this note.",
+                        &initial,
+                        "Note title",
+                        "Rename",
+                    )
+                    .await
+                    {
                         note.borrow_mut().title = title.clone();
                         title_entry.set_text(&title);
                         autosave.schedule(NoteDraft::from(note.borrow().clone()));
@@ -868,25 +870,36 @@ impl NoteWindow {
             let window = window.clone();
             let writing_runtime = writing_runtime.clone();
             let id = current.id;
+            let more_popover = toolbar.more_popover.clone();
             toolbar.permanent_delete.connect_clicked(move |button| {
+                dialog_primitives::popdown_before_dialog(&more_popover);
                 button.set_sensitive(false);
                 let button = button.clone();
                 let repository = repository.clone();
                 let window = window.clone();
                 let writing_runtime = writing_runtime.clone();
                 gtk::glib::MainContext::default().spawn_local(async move {
-                    let dialog = adw::AlertDialog::new(Some("Permanently delete this note?"), Some("This cannot be undone. The note and its local history will be removed."));
-                    dialog.add_response("cancel", "Cancel");
-                    dialog.add_response("delete", "Permanently Delete");
-                    dialog.set_default_response(Some("cancel"));
-                    dialog.set_close_response("cancel");
-                    dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);
-                    if dialog.choose_future(Some(&window)).await != "delete" { button.set_sensitive(true); return; }
+                    if !dialog_primitives::confirm_destructive(
+                        &window,
+                        "Permanently delete this note?",
+                        "This cannot be undone. The note and its local history will be removed.",
+                        "Permanently Delete",
+                    )
+                    .await
+                    {
+                        button.set_sensitive(true);
+                        return;
+                    }
                     if repository.delete_permanently(id).await.is_ok() {
                         writing_runtime.schedule_model_rebuild(Duration::from_secs(5));
-                        if let Some(application) = window.application() { application.activate_action("refresh-notes", None); }
+                        if let Some(application) = window.application() {
+                            application.activate_action("refresh-notes", None);
+                        }
                         window.close();
-                    } else { button.set_sensitive(true); show_save_error(&window); }
+                    } else {
+                        button.set_sensitive(true);
+                        show_save_error(&window);
+                    }
                 });
             });
         }
@@ -908,6 +921,7 @@ impl NoteWindow {
                 repository.clone(),
                 window.clone(),
                 writing_runtime.clone(),
+                toolbar.more_popover.clone(),
             );
         }
         {
@@ -994,12 +1008,11 @@ fn save_editor_snapshot(
 }
 
 fn show_save_error(window: &adw::ApplicationWindow) {
-    let dialog = adw::AlertDialog::new(
-        Some("Could not save note"),
-        Some("Noor Notes kept this window open. Please try again."),
+    dialog_primitives::show_error(
+        window,
+        "Could not save note",
+        "Noor Notes kept this window open. Please try again.",
     );
-    dialog.add_response("ok", "OK");
-    dialog.present(Some(window));
 }
 
 fn native_window_id(window: &adw::ApplicationWindow) -> Option<NativeWindowId> {
@@ -1090,28 +1103,23 @@ fn show_go_to_line(
     buffer: &gtk::TextBuffer,
     editor: &gtk::TextView,
 ) {
-    let entry = gtk::Entry::builder()
-        .placeholder_text("Line number")
-        .input_purpose(gtk::InputPurpose::Digits)
-        .activates_default(true)
-        .build();
-    let dialog = adw::AlertDialog::builder()
-        .heading("Go to line")
-        .body("Enter a line number in this note.")
-        .extra_child(&entry)
-        .build();
-    dialog.add_response("cancel", "Cancel");
-    dialog.add_response("go", "Go");
-    dialog.set_default_response(Some("go"));
-    dialog.set_close_response("cancel");
     let window = window.clone();
     let buffer = buffer.clone();
     let editor = editor.clone();
     gtk::glib::MainContext::default().spawn_local(async move {
-        if dialog.choose_future(Some(&window)).await != "go" {
+        let Some(requested) = dialog_primitives::request_text(
+            &window,
+            "Go to line",
+            "Enter a line number in this note.",
+            "",
+            "Line number",
+            "Go",
+        )
+        .await
+        else {
             return;
-        }
-        let requested = entry.text().parse::<usize>().unwrap_or(1);
+        };
+        let requested = requested.parse::<usize>().unwrap_or(1);
         let text = buffer.text(&buffer.start_iter(), &buffer.end_iter(), true);
         let offset = line_offset(&text, requested);
         buffer.place_cursor(&buffer.iter_at_offset(offset as i32));
@@ -1165,8 +1173,10 @@ fn connect_trash_button(
     repository: SqliteNoteRepository,
     window: adw::ApplicationWindow,
     writing_runtime: WritingAssistanceRuntime,
+    more_popover: gtk::Popover,
 ) {
     button.connect_clicked(move |button| {
+        dialog_primitives::popdown_before_dialog(&more_popover);
         let button = button.clone();
         let note = note.clone();
         let autosave = autosave.clone();
@@ -1262,11 +1272,13 @@ struct ModeSwitchContext {
     controller: Arc<dyn WindowController>,
     writing_runtime: WritingAssistanceRuntime,
     busy: Rc<Cell<bool>>,
+    more_popover: gtk::Popover,
     buttons: Vec<gtk::Button>,
 }
 
 fn connect_editor_mode(button: &gtk::Button, target: EditorMode, context: ModeSwitchContext) {
     button.connect_clicked(move |_| {
+        dialog_primitives::popdown_before_dialog(&context.more_popover);
         if context.busy.replace(true) {
             return;
         }
@@ -1285,16 +1297,16 @@ fn connect_editor_mode(button: &gtk::Button, target: EditorMode, context: ModeSw
                 preview.warnings.join("\n")
             )
         };
-        let dialog = adw::AlertDialog::new(Some("Change editor mode?"), Some(&body));
-        dialog.add_response("cancel", "Cancel");
-        dialog.add_response("convert", "Convert");
-        dialog.set_response_appearance("convert", adw::ResponseAppearance::Suggested);
-        dialog.set_default_response(Some("convert"));
-        dialog.set_close_response("cancel");
-
         let context = context.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
-            if dialog.choose_future(Some(&context.window)).await != "convert" {
+            if !dialog_primitives::confirm_action(
+                &context.window,
+                "Change editor mode?",
+                &body,
+                "Convert",
+            )
+            .await
+            {
                 finish_mode_switch(&context);
                 return;
             }

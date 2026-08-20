@@ -2,6 +2,7 @@ const NOTE_WINDOW: &str = include_str!("../src/note_window.rs");
 const MANAGED_APP: &str = include_str!("../src/managed_app.rs");
 const TRASH_COMMAND: &str = include_str!("../src/services/trash_command.rs");
 const EDITOR_ACTIONS: &str = include_str!("../src/editor_actions.rs");
+const DIALOG_PRIMITIVES: &str = include_str!("../src/ui/dialog_primitives.rs");
 
 #[test]
 fn standalone_editor_uses_shared_document_chrome_and_commands() {
@@ -64,6 +65,25 @@ fn more_actions_close_the_popover_before_modal_work() {
         source.contains("close_more_on_click") && source.contains("more_popover.popdown"),
         "More actions must release the popover grab before opening dialogs or windows"
     );
+}
+
+#[test]
+fn confirmations_and_entry_dialogs_share_one_explicit_contract() {
+    for helper in [
+        "confirm_action",
+        "confirm_destructive",
+        "request_text",
+        "show_error",
+        "popdown_before_dialog",
+    ] {
+        assert!(
+            DIALOG_PRIMITIVES.contains(helper),
+            "missing shared dialog helper: {helper}"
+        );
+    }
+    assert!(TRASH_COMMAND.contains("dialog_primitives::confirm_destructive"));
+    assert!(NOTE_WINDOW.contains("dialog_primitives::request_text"));
+    assert!(NOTE_WINDOW.contains("dialog_primitives::popdown_before_dialog"));
 }
 
 #[test]

@@ -18,6 +18,7 @@ use crate::main_window::MainWindow;
 use crate::security_bootstrap::open_repository;
 use crate::shortcuts::shortcuts_window;
 use crate::ui::appearance_settings::AppearanceSettings;
+use crate::ui::dialog_primitives;
 use crate::ui::writing_assistance_settings::WritingAssistanceSettings;
 use crate::writing_assistance::{WritingAssistanceRuntime, WritingAssistanceStore};
 
@@ -117,13 +118,16 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
                 flow.preview().importable.len(),
                 flow.preview().skipped.len()
             );
-            let dialog = adw::AlertDialog::new(Some("Import Xpad notes?"), Some(&body));
-            dialog.add_response("cancel", "Cancel");
-            dialog.add_response("import", "Import");
-            dialog.set_response_appearance("import", adw::ResponseAppearance::Suggested);
             let repository = repository.clone();
             gtk::glib::MainContext::default().spawn_local(async move {
-                if dialog.choose_future(Some(&window.window)).await == "import" {
+                if dialog_primitives::confirm_action(
+                    &window.window,
+                    "Import Xpad notes?",
+                    &body,
+                    "Import",
+                )
+                .await
+                {
                     match flow.confirm(&repository).await {
                         Ok(report) => {
                             window.set_status(&format!(

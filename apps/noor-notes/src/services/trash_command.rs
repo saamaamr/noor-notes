@@ -1,25 +1,23 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use adw::prelude::*;
 use chrono::Utc;
+use gtk::prelude::*;
 use noor_domain::{Note, NoteId};
 use noor_storage::{SqliteNoteRepository, StorageError};
 
 use crate::autosave::AutosaveQueue;
 use crate::note_actions;
+use crate::ui::dialog_primitives;
 
 pub async fn confirm_move_to_trash(parent: &impl IsA<gtk::Widget>) -> bool {
-    let dialog = adw::AlertDialog::new(
-        Some("Move this note to Trash?"),
-        Some("The note will remain recoverable from the Trash section."),
-    );
-    dialog.add_response("cancel", "Cancel");
-    dialog.add_response("trash", "Move to Trash");
-    dialog.set_default_response(Some("cancel"));
-    dialog.set_close_response("cancel");
-    dialog.set_response_appearance("trash", adw::ResponseAppearance::Destructive);
-    dialog.choose_future(Some(parent)).await == "trash"
+    dialog_primitives::confirm_destructive(
+        parent,
+        "Move this note to Trash?",
+        "The note will remain recoverable from the Trash section.",
+        "Move to Trash",
+    )
+    .await
 }
 
 pub async fn trash_open_note(
