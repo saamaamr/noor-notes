@@ -34,11 +34,17 @@ impl LibrarySidebar {
         list.add_css_class("navigation-sidebar");
         let mut counts = HashMap::new();
         let mut labels = Vec::new();
-        for section in LibrarySection::NAVIGATION {
+        for (index, section) in LibrarySection::NAVIGATION.iter().enumerate() {
             let row = gtk::ListBoxRow::new();
             row.add_css_class("nn-sidebar-row");
             row.set_height_request(40);
             row.set_tooltip_text(Some(section.label()));
+            row.update_property(&[gtk::accessible::Property::Label(section.label())]);
+            row.update_relation(&[
+                gtk::accessible::Relation::PosInSet((index + 1) as i32),
+                gtk::accessible::Relation::SetSize(LibrarySection::NAVIGATION.len() as i32),
+            ]);
+            row.update_state(&[gtk::accessible::State::Selected(Some(false))]);
             let content = gtk::Box::new(gtk::Orientation::Horizontal, 10);
             let icon = gtk::Image::from_icon_name(section.icon_name());
             icon.add_css_class("nn-sidebar-icon");
@@ -55,8 +61,17 @@ impl LibrarySidebar {
             content.append(&count);
             row.set_child(Some(&content));
             list.append(&row);
-            counts.insert(section, count);
+            counts.insert(*section, count);
         }
+        list.connect_row_selected(|list, selected| {
+            for index in 0..LibrarySection::NAVIGATION.len() as i32 {
+                if let Some(row) = list.row_at_index(index) {
+                    row.update_state(&[gtk::accessible::State::Selected(Some(
+                        selected == Some(&row),
+                    ))]);
+                }
+            }
+        });
         if let Some(first) = list.row_at_index(0) {
             list.select_row(Some(&first));
         }
@@ -122,6 +137,12 @@ impl LibrarySidebar {
             };
             callback(*section);
         });
+    }
+
+    pub fn navigation_rows(&self) -> Vec<gtk::ListBoxRow> {
+        (0..LibrarySection::NAVIGATION.len() as i32)
+            .filter_map(|index| self.list.row_at_index(index))
+            .collect()
     }
 
     pub fn set_count(&self, section: LibrarySection, value: usize) {

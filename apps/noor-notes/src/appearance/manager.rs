@@ -40,6 +40,15 @@ impl AppearanceManager {
         let window = window.as_ref().clone();
         self.state.borrow_mut().windows.push(window.downgrade());
         self.apply_to_window(&window);
+        if let Some(settings) = gtk::Settings::default() {
+            apply_motion_class(&window, settings.is_gtk_enable_animations());
+            let window = window.downgrade();
+            settings.connect_gtk_enable_animations_notify(move |settings| {
+                if let Some(window) = window.upgrade() {
+                    apply_motion_class(&window, settings.is_gtk_enable_animations());
+                }
+            });
+        }
     }
 
     pub fn set_mode(&self, mode: AppearanceMode) -> io::Result<()> {
@@ -207,4 +216,12 @@ fn apply_theme_class(window: &gtk::Window, theme: EffectiveTheme) {
         window.remove_css_class(class);
     }
     window.add_css_class(theme.css_class());
+}
+
+fn apply_motion_class(window: &gtk::Window, animations_enabled: bool) {
+    if animations_enabled {
+        window.remove_css_class("nn-reduced-motion");
+    } else {
+        window.add_css_class("nn-reduced-motion");
+    }
 }

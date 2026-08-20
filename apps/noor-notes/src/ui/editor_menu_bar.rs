@@ -13,7 +13,8 @@ pub struct EditorMenuBar {
     items: HashMap<&'static str, gtk::Button>,
     checked_items: HashMap<&'static str, gtk::ToggleButton>,
     _bindings: Vec<glib::Binding>,
-    _popovers: Vec<gtk::Popover>,
+    popovers: Vec<gtk::Popover>,
+    menu_buttons: Vec<gtk::MenuButton>,
 }
 
 impl EditorMenuBar {
@@ -57,6 +58,7 @@ impl EditorMenuBar {
         let mut checked_items = HashMap::new();
         let mut bindings = Vec::new();
         let mut popovers = Vec::new();
+        let mut menu_buttons = Vec::new();
         for definition in menus {
             let built = build_menu(definition);
             for item in built.items {
@@ -67,6 +69,7 @@ impl EditorMenuBar {
                 items.insert(item.key, item.button);
             }
             widget.append(&built.button);
+            menu_buttons.push(built.button);
             popovers.push(built.popover);
         }
         close_other_popovers_when_opened(&popovers);
@@ -76,8 +79,17 @@ impl EditorMenuBar {
             items,
             checked_items,
             _bindings: bindings,
-            _popovers: popovers,
+            popovers,
+            menu_buttons,
         }
+    }
+
+    pub fn menu_buttons(&self) -> &[gtk::MenuButton] {
+        &self.menu_buttons
+    }
+
+    pub fn popovers(&self) -> &[gtk::Popover] {
+        &self.popovers
     }
 }
 
@@ -237,6 +249,7 @@ fn build_menu(definition: MenuDefinition) -> BuiltMenu {
         .build();
     menu.add_css_class("nn-editor-menu-button");
     menu.update_property(&[gtk::accessible::Property::Label(label)]);
+    super::toolbar_primitives::bind_menu_popover(&menu, &popover);
     BuiltMenu {
         button: menu,
         popover,
@@ -265,6 +278,7 @@ fn build_item(definition: MenuItemDefinition, parent: &gtk::Popover) -> BuiltIte
         }
         MenuSource::Toggle(source) => {
             let proxy = gtk::ToggleButton::with_label(label);
+            super::toolbar_primitives::expose_toggle_checked(&proxy);
             let mut bindings = bind_availability(&source, &proxy);
             bindings.push(
                 source

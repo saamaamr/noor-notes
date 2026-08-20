@@ -6,7 +6,8 @@ use std::rc::Rc;
 use crate::ui::formatting_popover::FormattingPopover;
 use crate::ui::rich_color_palette::RichColorPalette;
 use crate::ui::toolbar_primitives::{
-    ToolbarGroup, icon_button, icon_toggle, style_menu_button, text_toggle, toggle_button,
+    ToolbarGroup, bind_menu_popover, icon_button, icon_toggle, style_menu_button, text_toggle,
+    toggle_button,
 };
 
 #[derive(Clone)]
@@ -98,6 +99,7 @@ impl EditorToolbar {
         let quick_font_size = gtk::DropDown::from_strings(&["12", "14", "16", "18", "24"]);
         quick_font_size.set_selected(2);
         quick_font_size.set_tooltip_text(Some("Font size"));
+        quick_font_size.update_property(&[gtk::accessible::Property::Label("Font size")]);
         quick_font_size.set_width_request(64);
         quick_font_size.add_css_class("nn-toolbar-font-size");
         quick_font_size.add_css_class("nn-control-compact");
@@ -118,6 +120,7 @@ impl EditorToolbar {
             .popover(&formatting.widget)
             .build();
         style_menu_button(&format, "Formatting");
+        bind_menu_popover(&format, &formatting.widget);
 
         let emoji_grid = gtk::Grid::builder()
             .column_spacing(4)
@@ -133,6 +136,8 @@ impl EditorToolbar {
         let mut emoji_buttons = Vec::new();
         for (index, emoji) in emojis.iter().enumerate() {
             let button = gtk::Button::with_label(emoji);
+            button.set_tooltip_text(Some(&format!("Insert {emoji}")));
+            button.update_property(&[gtk::accessible::Property::Label(&format!("Insert {emoji}"))]);
             button.add_css_class("emoji-choice");
             emoji_grid.attach(&button, (index % 6) as i32, (index / 6) as i32, 1, 1);
             emoji_buttons.push(button);
@@ -144,6 +149,7 @@ impl EditorToolbar {
             .popover(&emoji_popover)
             .build();
         style_menu_button(&emoji, "Insert emoji");
+        bind_menu_popover(&emoji, &emoji_popover);
         let find = toggle_button("edit-find-symbolic", "Find in note (Ctrl+F)");
 
         let all_workspaces = toggle_button("focus-windows-symbolic", "Show on all workspaces");
@@ -151,6 +157,7 @@ impl EditorToolbar {
         opacity.set_width_request(150);
         opacity.set_draw_value(false);
         opacity.set_tooltip_text(Some("Note opacity"));
+        opacity.update_property(&[gtk::accessible::Property::Label("Note opacity")]);
         let settings_box = gtk::Box::new(gtk::Orientation::Vertical, 8);
         settings_box.set_margin_top(12);
         settings_box.set_margin_bottom(12);
@@ -178,6 +185,8 @@ impl EditorToolbar {
             .popover(&settings_popover)
             .build();
         appearance.add_css_class("flat");
+        style_menu_button(&appearance, "Note settings");
+        bind_menu_popover(&appearance, &settings_popover);
         let word_wrap = toggle_button("format-justify-left-symbolic", "Word wrap");
         word_wrap.set_active(true);
         let zoom_in = icon_button("zoom-in-symbolic", "Zoom in (Ctrl++)");
@@ -279,6 +288,7 @@ impl EditorToolbar {
             .popover(&more_popover)
             .build();
         style_menu_button(&more, "More note actions");
+        bind_menu_popover(&more, &more_popover);
         for button in [
             &new_note,
             &rename,

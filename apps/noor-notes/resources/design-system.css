@@ -624,8 +624,12 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-swatch-graphite { background: @nn_graphite_editor_bg; border-color: @nn_graphite_accent; }
 .nn-swatch-midnight { background: @nn_midnight_editor_bg; border-color: @nn_midnight_accent; }
 .nn-swatch-oled { background: @nn_oled_app_bg; border-color: @nn_oled_accent; }
-/* prefers-reduced-motion: GTK follows the desktop animation setting; component
- * transitions remain below 180 ms and are omitted by libadwaita when disabled. */
+/* prefers-reduced-motion: the application maps GTK's desktop animation setting
+ * to this root class, while libadwaita also follows the same native setting. */
+.nn-reduced-motion,
+.nn-reduced-motion * {
+  transition: none;
+}
 .nn-assistance-status {
   color: alpha(currentColor, 0.72);
   font-size: 0.9em;

@@ -3,6 +3,7 @@ use adw::prelude::*;
 use crate::rich_color::ColorRole;
 
 use super::rich_color_palette::RichColorPalette;
+use super::toolbar_primitives::expose_toggle_checked;
 
 #[derive(Clone)]
 pub struct FormattingPopover {
@@ -148,6 +149,7 @@ fn icon_toggle(icon: &str, tooltip: &str) -> gtk::ToggleButton {
         .build();
     button.add_css_class("toolbar-button");
     button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
+    expose_toggle_checked(&button);
     button
 }
 
@@ -159,5 +161,6 @@ fn text_toggle(label: &str, tooltip: &str, class: &str) -> gtk::ToggleButton {
     button.add_css_class("format-choice");
     button.add_css_class(class);
     button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
+    expose_toggle_checked(&button);
     button
 }

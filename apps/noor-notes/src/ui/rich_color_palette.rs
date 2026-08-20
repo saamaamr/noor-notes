@@ -2,6 +2,8 @@ use adw::prelude::*;
 
 use crate::rich_color::{ColorRole, presets};
 
+use super::toolbar_primitives::expose_toggle_checked;
+
 #[derive(Clone)]
 pub struct RichColorPalette {
     pub widget: gtk::Box,
@@ -42,6 +44,7 @@ impl RichColorPalette {
             .build();
         reset.add_css_class("nn-color-button");
         reset.update_property(&[gtk::accessible::Property::Label(reset_tooltip)]);
+        expose_toggle_checked(&reset);
         choices.insert(&reset, -1);
 
         let mut preset_buttons = Vec::new();
@@ -56,6 +59,7 @@ impl RichColorPalette {
                 .build();
             button.add_css_class("nn-color-button");
             button.update_property(&[gtk::accessible::Property::Label(&tooltip)]);
+            expose_toggle_checked(&button);
 
             let overlay = gtk::Overlay::new();
             let swatch = gtk::Box::new(gtk::Orientation::Horizontal, 0);

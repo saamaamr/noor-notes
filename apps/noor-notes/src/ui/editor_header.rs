@@ -53,6 +53,7 @@ impl EditorHeader {
         library_pin.add_css_class("nn-header-control");
         library_pin.add_css_class("nn-icon-neutral");
         library_pin.update_property(&[gtk::accessible::Property::Label("Pin note in the library")]);
+        super::toolbar_primitives::expose_toggle_checked(&library_pin);
         let favorite = gtk::ToggleButton::builder()
             .icon_name(if note.favorite {
                 "starred-symbolic"
@@ -65,6 +66,7 @@ impl EditorHeader {
         favorite.add_css_class("nn-header-control");
         favorite.add_css_class("nn-icon-neutral");
         favorite.update_property(&[gtk::accessible::Property::Label("Add to favorites")]);
+        super::toolbar_primitives::expose_toggle_checked(&favorite);
 
         for control in [
             toolbar.view_only.upcast_ref::<gtk::Widget>(),

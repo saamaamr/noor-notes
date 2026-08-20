@@ -85,6 +85,7 @@ impl AppHeader {
         search_toggle.add_css_class("nn-control-compact");
         search_toggle.add_css_class("nn-icon-neutral");
         search_toggle.update_property(&[gtk::accessible::Property::Label("Search notes (Ctrl+F)")]);
+        super::toolbar_primitives::expose_toggle_checked(&search_toggle);
         widget.pack_end(&search_toggle);
 
         Self {

@@ -22,6 +22,23 @@ impl NoteCollection {
         selection.set_autoselect(true);
         selection.set_can_unselect(true);
         let factory = gtk::SignalListItemFactory::new();
+        factory.connect_setup(|_, object| {
+            let Some(item) = object.downcast_ref::<gtk::ListItem>() else {
+                return;
+            };
+            let container = gtk::Box::new(gtk::Orientation::Vertical, 0);
+            container.add_css_class("nn-note-item");
+            container.update_state(&[gtk::accessible::State::Selected(Some(item.is_selected()))]);
+            let accessible = container.downgrade();
+            item.connect_selected_notify(move |item| {
+                if let Some(container) = accessible.upgrade() {
+                    container.update_state(&[gtk::accessible::State::Selected(Some(
+                        item.is_selected(),
+                    ))]);
+                }
+            });
+            item.set_child(Some(&container));
+        });
         {
             let notes = notes.clone();
             factory.connect_bind(move |_, object| {
@@ -36,12 +53,19 @@ impl NoteCollection {
                     return;
                 };
                 let card = note_card::build(note, action.clone());
-                item.set_child(Some(&card.widget));
+                let Some(container) = item.child().and_downcast::<gtk::Box>() else {
+                    return;
+                };
+                container.append(&card.widget);
             });
         }
         factory.connect_unbind(|_, object| {
             if let Some(item) = object.downcast_ref::<gtk::ListItem>() {
-                item.set_child(gtk::Widget::NONE);
+                if let Some(container) = item.child().and_downcast::<gtk::Box>() {
+                    while let Some(child) = container.first_child() {
+                        container.remove(&child);
+                    }
+                }
             }
         });
         let widget = gtk::ListView::new(Some(selection), Some(factory));
