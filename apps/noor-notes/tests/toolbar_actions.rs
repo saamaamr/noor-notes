@@ -1,6 +1,25 @@
 const NOTE_WINDOW: &str = include_str!("../src/note_window.rs");
 const MANAGED_APP: &str = include_str!("../src/managed_app.rs");
 const TRASH_COMMAND: &str = include_str!("../src/services/trash_command.rs");
+const EDITOR_ACTIONS: &str = include_str!("../src/editor_actions.rs");
+
+#[test]
+fn standalone_editor_uses_shared_document_chrome_and_commands() {
+    assert!(NOTE_WINDOW.contains("EditorHeader::new"));
+    assert!(NOTE_WINDOW.contains("EditorMenuBar::new"));
+    assert!(NOTE_WINDOW.contains("EditorToolbar::new"));
+    assert!(NOTE_WINDOW.contains("crate::editor_actions::connect"));
+    assert!(!NOTE_WINDOW.contains("FormattingPopover::new()"));
+    for command in [
+        "EditorCommand::Undo",
+        "EditorCommand::Redo",
+        "EditorCommand::Bold",
+        "EditorCommand::Italic",
+        "EditorCommand::Underline",
+    ] {
+        assert!(EDITOR_ACTIONS.contains(command), "missing shared {command}");
+    }
+}
 
 #[test]
 fn every_primary_toolbar_button_is_wired() {
