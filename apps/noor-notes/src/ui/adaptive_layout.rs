@@ -15,6 +15,50 @@ pub struct LibraryPaneVisibility {
     pub back: bool,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LibraryPaneAllocation {
+    pub sidebar: i32,
+    pub collection: i32,
+    pub navigation: i32,
+}
+
+pub fn allocation_for_width(
+    mode: LibraryLayoutMode,
+    width: i32,
+    showing_content: bool,
+) -> LibraryPaneAllocation {
+    let width = width.max(0);
+    match mode {
+        LibraryLayoutMode::Wide => {
+            let sidebar = ((width * 10 + 50) / 100).clamp(160, 220);
+            let collection = ((width * 20 + 50) / 100).clamp(280, 360);
+            LibraryPaneAllocation {
+                sidebar,
+                collection,
+                navigation: sidebar + collection,
+            }
+        }
+        LibraryLayoutMode::Medium => {
+            let collection = ((width * 34 + 50) / 100).clamp(280, 360);
+            LibraryPaneAllocation {
+                sidebar: 0,
+                collection,
+                navigation: collection,
+            }
+        }
+        LibraryLayoutMode::Narrow if showing_content => LibraryPaneAllocation {
+            sidebar: 0,
+            collection: 0,
+            navigation: 0,
+        },
+        LibraryLayoutMode::Narrow => LibraryPaneAllocation {
+            sidebar: 0,
+            collection: width,
+            navigation: width,
+        },
+    }
+}
+
 impl LibraryLayoutMode {
     pub const fn for_width(width: i32) -> Self {
         if width >= 1_080 {
@@ -64,13 +108,8 @@ impl LibraryLayoutMode {
         }
     }
 
-    pub const fn pane_position(self, window_width: i32, showing_content: bool) -> i32 {
-        match self {
-            Self::Wide => 481,
-            Self::Medium => 300,
-            Self::Narrow if showing_content => 0,
-            Self::Narrow => window_width,
-        }
+    pub fn pane_position(self, window_width: i32, showing_content: bool) -> i32 {
+        allocation_for_width(self, window_width, showing_content).navigation
     }
 }
 

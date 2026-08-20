@@ -1,7 +1,37 @@
 use adw::prelude::*;
 use noor_notes::ui::adaptive_layout::{
-    LibraryLayoutMode, LibraryPaneVisibility, apply_paned_layout,
+    LibraryLayoutMode, LibraryPaneVisibility, allocation_for_width, apply_paned_layout,
 };
+
+#[test]
+fn wide_allocation_targets_ten_twenty_seventy_with_readability_guards() {
+    let standard = allocation_for_width(LibraryLayoutMode::Wide, 1_180, false);
+    assert_eq!(standard.sidebar, 160);
+    assert_eq!(standard.collection, 280);
+    assert_eq!(standard.navigation, 440);
+
+    let large = allocation_for_width(LibraryLayoutMode::Wide, 1_920, false);
+    assert_eq!(large.sidebar, 192);
+    assert_eq!(large.collection, 360);
+    assert_eq!(large.navigation, 552);
+}
+
+#[test]
+fn medium_and_narrow_allocations_prioritize_the_visible_destination() {
+    let medium = allocation_for_width(LibraryLayoutMode::Medium, 900, false);
+    assert_eq!(medium.sidebar, 0);
+    assert_eq!(medium.collection, 306);
+    assert_eq!(medium.navigation, 306);
+
+    assert_eq!(
+        allocation_for_width(LibraryLayoutMode::Narrow, 620, true).navigation,
+        0
+    );
+    assert_eq!(
+        allocation_for_width(LibraryLayoutMode::Narrow, 620, false).navigation,
+        620
+    );
+}
 
 #[test]
 fn width_breakpoints_choose_one_stable_library_mode() {
@@ -42,8 +72,8 @@ fn wide_and_medium_modes_keep_content_visible_without_squeezing_navigation() {
             back: false,
         }
     );
-    assert_eq!(LibraryLayoutMode::Wide.pane_position(1_180, false), 481);
-    assert_eq!(LibraryLayoutMode::Medium.pane_position(900, false), 300);
+    assert_eq!(LibraryLayoutMode::Wide.pane_position(1_180, false), 440);
+    assert_eq!(LibraryLayoutMode::Medium.pane_position(900, false), 306);
 }
 
 #[test]
