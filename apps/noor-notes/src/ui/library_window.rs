@@ -245,12 +245,14 @@ impl MainWindow {
                             let mut note = note.clone();
                             note.editor_preferences.view_only = false;
                             this.autosave.schedule(NoteDraft::from(note.clone()));
-                            this.preview.show_note(&note);
+                            if this.preview.current_note_id() == Some(note.id) {
+                                this.preview.show_note(&note);
+                            }
                         });
                     }
                     sticky.present();
                     this.sticky_window.replace(Some(sticky));
-                } else if let Some(sticky) = this.sticky_window.borrow_mut().take() {
+                } else if let Some(sticky) = { this.sticky_window.borrow_mut().take() } {
                     sticky.close();
                 }
             });

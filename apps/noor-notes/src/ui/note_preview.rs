@@ -323,16 +323,7 @@ impl NotePreview {
                 let enabled = !note.editor_preferences.view_only;
                 note.editor_preferences.view_only = enabled;
                 current.replace(Some(note.clone()));
-                read_only.set_label(if enabled {
-                    "Exit read-only"
-                } else {
-                    "Read-only"
-                });
-                read_only.update_property(&[gtk::accessible::Property::Label(if enabled {
-                    "Close read-only sticky window"
-                } else {
-                    "Open read-only sticky window"
-                })]);
+                set_read_only_button(&read_only, enabled);
                 if let Some(handler) = on_read_only_changed.borrow().as_ref() {
                     handler(note, enabled);
                 }
@@ -439,11 +430,7 @@ impl NotePreview {
         self.edit.set_visible(true);
         self.read_only.set_visible(true);
         let read_only_enabled = note.editor_preferences.view_only;
-        self.read_only.set_label(if read_only_enabled {
-            "Exit read-only"
-        } else {
-            "Read-only"
-        });
+        set_read_only_button(&self.read_only, read_only_enabled);
         self.edit
             .set_sensitive(!matches!(note.state, NoteState::Trashed { .. }));
         self.title.set_text(note.display_title());
@@ -502,6 +489,28 @@ impl NotePreview {
         self.on_read_only_changed.replace(Some(Rc::new(callback)));
     }
 
+    pub fn set_read_only_open(&self, enabled: bool) {
+        if let Some(note) = self.current.borrow_mut().as_mut() {
+            note.editor_preferences.view_only = enabled;
+        }
+        set_read_only_button(&self.read_only, enabled);
+    }
+
+    pub fn is_read_only_open(&self) -> bool {
+        self.current
+            .borrow()
+            .as_ref()
+            .is_some_and(|note| note.editor_preferences.view_only)
+    }
+
+    pub fn read_only_label(&self) -> gtk::glib::GString {
+        self.read_only.label().unwrap_or_default()
+    }
+
+    pub fn current_note_id(&self) -> Option<NoteId> {
+        self.current.borrow().as_ref().map(|note| note.id)
+    }
+
     pub fn title_stack_child_name(&self) -> Option<gtk::glib::GString> {
         self.title_stack.visible_child_name()
     }
@@ -550,6 +559,8 @@ impl NotePreview {
         self.finish_pending_edit();
         self.edit.set_visible(false);
         self.read_only.set_visible(false);
+        self.title.remove_css_class("nn-display-title");
+        self.title.remove_css_class("nn-preview-title");
         self.title_stack.set_visible(false);
         self.metadata.set_visible(false);
         self.divider.set_visible(false);
@@ -582,6 +593,19 @@ impl Default for NotePreview {
     fn default() -> Self {
         Self::new()
     }
+}
+
+fn set_read_only_button(button: &gtk::Button, enabled: bool) {
+    button.set_label(if enabled {
+        "Exit read-only"
+    } else {
+        "Read-only"
+    });
+    button.update_property(&[gtk::accessible::Property::Label(if enabled {
+        "Close read-only sticky window"
+    } else {
+        "Open read-only sticky window"
+    })]);
 }
 
 fn set_editing(

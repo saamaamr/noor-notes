@@ -212,6 +212,18 @@ fn active_note_body_edits_inline_and_preserves_rich_content() {
     assert_eq!(preview.active_mode(), EditorMode::PlainText);
     assert!(preview.source_buffer().language().is_none());
     assert!(!preview.source_buffer().is_highlight_syntax());
+
+    let mut note = Note::new(Utc::now());
+    note.title = "Sticky state".into();
+    preview.show_note(&note);
+
+    preview.set_read_only_open(true);
+    assert_eq!(preview.read_only_label(), "Exit read-only");
+    assert!(preview.is_read_only_open());
+
+    preview.set_read_only_open(false);
+    assert_eq!(preview.read_only_label(), "Read-only");
+    assert!(!preview.is_read_only_open());
 }
 
 fn descendants(root: gtk::Widget) -> Vec<gtk::Widget> {

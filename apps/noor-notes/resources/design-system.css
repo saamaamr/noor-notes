@@ -124,6 +124,13 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-preview-edit:hover { background: @nn_hover; color: @nn_text; }
 .nn-preview-editor { min-height: 280px; font-size: 16px; background: @nn_surface; color: @nn_text; border: 1px solid @nn_border_subtle; border-radius: 8px; }
 .nn-preview-editor:focus { border-color: alpha(@nn_accent, .45); }
+.nn-sticky-note-window { background: @nn_editor_bg; }
+.nn-sticky-header { min-height: 40px; background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; }
+.nn-sticky-header windowtitle > label:first-child { color: @nn_text; font-weight: 650; }
+.nn-sticky-pin { min-width: 34px; min-height: 34px; padding: 0; border-radius: 7px; color: @nn_text_secondary; }
+.nn-sticky-pin:checked { background: @nn_accent_soft; color: @nn_accent; }
+.nn-sticky-body .nn-preview { padding: 20px 24px; background: @nn_editor_bg; }
+.nn-sticky-body .nn-preview-body { color: @nn_text; font-size: 16px; }
 .nn-empty-state { padding: 48px 32px; color: @nn_text_secondary; }
 .nn-empty-state-icon { color: @nn_text_muted; -gtk-icon-size: 40px; }
 .nn-empty-state .nn-section-title { color: @nn_text; }
