@@ -127,6 +127,10 @@ pub fn apply_paned_layout(
     panes.set_position(mode.pane_position(window_width, showing_content));
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "this boundary applies one allocation atomically to the five concrete pane widgets"
+)]
 pub fn apply_library_layout(
     panes: &gtk::Paned,
     navigation: &impl IsA<gtk::Widget>,

@@ -48,7 +48,6 @@ async fn rich_formatting_persists_after_database_save_and_reopen() {
             font_size: Some(24),
             foreground: Some("#1A2B3C".into()),
             highlight: Some("#F1E2D3".into()),
-            ..TextMarks::default()
         }
     );
     assert_eq!(restored_document.blocks[0].alignment, Alignment::Center);

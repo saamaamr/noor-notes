@@ -612,6 +612,10 @@ fn set_read_only_button(button: &gtk::Button, enabled: bool) {
     })]);
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "preview edit mode updates one synchronized set of concrete GTK controls"
+)]
 fn set_editing(
     editing: &Cell<bool>,
     body_stack: &gtk::Stack,

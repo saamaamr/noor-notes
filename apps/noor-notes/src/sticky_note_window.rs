@@ -6,13 +6,15 @@ use adw::prelude::*;
 use noor_domain::Note;
 use noor_windowing::{NativeWindowId, WindowController};
 
+type ClosedHandler = Rc<dyn Fn()>;
+
 use crate::ui::note_editor_surface::NoteEditorSurface;
 
 #[derive(Clone)]
 pub struct StickyNoteWindow {
     pub window: adw::ApplicationWindow,
     pub always_on_top: gtk::ToggleButton,
-    closed: Rc<RefCell<Option<Rc<dyn Fn()>>>>,
+    closed: Rc<RefCell<Option<ClosedHandler>>>,
     close_notified: Rc<Cell<bool>>,
 }
 

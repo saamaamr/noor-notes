@@ -501,17 +501,16 @@ impl MainWindow {
             {
                 return;
             }
-            if action == CardAction::DeletePermanently {
-                if !dialog_primitives::confirm_destructive(
+            if action == CardAction::DeletePermanently
+                && !dialog_primitives::confirm_destructive(
                     &this.window,
                     "Permanently delete this note?",
                     "This cannot be undone. The note and its local history will be removed.",
                     "Permanently Delete",
                 )
                 .await
-                {
-                    return;
-                }
+            {
+                return;
             }
             let result = apply_saved_card_action(&this.repository, id, action, Utc::now()).await;
             match result {
