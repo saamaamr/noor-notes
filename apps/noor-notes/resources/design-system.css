@@ -167,6 +167,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-menu-surface { background: @nn_popover_bg; border: 1px solid @nn_border; border-radius: 10px; padding: 6px; }
 .nn-menu-row { min-height: 34px; padding: 0 10px; border-radius: 6px; color: @nn_text; }
 .nn-menu-row:hover { background: @nn_hover; }
+.nn-selected-menu-row { background: @nn_accent_soft; color: @nn_accent; }
 .nn-menu-separator { margin: 4px 6px; background: @nn_border_subtle; }
 .nn-menu-danger { color: @nn_danger; }
 .nn-menu-danger:hover { background: @nn_danger_soft; color: @nn_danger; }

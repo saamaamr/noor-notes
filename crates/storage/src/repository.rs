@@ -199,6 +199,82 @@ impl SqliteNoteRepository {
             .map_err(StorageError::from)
     }
 
+    pub async fn update_note_window_preferences(
+        &self,
+        id: NoteId,
+        view_only: Option<bool>,
+        always_on_top: Option<bool>,
+        now: chrono::DateTime<Utc>,
+    ) -> Result<Option<Note>, StorageError> {
+        let mut tx = self.pool.begin().await?;
+        let id_text = id.value().to_string();
+        let payload =
+            sqlx::query_scalar::<_, String>("SELECT payload_json FROM notes WHERE id = ?")
+                .bind(&id_text)
+                .fetch_optional(&mut *tx)
+                .await?;
+        let Some(payload) = payload else {
+            tx.commit().await?;
+            return Ok(None);
+        };
+        let mut note: Note = serde_json::from_str(&payload)?;
+        let mut changed = false;
+        if let Some(enabled) = view_only
+            && note.editor_preferences.view_only != enabled
+        {
+            note.editor_preferences.view_only = enabled;
+            changed = true;
+        }
+        if let Some(enabled) = always_on_top
+            && note.always_on_top != enabled
+        {
+            note.always_on_top = enabled;
+            changed = true;
+        }
+        if !changed {
+            tx.commit().await?;
+            return Ok(Some(note));
+        }
+
+        note.updated_at = now;
+        note.revision = note.revision.next();
+        let payload = serde_json::to_string(&note)?;
+        let updated = sqlx::query(
+            "UPDATE notes SET payload_json = ?, revision = ?, updated_at = ? WHERE id = ?",
+        )
+        .bind(&payload)
+        .bind(note.revision.value() as i64)
+        .bind(note.updated_at.to_rfc3339())
+        .bind(&id_text)
+        .execute(&mut *tx)
+        .await?;
+        if updated.rows_affected() == 0 {
+            tx.commit().await?;
+            return Ok(None);
+        }
+        if always_on_top.is_some() {
+            sqlx::query("UPDATE window_geometry SET always_on_top = ? WHERE note_id = ?")
+                .bind(note.always_on_top)
+                .bind(&id_text)
+                .execute(&mut *tx)
+                .await?;
+        }
+        sqlx::query(
+            "INSERT OR IGNORE INTO change_journal
+             (id, note_id, revision, operation, payload_json, created_at)
+             VALUES (?, ?, ?, 'upsert', ?, ?)",
+        )
+        .bind(Uuid::new_v4().to_string())
+        .bind(&id_text)
+        .bind(note.revision.value() as i64)
+        .bind(payload)
+        .bind(Utc::now().to_rfc3339())
+        .execute(&mut *tx)
+        .await?;
+        tx.commit().await?;
+        Ok(Some(note))
+    }
+
     pub async fn delete_permanently(&self, id: NoteId) -> Result<(), StorageError> {
         let mut tx = self.pool.begin().await?;
         let result = sqlx::query("DELETE FROM notes WHERE id = ?")

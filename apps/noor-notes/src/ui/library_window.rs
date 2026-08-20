@@ -251,18 +251,19 @@ impl MainWindow {
                     let Some(app) = this.window.application() else {
                         return;
                     };
+                    let note_id = note.id;
                     let sticky = StickyNoteWindow::new(&app, note.clone(), this.controller.clone());
                     {
                         let this = this.clone();
-                        let note = note.clone();
                         sticky.connect_closed(move || {
-                            this.sticky_window.borrow_mut().take();
-                            let mut note = note.clone();
-                            note.editor_preferences.view_only = false;
-                            this.autosave.schedule(NoteDraft::from(note.clone()));
-                            if this.preview.current_note_id() == Some(note.id) {
-                                this.preview.show_note(&note);
-                            }
+                            this.take_sticky(note_id);
+                            this.persist_sticky_state(note_id, Some(false), None);
+                        });
+                    }
+                    {
+                        let this = this.clone();
+                        sticky.connect_always_on_top_changed(move |enabled| {
+                            this.persist_sticky_state(note_id, None, Some(enabled));
                         });
                     }
                     sticky.present();
@@ -297,8 +298,22 @@ impl MainWindow {
             let sidebar = this.sidebar.clone();
             sidebar.connect_selected(move |section| {
                 this.section.set(section);
+                this.showing_content.set(false);
                 this.render_current();
+                this.apply_layout();
             });
+        }
+        {
+            let this = this.clone();
+            this.app_header
+                .clone()
+                .connect_navigation_selected(move |section| {
+                    this.section.set(section);
+                    this.showing_content.set(false);
+                    this.sidebar.select_section(section);
+                    this.render_current();
+                    this.apply_layout();
+                });
         }
         {
             let this = this.clone();
@@ -373,8 +388,10 @@ impl MainWindow {
         let allocation = allocation_for_width(mode, window_width, self.showing_content.get());
         self.sidebar.set_allocated_width(allocation.sidebar);
         self.sidebar_separator.set_visible(visibility.sidebar);
-        self.app_header
-            .set_compact(mode == LibraryLayoutMode::Narrow);
+        self.app_header.set_adaptive(
+            mode != LibraryLayoutMode::Wide,
+            mode == LibraryLayoutMode::Narrow,
+        );
         let document_pane_width = window_width.saturating_sub(allocation.navigation);
         self.preview.set_compact(document_pane_width < 700);
         self.back.set_visible(visibility.back);
@@ -416,6 +433,62 @@ impl MainWindow {
 
     pub fn set_status(&self, message: &str) {
         self.status.set_text(message);
+    }
+
+    fn take_sticky(&self, id: NoteId) -> Option<StickyNoteWindow> {
+        let matches = self
+            .sticky_window
+            .borrow()
+            .as_ref()
+            .is_some_and(|sticky| sticky.note_id() == id);
+        if matches {
+            self.sticky_window.borrow_mut().take()
+        } else {
+            None
+        }
+    }
+
+    fn synchronize_authoritative_note(&self, note: Note) {
+        if let Some(current) = self
+            .notes
+            .borrow_mut()
+            .iter_mut()
+            .find(|current| current.id == note.id)
+        {
+            *current = note.clone();
+        }
+        self.collection.update_note(&note);
+        if self.preview.current_note_id() == Some(note.id) {
+            self.preview.show_note(&note);
+        }
+    }
+
+    fn persist_sticky_state(
+        &self,
+        id: NoteId,
+        view_only: Option<bool>,
+        always_on_top: Option<bool>,
+    ) {
+        let this = self.clone();
+        gtk::glib::MainContext::default().spawn_local(async move {
+            if let Err(error) = this.autosave.flush(id).await {
+                this.set_status(&format!("Could not save sticky note: {error}"));
+                return;
+            }
+            match persist_sticky_preferences(
+                &this.repository,
+                id,
+                view_only,
+                always_on_top,
+                Utc::now(),
+            )
+            .await
+            {
+                Ok(Some(note)) => this.synchronize_authoritative_note(note),
+                Ok(None) => {}
+                Err(error) => this.set_status(&format!("Could not save sticky note: {error}")),
+            }
+        });
     }
 
     pub fn refresh(&self) {
@@ -512,6 +585,35 @@ impl MainWindow {
             {
                 return;
             }
+            let closed_sticky = if let Some(sticky) = this.take_sticky(id) {
+                sticky.disconnect_closed();
+                sticky.close();
+                true
+            } else {
+                false
+            };
+            if let Err(error) = this.autosave.flush(id).await {
+                this.set_status(&format!("Could not save note before action: {error}"));
+                return;
+            }
+            if closed_sticky {
+                match persist_sticky_preferences(
+                    &this.repository,
+                    id,
+                    Some(false),
+                    None,
+                    Utc::now(),
+                )
+                .await
+                {
+                    Ok(Some(note)) => this.synchronize_authoritative_note(note),
+                    Ok(None) => {}
+                    Err(error) => {
+                        this.set_status(&format!("Could not close sticky note: {error}"));
+                        return;
+                    }
+                }
+            }
             let result = apply_saved_card_action(&this.repository, id, action, Utc::now()).await;
             match result {
                 Ok(()) => {
@@ -554,6 +656,18 @@ pub async fn apply_saved_card_action(
         CardAction::Restore => repository.restore(id, now).await,
         CardAction::DeletePermanently => repository.delete_permanently(id).await,
     }
+}
+
+pub async fn persist_sticky_preferences(
+    repository: &SqliteNoteRepository,
+    id: NoteId,
+    view_only: Option<bool>,
+    always_on_top: Option<bool>,
+    now: DateTime<Utc>,
+) -> Result<Option<Note>, StorageError> {
+    repository
+        .update_note_window_preferences(id, view_only, always_on_top, now)
+        .await
 }
 
 fn sort_from_selected(selected: u32) -> NoteSort {

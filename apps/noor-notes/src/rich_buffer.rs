@@ -824,12 +824,12 @@ fn replace_selection_tag(buffer: &gtk::TextBuffer, prefix: &str, tag: &str) {
             names.push(name.to_string());
         }
     });
-    buffer.begin_user_action();
+    begin_history_action(buffer, true);
     for name in names {
         buffer.remove_tag_by_name(&name, &start, &end);
     }
     buffer.apply_tag_by_name(tag, &start, &end);
-    buffer.end_user_action();
+    end_history_action(buffer, true);
 }
 
 fn tag_suffix(names: &[String], prefix: &str) -> Option<String> {

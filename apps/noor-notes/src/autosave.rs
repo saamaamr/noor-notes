@@ -45,6 +45,7 @@ pub struct AutosaveQueue {
     saver: Arc<dyn NoteSaver>,
     delay: Duration,
     pending: Arc<Mutex<HashMap<NoteId, PendingSave>>>,
+    save_locks: Arc<Mutex<HashMap<NoteId, Arc<tokio::sync::Mutex<()>>>>>,
     states: Arc<Mutex<HashMap<NoteId, watch::Sender<SaveState>>>>,
     generation: Arc<AtomicU64>,
     on_success: Option<Arc<dyn Fn() + Send + Sync>>,
@@ -60,6 +61,7 @@ impl AutosaveQueue {
             saver,
             delay,
             pending: Arc::new(Mutex::new(HashMap::new())),
+            save_locks: Arc::new(Mutex::new(HashMap::new())),
             states: Arc::new(Mutex::new(HashMap::new())),
             generation: Arc::new(AtomicU64::new(0)),
             on_success: None,
@@ -86,6 +88,15 @@ impl AutosaveQueue {
             .contains_key(&id)
     }
 
+    fn save_lock(&self, id: NoteId) -> Arc<tokio::sync::Mutex<()>> {
+        self.save_locks
+            .lock()
+            .expect("autosave lock map mutex poisoned")
+            .entry(id)
+            .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
+            .clone()
+    }
+
     fn publish(&self, id: NoteId, state: SaveState) {
         let mut states = self.states.lock().expect("save state mutex poisoned");
         let sender = states
@@ -104,8 +115,10 @@ impl AutosaveQueue {
         let states = self.states.clone();
         let pending_saves = self.pending.clone();
         let on_success = self.on_success.clone();
+        let save_lock = self.save_lock(id);
         let task = tokio::spawn(async move {
             tokio::time::sleep(delay).await;
+            let _save_guard = save_lock.lock().await;
             let state = match saver.save_note(&save_draft.note).await {
                 Ok(()) => SaveState::Saved,
                 Err(error) => SaveState::Failed(error.to_string()),
@@ -147,6 +160,8 @@ impl AutosaveQueue {
     }
 
     pub async fn flush(&self, id: NoteId) -> Result<(), StorageError> {
+        let save_lock = self.save_lock(id);
+        let _save_guard = save_lock.lock().await;
         let pending = self
             .pending
             .lock()

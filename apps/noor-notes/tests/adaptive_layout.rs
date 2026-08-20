@@ -7,9 +7,11 @@ use noor_domain::Note;
 use noor_notes::appearance::{AppearanceManager, AppearanceStore, install_global};
 use noor_notes::autosave::AutosaveQueue;
 use noor_notes::key_store::InMemoryKeyStore;
+use noor_notes::library::LibrarySection;
 use noor_notes::ui::adaptive_layout::{
     LibraryLayoutMode, LibraryPaneVisibility, allocation_for_width, apply_library_layout,
 };
+use noor_notes::ui::app_header::AppHeader;
 use noor_notes::ui::library_window::MainWindow;
 use noor_notes::writing_assistance::{WritingAssistanceRuntime, WritingAssistanceStore};
 use noor_storage::{DatabaseKey, SqliteNoteRepository};
@@ -110,9 +112,42 @@ fn narrow_mode_switches_between_collection_and_content_with_back_navigation() {
     );
 }
 
+fn assert_adaptive_header_keeps_every_library_destination_and_sort_option_reachable() {
+    let directory = tempfile::tempdir().unwrap();
+    let header = AppHeader::new(
+        AppearanceManager::new(AppearanceStore::at(
+            directory.path().join("appearance.json"),
+        )),
+        noor_storage::NoteSort::UpdatedDesc,
+    );
+    let selected = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
+    header.connect_navigation_selected({
+        let selected = selected.clone();
+        move |section| selected.borrow_mut().push(section)
+    });
+
+    header.set_adaptive(true, false);
+    assert!(header.navigation.is_visible());
+    assert!(header.sort.is_visible());
+    for section in LibrarySection::NAVIGATION {
+        header.navigation_button(section).unwrap().emit_clicked();
+    }
+    assert_eq!(&*selected.borrow(), &LibrarySection::NAVIGATION);
+
+    header.set_adaptive(true, true);
+    assert!(header.navigation.is_visible());
+    assert!(!header.sort.is_visible());
+    assert!(header.compact_sort.is_visible());
+    for (index, button) in header.compact_sort_buttons().iter().enumerate() {
+        button.emit_clicked();
+        assert_eq!(header.sort.selected(), index as u32);
+    }
+}
+
 #[test]
 fn real_shell_allocation_tracks_ratios_and_gives_narrow_preview_the_window_width() {
     gtk::init().unwrap();
+    assert_adaptive_header_keeps_every_library_destination_and_sort_option_reachable();
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()

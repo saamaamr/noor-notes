@@ -145,6 +145,18 @@ impl LibrarySidebar {
             .collect()
     }
 
+    pub fn select_section(&self, section: LibrarySection) {
+        let Some(index) = LibrarySection::NAVIGATION
+            .iter()
+            .position(|candidate| *candidate == section)
+        else {
+            return;
+        };
+        if let Some(row) = self.list.row_at_index(index as i32) {
+            self.list.select_row(Some(&row));
+        }
+    }
+
     pub fn set_count(&self, section: LibrarySection, value: usize) {
         if let Some(label) = self.counts.get(&section) {
             label.set_text(&value.to_string());
