@@ -624,6 +624,7 @@ impl NoteWindow {
             });
         }
         connect_export(&toolbar.export_text, &window, note.clone(), false);
+        let mode_switch_busy = Rc::new(Cell::new(false));
         let mode_context = ModeSwitchContext {
             window: window.clone(),
             app: app.clone(),
@@ -633,6 +634,13 @@ impl NoteWindow {
             repository: repository.clone(),
             controller: controller.clone(),
             writing_runtime: writing_runtime.clone(),
+            busy: mode_switch_busy,
+            buttons: vec![
+                toolbar.mode_rich.clone(),
+                toolbar.mode_markdown.clone(),
+                toolbar.mode_plain.clone(),
+                toolbar.mode_code.clone(),
+            ],
         };
         for (button, target) in [
             (&toolbar.mode_rich, EditorMode::Rich),
@@ -1253,13 +1261,20 @@ struct ModeSwitchContext {
     repository: SqliteNoteRepository,
     controller: Arc<dyn WindowController>,
     writing_runtime: WritingAssistanceRuntime,
+    busy: Rc<Cell<bool>>,
+    buttons: Vec<gtk::Button>,
 }
 
 fn connect_editor_mode(button: &gtk::Button, target: EditorMode, context: ModeSwitchContext) {
     button.connect_clicked(move |_| {
+        if context.busy.replace(true) {
+            return;
+        }
+        set_mode_buttons_sensitive(&context, false);
         save_editor_snapshot(&context.buffer, &context.note, &context.autosave);
         let preview = preview_conversion(&context.note.borrow(), target.clone());
         if preview.from == preview.to {
+            finish_mode_switch(&context);
             return;
         }
         let body = if preview.warnings.is_empty() {
@@ -1280,11 +1295,13 @@ fn connect_editor_mode(button: &gtk::Button, target: EditorMode, context: ModeSw
         let context = context.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
             if dialog.choose_future(Some(&context.window)).await != "convert" {
+                finish_mode_switch(&context);
                 return;
             }
             let id = context.note.borrow().id;
             if context.autosave.flush(id).await.is_err() {
                 show_save_error(&context.window);
+                finish_mode_switch(&context);
                 return;
             }
             if !preview.warnings.is_empty()
@@ -1295,6 +1312,7 @@ fn connect_editor_mode(button: &gtk::Button, target: EditorMode, context: ModeSw
                     .is_err()
             {
                 show_save_error(&context.window);
+                finish_mode_switch(&context);
                 return;
             }
             let original = context.note.borrow().clone();
@@ -1306,6 +1324,7 @@ fn connect_editor_mode(button: &gtk::Button, target: EditorMode, context: ModeSw
             if context.autosave.flush(id).await.is_err() {
                 *context.note.borrow_mut() = original;
                 show_save_error(&context.window);
+                finish_mode_switch(&context);
                 return;
             }
             NoteWindow::new(
@@ -1320,6 +1339,17 @@ fn connect_editor_mode(button: &gtk::Button, target: EditorMode, context: ModeSw
             context.window.close();
         });
     });
+}
+
+fn set_mode_buttons_sensitive(context: &ModeSwitchContext, sensitive: bool) {
+    for button in &context.buttons {
+        button.set_sensitive(sensitive);
+    }
+}
+
+fn finish_mode_switch(context: &ModeSwitchContext) {
+    context.busy.set(false);
+    set_mode_buttons_sensitive(context, true);
 }
 
 fn editor_mode_name(mode: &EditorMode) -> &'static str {

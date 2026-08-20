@@ -13,9 +13,11 @@ use crate::ui::toolbar_primitives::{
 pub struct EditorToolbar {
     pub widget: gtk::Box,
     pub more: gtk::MenuButton,
+    pub more_popover: gtk::Popover,
     pub more_actions: gtk::FlowBox,
     pub format: gtk::MenuButton,
     pub emoji: gtk::MenuButton,
+    pub emoji_popover: gtk::Popover,
     pub formatting: FormattingPopover,
     pub new_note: gtk::Button,
     pub undo: gtk::Button,
@@ -189,33 +191,9 @@ impl EditorToolbar {
             "Read this note without editing controls",
         )]);
         view_only.add_css_class("nn-view-only-toggle");
-        let view_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
-        view_box.append(&word_wrap);
-        view_box.append(&zoom_in);
-        view_box.append(&zoom_out);
-        view_box.append(&zoom_reset);
-        view_box.append(&go_to_line);
-        view_box.append(&fullscreen);
-        let view_popover = gtk::Popover::builder().child(&view_box).build();
-        let view = gtk::MenuButton::builder()
-            .icon_name("view-more-symbolic")
-            .tooltip_text("Editor view options")
-            .popover(&view_popover)
-            .build();
-        view.add_css_class("toolbar-button");
         let duplicate = icon_button("edit-copy-symbolic", "Duplicate note");
         let export_text = gtk::Button::with_label("Plain text (.txt)");
         let export_markdown = gtk::Button::with_label("Markdown (.md)");
-        let export_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
-        export_box.append(&export_text);
-        export_box.append(&export_markdown);
-        let export_popover = gtk::Popover::builder().child(&export_box).build();
-        let export = gtk::MenuButton::builder()
-            .icon_name("document-save-symbolic")
-            .tooltip_text("Export note")
-            .popover(&export_popover)
-            .build();
-        export.add_css_class("toolbar-button");
         let rename = icon_button("document-edit-symbolic", "Rename note");
         let archive = icon_button("folder-symbolic", "Archive note");
         let header_archive = icon_button("folder-symbolic", "Archive note");
@@ -264,8 +242,6 @@ impl EditorToolbar {
             trash.upcast_ref(),
             restore.upcast_ref(),
             permanent_delete.upcast_ref(),
-            export.upcast_ref(),
-            view.upcast_ref(),
         ] {
             more_actions.insert(action, -1);
         }
@@ -310,6 +286,10 @@ impl EditorToolbar {
             &trash,
             &restore,
             &permanent_delete,
+            &mode_rich,
+            &mode_markdown,
+            &mode_plain,
+            &mode_code,
         ] {
             close_more_on_click(button, &more_popover);
         }
@@ -353,9 +333,11 @@ impl EditorToolbar {
         Self {
             widget,
             more,
+            more_popover,
             more_actions,
             format,
             emoji,
+            emoji_popover,
             formatting,
             new_note,
             undo,

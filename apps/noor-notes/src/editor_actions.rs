@@ -403,6 +403,7 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
     for button in &toolbar.emoji_buttons {
         let buffer = buffer.clone();
         let editor = editor.clone();
+        let emoji_menu = toolbar.emoji.clone();
         let editable = editable.clone();
         let saved_range = saved_range.clone();
         button.connect_clicked(move |button| {
@@ -417,6 +418,7 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
                     &saved_range,
                     Some(&emoji),
                 );
+                emoji_menu.popdown();
             }
         });
     }

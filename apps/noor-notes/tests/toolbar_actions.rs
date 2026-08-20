@@ -31,6 +31,11 @@ fn every_primary_toolbar_button_is_wired() {
         NOTE_WINDOW.contains("refresh-notes") && MANAGED_APP.contains("refresh-notes"),
         "saved lifecycle changes must refresh the main note lists"
     );
+    assert!(
+        NOTE_WINDOW.contains("mode_switch_busy")
+            && NOTE_WINDOW.contains("set_mode_buttons_sensitive"),
+        "mode conversion must block duplicate dialogs while an action is running"
+    );
 }
 
 #[test]
@@ -40,4 +45,49 @@ fn more_actions_close_the_popover_before_modal_work() {
         source.contains("close_more_on_click") && source.contains("more_popover.popdown"),
         "More actions must release the popover grab before opening dialogs or windows"
     );
+}
+
+#[test]
+fn every_modal_more_action_releases_the_parent_popover() {
+    use gtk::prelude::*;
+    use noor_notes::ui::editor_toolbar::EditorToolbar;
+
+    gtk::init().unwrap();
+    let toolbar = EditorToolbar::new();
+    let window = gtk::Window::builder().child(&toolbar.widget).build();
+    window.present();
+    settle();
+    for action in [
+        &toolbar.new_note,
+        &toolbar.rename,
+        &toolbar.duplicate,
+        &toolbar.archive,
+        &toolbar.trash,
+        &toolbar.restore,
+        &toolbar.permanent_delete,
+        &toolbar.mode_rich,
+        &toolbar.mode_markdown,
+        &toolbar.mode_plain,
+        &toolbar.mode_code,
+    ] {
+        toolbar.more.popup();
+        settle();
+        assert!(toolbar.more_popover.is_visible());
+        action.emit_clicked();
+        assert!(
+            !toolbar.more_popover.is_visible(),
+            "{} left More open",
+            action
+                .tooltip_text()
+                .unwrap_or_else(|| action.label().unwrap_or_default())
+        );
+    }
+    window.close();
+}
+
+fn settle() {
+    let context = gtk::glib::MainContext::default();
+    while context.pending() {
+        context.iteration(false);
+    }
 }

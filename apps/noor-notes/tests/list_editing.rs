@@ -36,4 +36,10 @@ fn verify_enter_continues_and_exits() {
     assert_eq!(text(&buffer), "3. item\n4. ");
     assert!(RichBuffer::continue_list(&buffer));
     assert_eq!(text(&buffer), "3. item\n");
+
+    let bullets = gtk::TextBuffer::new(None);
+    RichBuffer::load(&bullets, "• item\n• ", None);
+    bullets.place_cursor(&bullets.end_iter());
+    assert!(RichBuffer::continue_list(&bullets));
+    assert_eq!(text(&bullets), "• item\n");
 }
