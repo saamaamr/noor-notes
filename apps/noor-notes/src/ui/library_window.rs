@@ -358,7 +358,8 @@ impl MainWindow {
         self.sidebar_separator.set_visible(visibility.sidebar);
         self.app_header
             .set_compact(mode == LibraryLayoutMode::Narrow);
-        self.preview.set_compact(mode == LibraryLayoutMode::Narrow);
+        let document_pane_width = window_width.saturating_sub(allocation.navigation);
+        self.preview.set_compact(document_pane_width < 700);
         self.back.set_visible(visibility.back);
         apply_library_layout(
             &self.panes,

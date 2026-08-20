@@ -19,4 +19,5 @@ pub mod note_editor_surface;
 pub mod note_preview;
 pub mod note_writing_assistance;
 pub mod rich_color_palette;
+pub mod toolbar_primitives;
 pub mod writing_assistance_settings;

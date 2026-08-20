@@ -5,6 +5,9 @@ use std::rc::Rc;
 
 use crate::ui::formatting_popover::FormattingPopover;
 use crate::ui::rich_color_palette::RichColorPalette;
+use crate::ui::toolbar_primitives::{
+    ToolbarGroup, icon_button, icon_toggle, style_menu_button, text_toggle, toggle_button,
+};
 
 #[derive(Clone)]
 pub struct EditorToolbar {
@@ -12,7 +15,6 @@ pub struct EditorToolbar {
     pub more: gtk::MenuButton,
     pub more_actions: gtk::FlowBox,
     pub format: gtk::MenuButton,
-    pub style: gtk::Button,
     pub emoji: gtk::MenuButton,
     pub formatting: FormattingPopover,
     pub new_note: gtk::Button,
@@ -64,14 +66,18 @@ pub struct EditorToolbar {
     pub header_trash: gtk::Button,
     pub restore: gtk::Button,
     pub permanent_delete: gtk::Button,
+    groups: Vec<ToolbarGroup>,
+    group_separators: Vec<gtk::Separator>,
     can_edit: Rc<Cell<bool>>,
 }
 
 impl EditorToolbar {
     pub fn new() -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Horizontal, 4);
-        widget.set_hexpand(true);
+        widget.set_hexpand(false);
+        widget.set_halign(gtk::Align::Start);
         widget.add_css_class("nn-editor-toolbar");
+        widget.add_css_class("nn-command-bar");
 
         let new_note = icon_button("list-add-symbolic", "New note");
         let undo = icon_button("edit-undo-symbolic", "Undo (Ctrl+Z)");
@@ -91,6 +97,7 @@ impl EditorToolbar {
         quick_font_size.set_tooltip_text(Some("Font size"));
         quick_font_size.set_width_request(64);
         quick_font_size.add_css_class("nn-toolbar-font-size");
+        quick_font_size.add_css_class("nn-control-compact");
         let formatting = FormattingPopover::new();
         let underline = formatting.underline.clone();
         let strikethrough = formatting.strikethrough.clone();
@@ -107,17 +114,7 @@ impl EditorToolbar {
             .tooltip_text("Formatting")
             .popover(&formatting.widget)
             .build();
-        format.add_css_class("toolbar-button");
-        let style = gtk::Button::with_label("Style ▾");
-        style.set_tooltip_text(Some("Text style and formatting"));
-        style.update_property(&[gtk::accessible::Property::Label(
-            "Text style and formatting",
-        )]);
-        style.add_css_class("toolbar-button");
-        {
-            let format = format.clone();
-            style.connect_clicked(move |_| format.popup());
-        }
+        style_menu_button(&format, "Formatting");
 
         let emoji_grid = gtk::Grid::builder()
             .column_spacing(4)
@@ -143,7 +140,7 @@ impl EditorToolbar {
             .tooltip_text("Insert emoji")
             .popover(&emoji_popover)
             .build();
-        emoji.add_css_class("toolbar-button");
+        style_menu_button(&emoji, "Insert emoji");
         let find = toggle_button("edit-find-symbolic", "Find in note (Ctrl+F)");
 
         let all_workspaces = toggle_button("focus-windows-symbolic", "Show on all workspaces");
@@ -304,7 +301,7 @@ impl EditorToolbar {
             .tooltip_text("More note actions")
             .popover(&more_popover)
             .build();
-        more.add_css_class("toolbar-button");
+        style_menu_button(&more, "More note actions");
         for button in [
             &new_note,
             &rename,
@@ -317,31 +314,47 @@ impl EditorToolbar {
             close_more_on_click(button, &more_popover);
         }
         close_more_on_toggle(&pin, &more_popover);
-        widget.append(&undo);
-        widget.append(&redo);
-        widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
-        widget.append(&find);
-        widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
-        // RichDocument currently has no block-style model (heading/quote/code
-        // blocks), so the unsupported Style control is intentionally omitted.
-        widget.append(&quick_font_size);
-        widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
-        widget.append(&bold);
-        widget.append(&italic);
-        widget.append(&quick_underline);
-        widget.append(&quick_strikethrough);
-        widget.append(&format);
-        widget.append(&gtk::Separator::new(gtk::Orientation::Vertical));
-        widget.append(&bullets);
-        widget.append(&quick_numbered);
-        widget.append(&emoji);
-        widget.append(&more);
+        let history_group = ToolbarGroup::new("nn-command-primary");
+        history_group.append(&undo);
+        history_group.append(&redo);
+        let typography_group = ToolbarGroup::new("nn-command-primary");
+        // RichDocument has no block-style model, so only its real size command
+        // is exposed here.
+        typography_group.append(&quick_font_size);
+        let inline_group = ToolbarGroup::new("nn-command-primary");
+        inline_group.append(&bold);
+        inline_group.append(&italic);
+        inline_group.append(&quick_underline);
+        inline_group.append(&quick_strikethrough);
+        inline_group.append(&format);
+        let insert_group = ToolbarGroup::new("nn-command-secondary");
+        insert_group.append(&bullets);
+        insert_group.append(&quick_numbered);
+        insert_group.append(&emoji);
+        let more_group = ToolbarGroup::new("nn-command-overflow");
+        more_group.append(&find);
+        more_group.append(&more);
+        let groups = vec![
+            history_group,
+            typography_group,
+            inline_group,
+            insert_group,
+            more_group,
+        ];
+        let mut group_separators = Vec::new();
+        for (index, group) in groups.iter().enumerate() {
+            if index > 0 {
+                let separator = gtk::Separator::new(gtk::Orientation::Vertical);
+                widget.append(&separator);
+                group_separators.push(separator);
+            }
+            widget.append(&group.widget);
+        }
         Self {
             widget,
             more,
             more_actions,
             format,
-            style,
             emoji,
             formatting,
             new_note,
@@ -393,6 +406,8 @@ impl EditorToolbar {
             header_trash,
             restore,
             permanent_delete,
+            groups,
+            group_separators,
             can_edit: Rc::new(Cell::new(true)),
         }
     }
@@ -465,12 +480,30 @@ impl EditorToolbar {
             self.quick_numbered.upcast_ref(),
             self.quick_font_size.upcast_ref(),
             self.format.upcast_ref(),
-            self.style.upcast_ref(),
         ] {
             control.set_visible(rich);
         }
         self.emoji.set_visible(mode != EditorMode::Code);
         self.find.set_visible(!rich);
+    }
+
+    pub fn group_count(&self) -> usize {
+        self.groups.len()
+    }
+
+    pub fn set_compact(&self, compact: bool) {
+        self.groups[1].widget.set_visible(!compact);
+        self.groups[3].widget.set_visible(!compact);
+        self.group_separators[0].set_visible(true);
+        self.group_separators[1].set_visible(!compact);
+        self.group_separators[2].set_visible(true);
+        self.group_separators[3].set_visible(!compact);
+    }
+
+    pub fn group_visible(&self, index: usize) -> bool {
+        self.groups
+            .get(index)
+            .is_some_and(|group| group.widget.is_visible())
     }
 
     pub fn set_view_only_state(&self, enabled: bool) {
@@ -484,41 +517,6 @@ impl EditorToolbar {
         self.view_only
             .update_property(&[gtk::accessible::Property::Label(description)]);
     }
-}
-
-fn icon_button(icon: &str, tooltip: &str) -> gtk::Button {
-    let button = gtk::Button::builder()
-        .icon_name(icon)
-        .tooltip_text(tooltip)
-        .build();
-    button.add_css_class("toolbar-button");
-    button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
-    button
-}
-
-fn toggle_button(icon: &str, tooltip: &str) -> gtk::ToggleButton {
-    let button = gtk::ToggleButton::builder()
-        .icon_name(icon)
-        .tooltip_text(tooltip)
-        .build();
-    button.add_css_class("toolbar-button");
-    button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
-    button
-}
-
-fn icon_toggle(icon: &str, tooltip: &str) -> gtk::ToggleButton {
-    toggle_button(icon, tooltip)
-}
-
-fn text_toggle(label: &str, tooltip: &str, class: &str) -> gtk::ToggleButton {
-    let button = gtk::ToggleButton::builder()
-        .label(label)
-        .tooltip_text(tooltip)
-        .build();
-    button.add_css_class("format-choice");
-    button.add_css_class(class);
-    button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
-    button
 }
 
 fn close_more_on_click(button: &gtk::Button, more_popover: &gtk::Popover) {

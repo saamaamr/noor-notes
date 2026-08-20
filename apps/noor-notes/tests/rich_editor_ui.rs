@@ -6,8 +6,16 @@ fn compact_toolbar_exposes_only_frequent_actions_at_top_level() {
     gtk::init().unwrap();
     let toolbar = EditorToolbar::new();
     assert!(toolbar.widget.has_css_class("nn-editor-toolbar"));
+    assert!(toolbar.widget.has_css_class("nn-command-bar"));
+    assert!(!toolbar.widget.hexpands());
     assert_eq!(toolbar.widget.orientation(), gtk::Orientation::Horizontal);
     assert!(toolbar.widget.spacing() >= 4);
+    assert_eq!(toolbar.group_count(), 5);
+    assert_eq!(
+        toolbar.format.icon_name().as_deref(),
+        Some("format-text-rich-symbolic")
+    );
+    assert_eq!(toolbar.format.tooltip_text().as_deref(), Some("Formatting"));
     assert!(toolbar.more.is_visible());
     let mut separators = 0;
     let mut child = toolbar.widget.first_child();
@@ -17,16 +25,24 @@ fn compact_toolbar_exposes_only_frequent_actions_at_top_level() {
         }
         child = widget.next_sibling();
     }
-    assert_eq!(
-        separators, 3,
-        "primary actions must have three logical separators"
-    );
+    assert_eq!(separators, 4, "five groups require four logical separators");
 
-    let (_, narrow_height, _, _) = toolbar.widget.measure(gtk::Orientation::Vertical, 420);
+    let (_, narrow_height, _, _) = toolbar.widget.measure(gtk::Orientation::Vertical, 700);
     let (_, wide_height, _, _) = toolbar.widget.measure(gtk::Orientation::Vertical, 900);
     assert_eq!(
         narrow_height, wide_height,
         "the primary toolbar must never wrap into multiple rows"
+    );
+    toolbar.set_compact(true);
+    assert!(toolbar.group_visible(0));
+    assert!(!toolbar.group_visible(1));
+    assert!(toolbar.group_visible(2));
+    assert!(!toolbar.group_visible(3));
+    assert!(toolbar.group_visible(4));
+    let (compact_width, _, _, _) = toolbar.widget.measure(gtk::Orientation::Horizontal, -1);
+    assert!(
+        compact_width <= 420,
+        "compact command bar width={compact_width}"
     );
     assert_eq!(
         toolbar

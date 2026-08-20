@@ -469,6 +469,7 @@ impl NotePreview {
     }
 
     pub fn set_compact(&self, compact: bool) {
+        self.toolbar.set_compact(compact);
         if compact {
             self.widget.add_css_class("compact");
         } else {
