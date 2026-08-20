@@ -5,17 +5,26 @@
 @define-color nn_surface #ffffff;
 @define-color nn_editor_bg #ffffff;
 @define-color nn_surface_raised #ffffff;
+@define-color nn_popover_bg @nn_surface_raised;
+@define-color nn_modal_bg @nn_surface_raised;
+@define-color nn_input_bg @nn_surface;
 @define-color nn_hover #f1f3f6;
 @define-color nn_text #1f2937;
 @define-color nn_text_secondary #667085;
 @define-color nn_text_muted #6b7280;
+@define-color nn_text_disabled alpha(@nn_text_muted, .72);
+@define-color nn_text_inverse #ffffff;
 @define-color nn_border #e5e7eb;
 @define-color nn_border_subtle #eef0f2;
+@define-color nn_border_strong #d0d5dd;
 @define-color nn_accent #4f6fe8;
 @define-color nn_accent_hover #425fcc;
 @define-color nn_accent_soft #eef2ff;
+@define-color nn_accent_strong #344fc4;
 @define-color nn_danger #dc2626;
+@define-color nn_danger_soft #fef2f2;
 @define-color nn_success #16a34a;
+@define-color nn_info #2563eb;
 @define-color nn_scrollbar #c7cdd6;
 @define-color nn_scrollbar_hover #aeb7c4;
 @define-color nn_warning #9a6400;
@@ -35,6 +44,12 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
   outline-offset: 1px;
   box-shadow: 0 0 0 3px @nn_focus_ring;
 }
+
+.nn-control-compact { min-width: 32px; min-height: 32px; padding: 0 8px; border-radius: 6px; }
+.nn-control-primary { min-height: 36px; padding: 0 12px; border-radius: 8px; }
+.nn-surface-elevated { background: @nn_surface_raised; border: 1px solid @nn_border; border-radius: 12px; box-shadow: 0 4px 16px rgba(16,24,40,.08); }
+.nn-menu-surface { background: @nn_popover_bg; border: 1px solid @nn_border; border-radius: 10px; padding: 6px; }
+.nn-document-title { font-size: 30px; font-weight: 700; line-height: 1.2; color: @nn_text; }
 
 .nn-app-header { min-height: 44px; background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; box-shadow: none; }
 .nn-header-control { min-width: 36px; min-height: 36px; padding: 0 8px; border-radius: 8px; color: @nn_text_secondary; }
@@ -114,7 +129,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-editor-menu-button { min-height: 28px; padding: 0 10px; border-radius: 6px; color: @nn_text_secondary; }
 .nn-editor-menu-button:hover, .nn-editor-menu-button:checked { background: @nn_hover; color: @nn_text; }
 .nn-editor-menu-popover { min-width: 170px; padding: 6px; }
-.nn-editor-menu-popover button { min-height: 30px; padding: 0 10px; border-radius: 6px; text-align: left; }
+.nn-editor-menu-popover button { min-height: 30px; padding: 0 10px; border-radius: 6px; }
 .nn-editor-menu-popover button:hover { background: @nn_hover; }
 .nn-editor-toolbar > flowboxchild { padding: 0; }
 .nn-formatting-popover { min-width: 320px; }

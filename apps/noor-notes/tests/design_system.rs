@@ -1,6 +1,40 @@
 const CSS: &str = include_str!("../resources/design-system.css");
 
 #[test]
+fn professional_system_defines_complete_semantic_roles() {
+    for token in [
+        "@define-color nn_popover_bg",
+        "@define-color nn_modal_bg",
+        "@define-color nn_input_bg",
+        "@define-color nn_text_disabled",
+        "@define-color nn_text_inverse",
+        "@define-color nn_border_strong",
+        "@define-color nn_accent_strong",
+        "@define-color nn_danger_soft",
+        "@define-color nn_info",
+        ".nn-control-compact",
+        ".nn-control-primary",
+        ".nn-surface-elevated",
+        ".nn-menu-surface",
+        ".nn-document-title",
+    ] {
+        assert!(CSS.contains(token), "missing professional role: {token}");
+    }
+}
+
+#[test]
+fn transient_surfaces_share_one_component_language() {
+    let rule = CSS
+        .split(".nn-menu-surface {")
+        .nth(1)
+        .and_then(|css| css.split('}').next())
+        .expect("shared menu surface rule");
+    assert!(rule.contains("background: @nn_popover_bg"));
+    assert!(rule.contains("border: 1px solid @nn_border"));
+    assert!(rule.contains("border-radius: 10px"));
+}
+
+#[test]
 fn replacement_design_system_defines_semantic_light_dark_and_accessible_states() {
     for token in [
         "@define-color nn_bg",
