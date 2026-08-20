@@ -455,11 +455,8 @@ impl MainWindow {
             self.collection_stack.set_visible_child_name("notes");
             self.preview.show_note(&visible[0]);
         }
-        self.results.set_text(&if searching {
-            format!("{} results", visible.len())
-        } else {
-            format!("{} · {} notes", section.label(), visible.len())
-        });
+        self.results
+            .set_text(&library_result_summary(section, visible.len(), searching));
         self.set_status("Private · Saved locally");
     }
 
@@ -496,6 +493,23 @@ impl MainWindow {
             }
         });
     }
+}
+
+pub fn library_result_summary(
+    section: LibrarySection,
+    visible_count: usize,
+    searching: bool,
+) -> String {
+    if searching {
+        return match visible_count {
+            0 => "No results".to_string(),
+            1 => "1 result".to_string(),
+            count => format!("{count} results"),
+        };
+    }
+
+    let noun = if visible_count == 1 { "note" } else { "notes" };
+    format!("{} · {visible_count} {noun}", section.label())
 }
 
 pub async fn apply_saved_card_action(

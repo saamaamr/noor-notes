@@ -229,28 +229,36 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
     preview_window.close();
 
     let empty = EmptyState::new();
-    for (section, expected) in [
-        (LibrarySection::AllNotes, "No notes yet"),
-        (LibrarySection::Pinned, "No pinned notes"),
-        (LibrarySection::Favorites, "No favorite notes"),
-        (LibrarySection::Tags, "No tagged notes"),
-        (LibrarySection::Archived, "Archive is empty"),
-        (LibrarySection::Trash, "Trash is empty"),
-        (LibrarySection::Recent, "No recent notes"),
+    for (section, expected_title, expected_guidance) in [
+        (LibrarySection::AllNotes, "No notes yet", "Create a note"),
+        (
+            LibrarySection::Pinned,
+            "No pinned notes",
+            "Pin important notes",
+        ),
+        (
+            LibrarySection::Favorites,
+            "No favorite notes",
+            "Favorite notes",
+        ),
+        (LibrarySection::Tags, "No tagged notes", "Add tags"),
+        (
+            LibrarySection::Archived,
+            "Archive is empty",
+            "Archived notes",
+        ),
+        (LibrarySection::Trash, "Trash is empty", "recoverable"),
+        (LibrarySection::Recent, "No recent notes", "Recently edited"),
     ] {
         empty.update(section, false);
-        assert!(
-            label_texts(empty.widget.clone().upcast())
-                .iter()
-                .any(|text| text == expected)
-        );
+        assert_eq!(empty.title_text(), expected_title);
+        assert!(empty.description_text().contains(expected_guidance));
+        assert_eq!(empty.icon_name().as_deref(), Some(section.icon_name()));
     }
     empty.update(LibrarySection::AllNotes, true);
-    assert!(
-        label_texts(empty.widget.clone().upcast())
-            .iter()
-            .any(|text| text == "No notes found")
-    );
+    assert_eq!(empty.title_text(), "No notes found");
+    assert!(empty.description_text().contains("clear the search"));
+    assert_eq!(empty.icon_name().as_deref(), Some("system-search-symbolic"));
 }
 
 fn label_texts(root: gtk::Widget) -> Vec<String> {

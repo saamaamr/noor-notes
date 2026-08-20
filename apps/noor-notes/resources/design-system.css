@@ -123,6 +123,9 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-preview-editor { min-height: 280px; font-size: 16px; background: @nn_surface; color: @nn_text; border: 1px solid @nn_border_subtle; border-radius: 8px; }
 .nn-preview-editor:focus { border-color: alpha(@nn_accent, .45); }
 .nn-empty-state { padding: 48px 32px; color: @nn_text_secondary; }
+.nn-empty-state-icon { color: @nn_text_muted; -gtk-icon-size: 40px; }
+.nn-empty-state .nn-section-title { color: @nn_text; }
+.nn-empty-state .nn-metadata { color: @nn_text_muted; }
 .nn-editor-window { background: @nn_bg; color: @nn_text; }
 .nn-editor-toolbar { min-height: 44px; padding: 5px 10px; background: @nn_surface; border: 1px solid @nn_border; border-radius: 9px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
 .nn-editor-toolbar button, .nn-editor-toolbar menubutton > button { min-width: 32px; min-height: 32px; padding: 0 8px; border-radius: 6px; color: @nn_text_secondary; transition: 140ms ease; }
