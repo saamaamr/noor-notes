@@ -74,14 +74,13 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
     }
     for (button, kind) in [
         (&toolbar.bullets, ListKind::Bullet),
+        (&toolbar.formatting.bullets, ListKind::Bullet),
         (&toolbar.numbered, ListKind::Numbered),
         (&toolbar.quick_numbered, ListKind::Numbered),
     ] {
         let buffer = buffer.clone();
         let editor = editor.clone();
-        let bullets = toolbar.bullets.clone();
-        let numbered = toolbar.numbered.clone();
-        let quick_numbered = toolbar.quick_numbered.clone();
+        let state_toolbar = toolbar.clone();
         let editable = editable.clone();
         let syncing = syncing.clone();
         let saved_range = saved_range.clone();
@@ -100,9 +99,8 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
                 &saved_range,
                 None,
             );
-            sync_list_buttons(&buffer, &bullets, &numbered);
             syncing.set(true);
-            quick_numbered.set_active(numbered.is_active());
+            sync_list_buttons(&buffer, &state_toolbar);
             syncing.set(false);
         });
     }
@@ -517,16 +515,15 @@ fn connect_color_palette(
     }
 }
 
-fn sync_list_buttons(
-    buffer: &gtk::TextBuffer,
-    bullets: &gtk::ToggleButton,
-    numbered: &gtk::ToggleButton,
-) {
+fn sync_list_buttons(buffer: &gtk::TextBuffer, toolbar: &EditorToolbar) {
     let kind = RichBuffer::list_kind_for_selection(buffer);
 
-    bullets.set_active(kind == Some(ListKind::Bullet));
-
-    numbered.set_active(kind == Some(ListKind::Numbered));
+    let bullets_active = kind == Some(ListKind::Bullet);
+    let numbered_active = kind == Some(ListKind::Numbered);
+    toolbar.bullets.set_active(bullets_active);
+    toolbar.formatting.bullets.set_active(bullets_active);
+    toolbar.numbered.set_active(numbered_active);
+    toolbar.quick_numbered.set_active(numbered_active);
 }
 
 fn sync_editor_state(
@@ -565,10 +562,7 @@ fn sync_editor_state(
         button.set_active(alignment == Some(value));
     }
 
-    sync_list_buttons(buffer, &toolbar.bullets, &toolbar.numbered);
-    toolbar
-        .quick_numbered
-        .set_active(toolbar.numbered.is_active());
+    sync_list_buttons(buffer, toolbar);
 
     if let Some(marks) = marks {
         sync_palette(&toolbar.foreground_palette, marks.foreground.as_deref());

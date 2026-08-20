@@ -10,6 +10,7 @@ pub struct FormattingPopover {
     pub section_labels: Vec<gtk::Label>,
     pub underline: gtk::ToggleButton,
     pub strikethrough: gtk::ToggleButton,
+    pub bullets: gtk::ToggleButton,
     pub numbered: gtk::ToggleButton,
     pub font_size: gtk::DropDown,
     pub custom_font_size: gtk::Entry,
@@ -54,10 +55,8 @@ impl FormattingPopover {
         let format_row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let underline = text_toggle("U", "Underline (Ctrl+U)", "format-underline");
         let strikethrough = text_toggle("S", "Strikethrough", "format-strike");
-        let numbered = icon_toggle("view-list-ordered-symbolic", "Numbered list");
         format_row.append(&underline);
         format_row.append(&strikethrough);
-        format_row.append(&numbered);
         content.append(&format_row);
 
         let alignment = section_label("Alignment");
@@ -77,15 +76,24 @@ impl FormattingPopover {
         }
         content.append(&alignment_row);
 
-        let text_color = section_label("Text color");
-        content.append(&text_color);
+        let colors = section_label("Colors");
+        content.append(&colors);
+        let colors_box = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        colors_box.add_css_class("nn-format-colors");
         let foreground_palette = RichColorPalette::new(ColorRole::Foreground);
-        content.append(&foreground_palette.widget);
-
-        let highlight = section_label("Highlight");
-        content.append(&highlight);
+        colors_box.append(&foreground_palette.widget);
         let highlight_palette = RichColorPalette::new(ColorRole::Highlight);
-        content.append(&highlight_palette.widget);
+        colors_box.append(&highlight_palette.widget);
+        content.append(&colors_box);
+
+        let lists = section_label("Lists");
+        content.append(&lists);
+        let list_row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+        let bullets = icon_toggle("view-list-bullet-symbolic", "Bullet list");
+        let numbered = icon_toggle("view-list-ordered-symbolic", "Numbered list");
+        list_row.append(&bullets);
+        list_row.append(&numbered);
+        content.append(&list_row);
 
         let clear_formatting = gtk::Button::with_label("Clear Formatting");
         clear_formatting.set_tooltip_text(Some("Remove formatting from the selection"));
@@ -94,11 +102,13 @@ impl FormattingPopover {
         content.append(&clear_formatting);
 
         let widget = gtk::Popover::builder().child(&content).build();
+        widget.add_css_class("nn-menu-surface");
         Self {
             widget,
-            section_labels: vec![typography, formatting, alignment, text_color, highlight],
+            section_labels: vec![typography, formatting, alignment, colors, lists],
             underline,
             strikethrough,
+            bullets,
             numbered,
             font_size,
             custom_font_size,
@@ -108,6 +118,13 @@ impl FormattingPopover {
             foreground_palette,
             highlight_palette,
         }
+    }
+
+    pub fn section_names(&self) -> Vec<String> {
+        self.section_labels
+            .iter()
+            .map(|label| label.text().to_string())
+            .collect()
     }
 }
 

@@ -45,19 +45,21 @@ fn compact_toolbar_exposes_only_frequent_actions_at_top_level() {
         "compact command bar width={compact_width}"
     );
     assert_eq!(
-        toolbar
-            .formatting
-            .section_labels
-            .iter()
-            .map(|label| label.text().to_string())
-            .collect::<Vec<_>>(),
-        [
-            "Typography",
-            "Formatting",
-            "Alignment",
-            "Text color",
-            "Highlight"
-        ]
+        toolbar.formatting.section_names(),
+        ["Typography", "Formatting", "Alignment", "Colors", "Lists"]
+    );
+    assert_eq!(toolbar.formatting.font_size.model().unwrap().n_items(), 5);
+    assert_eq!(
+        toolbar.foreground_palette.reset.tooltip_text().as_deref(),
+        Some("Automatic text color")
+    );
+    assert_eq!(
+        toolbar.highlight_palette.reset.tooltip_text().as_deref(),
+        Some("No highlight")
+    );
+    assert_eq!(
+        toolbar.formatting.bullets.tooltip_text().as_deref(),
+        Some("Bullet list")
     );
 
     for button in [
