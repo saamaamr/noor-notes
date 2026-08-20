@@ -2,7 +2,7 @@ use adw::prelude::*;
 use noor_domain::{Alignment, ListKind};
 
 use crate::editor_commands::{EditorCommand, execute};
-use crate::rich_buffer::RichBuffer;
+use crate::rich_buffer::{RichBuffer, SavedTextRange};
 use crate::rich_color::{ColorRole, presets};
 use crate::ui::editor_toolbar::EditorToolbar;
 use crate::ui::rich_color_palette::RichColorPalette;
@@ -10,31 +10,45 @@ use crate::ui::rich_color_palette::RichColorPalette;
 pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::TextView) {
     let editable = toolbar.edit_state();
     let syncing = std::rc::Rc::new(std::cell::Cell::new(false));
+    let saved_range = std::rc::Rc::new(std::cell::RefCell::new(SavedTextRange::capture(buffer)));
     {
         let undo_buffer = buffer.clone();
+        let undo_editor = editor.clone();
         let undo_editable = editable.clone();
+        let undo_range = saved_range.clone();
         toolbar.undo.connect_clicked(move |_| {
             if undo_editable.get() {
-                execute(EditorCommand::Undo, &undo_buffer, None);
+                run_command(
+                    EditorCommand::Undo,
+                    &undo_buffer,
+                    &undo_editor,
+                    &undo_range,
+                    None,
+                );
             }
         });
         let redo_buffer = buffer.clone();
+        let redo_editor = editor.clone();
         let redo_editable = editable.clone();
+        let redo_range = saved_range.clone();
         toolbar.redo.connect_clicked(move |_| {
             if redo_editable.get() {
-                execute(EditorCommand::Redo, &redo_buffer, None);
+                run_command(
+                    EditorCommand::Redo,
+                    &redo_buffer,
+                    &redo_editor,
+                    &redo_range,
+                    None,
+                );
             }
         });
         let undo = toolbar.undo.clone();
-        let editable_state = editable.clone();
-        buffer.connect_can_undo_notify(move |buffer| {
-            undo.set_sensitive(editable_state.get() && buffer.can_undo())
-        });
         let redo = toolbar.redo.clone();
         let editable_state = editable.clone();
-        buffer.connect_can_redo_notify(move |buffer| {
-            redo.set_sensitive(editable_state.get() && buffer.can_redo())
+        buffer.connect_changed(move |buffer| {
+            sync_history_buttons(buffer, &undo, &redo, editable_state.get());
         });
+        sync_history_buttons(buffer, &toolbar.undo, &toolbar.redo, editable.get());
     }
     for (button, action) in [
         (&toolbar.bold, EditorCommand::Bold),
@@ -49,13 +63,13 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         let toolbar = toolbar.clone();
         let editable = editable.clone();
         let syncing = syncing.clone();
+        let saved_range = saved_range.clone();
         button.connect_toggled(move |_| {
             if syncing.get() || !editable.get() {
                 return;
             }
-            execute(action, &buffer, None);
-            sync_format_buttons(&buffer, &toolbar, &syncing);
-            editor.grab_focus();
+            run_command(action, &buffer, &editor, &saved_range, None);
+            sync_editor_state(&buffer, &toolbar, &syncing);
         });
     }
     for (button, kind) in [
@@ -70,57 +84,63 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         let quick_numbered = toolbar.quick_numbered.clone();
         let editable = editable.clone();
         let syncing = syncing.clone();
+        let saved_range = saved_range.clone();
         button.connect_clicked(move |_| {
             if syncing.get() || !editable.get() {
                 return;
             }
-            execute(
+            run_command(
                 if kind == ListKind::Bullet {
                     EditorCommand::ToggleBulletList
                 } else {
                     EditorCommand::ToggleNumberedList
                 },
                 &buffer,
+                &editor,
+                &saved_range,
                 None,
             );
             sync_list_buttons(&buffer, &bullets, &numbered);
             syncing.set(true);
             quick_numbered.set_active(numbered.is_active());
             syncing.set(false);
-            editor.grab_focus();
         });
     }
     {
-        let bullets = toolbar.bullets.clone();
-        let numbered = toolbar.numbered.clone();
-        let quick_numbered = toolbar.quick_numbered.clone();
-        let list_syncing = syncing.clone();
+        let mark_toolbar = toolbar.clone();
+        let state_syncing = syncing.clone();
+        let saved_range = saved_range.clone();
         buffer.connect_mark_set(move |buffer, _, _| {
-            sync_list_buttons(buffer, &bullets, &numbered);
-            list_syncing.set(true);
-            quick_numbered.set_active(numbered.is_active());
-            list_syncing.set(false);
+            *saved_range.borrow_mut() = SavedTextRange::capture(buffer);
+            sync_editor_state(buffer, &mark_toolbar, &state_syncing);
         });
-        let toolbar = toolbar.clone();
-        let format_syncing = syncing.clone();
-        buffer.connect_mark_set(move |buffer, _, _| {
-            sync_format_buttons(buffer, &toolbar, &format_syncing);
+        let changed_toolbar = toolbar.clone();
+        let state_syncing = syncing.clone();
+        buffer.connect_changed(move |buffer| {
+            sync_editor_state(buffer, &changed_toolbar, &state_syncing);
         });
+        sync_editor_state(buffer, toolbar, &syncing);
     }
     {
         let buffer = buffer.clone();
         let editor = editor.clone();
         let editable = editable.clone();
         let syncing = syncing.clone();
+        let saved_range = saved_range.clone();
         toolbar.font_size.connect_selected_notify(move |dropdown| {
             if syncing.get() || !editable.get() {
                 return;
             }
             let sizes = [12, 14, 16, 18, 24];
             if let Some(size) = sizes.get(dropdown.selected() as usize) {
-                execute(EditorCommand::FontSize, &buffer, Some(&size.to_string()));
+                run_command(
+                    EditorCommand::FontSize,
+                    &buffer,
+                    &editor,
+                    &saved_range,
+                    Some(&size.to_string()),
+                );
             }
-            editor.grab_focus();
         });
     }
     {
@@ -128,6 +148,7 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         let editor = editor.clone();
         let editable = editable.clone();
         let syncing = syncing.clone();
+        let saved_range = saved_range.clone();
         toolbar
             .quick_font_size
             .connect_selected_notify(move |dropdown| {
@@ -136,9 +157,14 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
                 }
                 let sizes = [12, 14, 16, 18, 24];
                 if let Some(size) = sizes.get(dropdown.selected() as usize) {
-                    execute(EditorCommand::FontSize, &buffer, Some(&size.to_string()));
+                    run_command(
+                        EditorCommand::FontSize,
+                        &buffer,
+                        &editor,
+                        &saved_range,
+                        Some(&size.to_string()),
+                    );
                 }
-                editor.grab_focus();
             });
     }
     {
@@ -146,14 +172,20 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         let editor = editor.clone();
         let editable = editable.clone();
         let entry = toolbar.custom_font_size.clone();
+        let saved_range = saved_range.clone();
         toolbar.apply_font_size.connect_clicked(move |_| {
             if !editable.get() {
                 return;
             }
             if let Some(size) = RichBuffer::parse_font_size(&entry.text()) {
-                execute(EditorCommand::FontSize, &buffer, Some(&size.to_string()));
+                run_command(
+                    EditorCommand::FontSize,
+                    &buffer,
+                    &editor,
+                    &saved_range,
+                    Some(&size.to_string()),
+                );
                 entry.remove_css_class("error");
-                editor.grab_focus();
             } else {
                 entry.add_css_class("error");
             }
@@ -163,34 +195,56 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         let buffer = buffer.clone();
         let editor = editor.clone();
         let editable = editable.clone();
+        let saved_range = saved_range.clone();
         toolbar.custom_font_size.connect_activate(move |entry| {
             if !editable.get() {
                 return;
             }
             if let Some(size) = RichBuffer::parse_font_size(&entry.text()) {
-                execute(EditorCommand::FontSize, &buffer, Some(&size.to_string()));
+                run_command(
+                    EditorCommand::FontSize,
+                    &buffer,
+                    &editor,
+                    &saved_range,
+                    Some(&size.to_string()),
+                );
                 entry.remove_css_class("error");
-                editor.grab_focus();
             } else {
                 entry.add_css_class("error");
             }
         });
     }
-    connect_color_palette(&toolbar.foreground_palette, buffer, editor, &editable);
-    connect_color_palette(&toolbar.highlight_palette, buffer, editor, &editable);
+    connect_color_palette(
+        &toolbar.foreground_palette,
+        buffer,
+        editor,
+        &editable,
+        &saved_range,
+    );
+    connect_color_palette(
+        &toolbar.highlight_palette,
+        buffer,
+        editor,
+        &editable,
+        &saved_range,
+    );
     for (button, alignment) in toolbar.alignment_buttons.iter().zip([
         Alignment::Start,
         Alignment::Center,
         Alignment::End,
         Alignment::Justify,
     ]) {
+        let buffer = buffer.clone();
         let editor = editor.clone();
         let editable = editable.clone();
+        let syncing = syncing.clone();
+        let saved_range = saved_range.clone();
         button.connect_toggled(move |button| {
-            if button.is_active() && editable.get() {
-                RichBuffer::align(&editor.buffer(), alignment);
+            if button.is_active() && editable.get() && !syncing.get() {
+                with_saved_range(&buffer, &editor, &saved_range, |buffer| {
+                    RichBuffer::align(buffer, alignment)
+                });
             }
-            editor.grab_focus();
         });
     }
 
@@ -198,12 +252,18 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         let buffer = buffer.clone();
         let editor = editor.clone();
         let editable = editable.clone();
+        let saved_range = saved_range.clone();
         toolbar.clear_formatting.connect_clicked(move |_| {
             if !editable.get() {
                 return;
             }
-            execute(EditorCommand::ClearFormatting, &buffer, None);
-            editor.grab_focus();
+            run_command(
+                EditorCommand::ClearFormatting,
+                &buffer,
+                &editor,
+                &saved_range,
+                None,
+            );
         });
     }
 
@@ -216,6 +276,8 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
     let go_to_line = toolbar.go_to_line.clone();
     let fullscreen = toolbar.fullscreen.clone();
     let editable_for_keys = editable.clone();
+    let shortcut_editor = editor.clone();
+    let shortcut_range = saved_range.clone();
     shortcuts.connect_key_pressed(move |_, key, _, state| {
         if key == gtk::gdk::Key::Escape && find_button.is_active() {
             find_button.set_active(false);
@@ -226,7 +288,14 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
             return gtk::glib::Propagation::Stop;
         }
         if key == gtk::gdk::Key::Return && !state.contains(gtk::gdk::ModifierType::SHIFT_MASK) {
-            return if editable_for_keys.get() && RichBuffer::continue_list(&shortcut_buffer) {
+            let handled = editable_for_keys.get()
+                && with_saved_range(
+                    &shortcut_buffer,
+                    &shortcut_editor,
+                    &shortcut_range,
+                    RichBuffer::continue_list,
+                );
+            return if handled {
                 gtk::glib::Propagation::Stop
             } else {
                 gtk::glib::Propagation::Proceed
@@ -254,37 +323,73 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
             if !editable_for_keys.get() {
                 return gtk::glib::Propagation::Proceed;
             }
-            execute(EditorCommand::Redo, &shortcut_buffer, None);
+            run_command(
+                EditorCommand::Redo,
+                &shortcut_buffer,
+                &shortcut_editor,
+                &shortcut_range,
+                None,
+            );
             true
         } else if key == gtk::gdk::Key::z {
             if !editable_for_keys.get() {
                 return gtk::glib::Propagation::Proceed;
             }
-            execute(EditorCommand::Undo, &shortcut_buffer, None);
+            run_command(
+                EditorCommand::Undo,
+                &shortcut_buffer,
+                &shortcut_editor,
+                &shortcut_range,
+                None,
+            );
             true
         } else if key == gtk::gdk::Key::y {
             if !editable_for_keys.get() {
                 return gtk::glib::Propagation::Proceed;
             }
-            execute(EditorCommand::Redo, &shortcut_buffer, None);
+            run_command(
+                EditorCommand::Redo,
+                &shortcut_buffer,
+                &shortcut_editor,
+                &shortcut_range,
+                None,
+            );
             true
         } else if key == gtk::gdk::Key::b {
             if !editable_for_keys.get() {
                 return gtk::glib::Propagation::Proceed;
             }
-            execute(EditorCommand::Bold, &shortcut_buffer, None);
+            run_command(
+                EditorCommand::Bold,
+                &shortcut_buffer,
+                &shortcut_editor,
+                &shortcut_range,
+                None,
+            );
             true
         } else if key == gtk::gdk::Key::i {
             if !editable_for_keys.get() {
                 return gtk::glib::Propagation::Proceed;
             }
-            execute(EditorCommand::Italic, &shortcut_buffer, None);
+            run_command(
+                EditorCommand::Italic,
+                &shortcut_buffer,
+                &shortcut_editor,
+                &shortcut_range,
+                None,
+            );
             true
         } else if key == gtk::gdk::Key::u {
             if !editable_for_keys.get() {
                 return gtk::glib::Propagation::Proceed;
             }
-            execute(EditorCommand::Underline, &shortcut_buffer, None);
+            run_command(
+                EditorCommand::Underline,
+                &shortcut_buffer,
+                &shortcut_editor,
+                &shortcut_range,
+                None,
+            );
             true
         } else {
             false
@@ -301,14 +406,20 @@ pub fn connect(toolbar: &EditorToolbar, buffer: &gtk::TextBuffer, editor: &gtk::
         let buffer = buffer.clone();
         let editor = editor.clone();
         let editable = editable.clone();
+        let saved_range = saved_range.clone();
         button.connect_clicked(move |button| {
             if !editable.get() {
                 return;
             }
             if let Some(emoji) = button.label() {
-                execute(EditorCommand::InsertEmoji, &buffer, Some(&emoji));
+                run_command(
+                    EditorCommand::InsertEmoji,
+                    &buffer,
+                    &editor,
+                    &saved_range,
+                    Some(&emoji),
+                );
             }
-            editor.grab_focus();
         });
     }
 }
@@ -318,6 +429,7 @@ fn connect_color_palette(
     buffer: &gtk::TextBuffer,
     editor: &gtk::TextView,
     editable: &std::rc::Rc<std::cell::Cell<bool>>,
+    saved_range: &std::rc::Rc<std::cell::RefCell<SavedTextRange>>,
 ) {
     for (index, (button, preset)) in palette
         .preset_buttons
@@ -329,22 +441,23 @@ fn connect_color_palette(
         let editor = editor.clone();
         let palette = palette.clone();
         let editable = editable.clone();
+        let saved_range = saved_range.clone();
         let color = preset.id;
         button.connect_clicked(move |_| {
             if !editable.get() {
                 return;
             }
-            if buffer.selection_bounds().is_none() {
-                palette.clear_selection();
-                editor.grab_focus();
-                return;
-            }
-            match palette.role {
-                ColorRole::Foreground => RichBuffer::foreground(&buffer, color),
-                ColorRole::Highlight => RichBuffer::highlight(&buffer, color),
-            }
-            palette.select_preset(Some(index));
-            editor.grab_focus();
+            with_saved_range(&buffer, &editor, &saved_range, |buffer| {
+                if buffer.selection_bounds().is_none() {
+                    palette.clear_selection();
+                    return;
+                }
+                match palette.role {
+                    ColorRole::Foreground => RichBuffer::foreground(buffer, color),
+                    ColorRole::Highlight => RichBuffer::highlight(buffer, color),
+                }
+                palette.select_preset(Some(index));
+            });
         });
     }
 
@@ -353,21 +466,22 @@ fn connect_color_palette(
         let editor = editor.clone();
         let palette = palette.clone();
         let editable = editable.clone();
+        let saved_range = saved_range.clone();
         palette.reset.clone().connect_clicked(move |_| {
             if !editable.get() {
                 return;
             }
-            if buffer.selection_bounds().is_none() {
-                palette.clear_selection();
-                editor.grab_focus();
-                return;
-            }
-            match palette.role {
-                ColorRole::Foreground => RichBuffer::clear_foreground(&buffer),
-                ColorRole::Highlight => RichBuffer::clear_highlight(&buffer),
-            }
-            palette.select_preset(None);
-            editor.grab_focus();
+            with_saved_range(&buffer, &editor, &saved_range, |buffer| {
+                if buffer.selection_bounds().is_none() {
+                    palette.clear_selection();
+                    return;
+                }
+                match palette.role {
+                    ColorRole::Foreground => RichBuffer::clear_foreground(buffer),
+                    ColorRole::Highlight => RichBuffer::clear_highlight(buffer),
+                }
+                palette.select_preset(None);
+            });
         });
     }
 
@@ -376,12 +490,9 @@ fn connect_color_palette(
         let editor = editor.clone();
         let palette = palette.clone();
         let editable = editable.clone();
+        let saved_range = saved_range.clone();
         palette.custom.clone().connect_rgba_notify(move |button| {
             if !editable.get() {
-                return;
-            }
-            if buffer.selection_bounds().is_none() {
-                editor.grab_focus();
                 return;
             }
             let rgba = button.rgba();
@@ -392,12 +503,16 @@ fn connect_color_palette(
                 component(rgba.green()),
                 component(rgba.blue())
             );
-            match palette.role {
-                ColorRole::Foreground => RichBuffer::foreground(&buffer, &color),
-                ColorRole::Highlight => RichBuffer::highlight(&buffer, &color),
-            }
-            palette.clear_selection();
-            editor.grab_focus();
+            with_saved_range(&buffer, &editor, &saved_range, |buffer| {
+                if buffer.selection_bounds().is_none() {
+                    return;
+                }
+                match palette.role {
+                    ColorRole::Foreground => RichBuffer::foreground(buffer, &color),
+                    ColorRole::Highlight => RichBuffer::highlight(buffer, &color),
+                }
+                palette.clear_selection();
+            });
         });
     }
 }
@@ -407,33 +522,109 @@ fn sync_list_buttons(
     bullets: &gtk::ToggleButton,
     numbered: &gtk::ToggleButton,
 ) {
-    let kind = RichBuffer::list_kind_at_cursor(buffer);
+    let kind = RichBuffer::list_kind_for_selection(buffer);
 
     bullets.set_active(kind == Some(ListKind::Bullet));
 
     numbered.set_active(kind == Some(ListKind::Numbered));
 }
 
-fn sync_format_buttons(
+fn sync_editor_state(
     buffer: &gtk::TextBuffer,
     toolbar: &EditorToolbar,
     syncing: &std::rc::Rc<std::cell::Cell<bool>>,
 ) {
-    let marks = RichBuffer::marks_at_cursor(buffer);
     syncing.set(true);
-    toolbar.bold.set_active(marks.bold);
-    toolbar.italic.set_active(marks.italic);
-    toolbar.underline.set_active(marks.underline);
-    toolbar.quick_underline.set_active(marks.underline);
-    toolbar.strikethrough.set_active(marks.strikethrough);
-    toolbar.quick_strikethrough.set_active(marks.strikethrough);
-    if let Some(size) = marks.font_size {
-        let selected = [12, 14, 16, 18, 24]
-            .iter()
-            .position(|candidate| *candidate == size)
-            .unwrap_or(2) as u32;
-        toolbar.font_size.set_selected(selected);
-        toolbar.quick_font_size.set_selected(selected);
+    let marks = RichBuffer::marks_for_selection(buffer);
+    let bold = marks.as_ref().is_some_and(|marks| marks.bold);
+    let italic = marks.as_ref().is_some_and(|marks| marks.italic);
+    let underline = marks.as_ref().is_some_and(|marks| marks.underline);
+    let strikethrough = marks.as_ref().is_some_and(|marks| marks.strikethrough);
+    toolbar.bold.set_active(bold);
+    toolbar.italic.set_active(italic);
+    toolbar.underline.set_active(underline);
+    toolbar.quick_underline.set_active(underline);
+    toolbar.strikethrough.set_active(strikethrough);
+    toolbar.quick_strikethrough.set_active(strikethrough);
+
+    let selected_size = marks.as_ref().map(|marks| marks.font_size.unwrap_or(16));
+    let selected_size = selected_size
+        .and_then(|size| [12, 14, 16, 18, 24].iter().position(|value| *value == size))
+        .map(|index| index as u32)
+        .unwrap_or(gtk::INVALID_LIST_POSITION);
+    toolbar.font_size.set_selected(selected_size);
+    toolbar.quick_font_size.set_selected(selected_size);
+
+    let alignment = RichBuffer::alignment_for_selection(buffer);
+    for (button, value) in toolbar.alignment_buttons.iter().zip([
+        Alignment::Start,
+        Alignment::Center,
+        Alignment::End,
+        Alignment::Justify,
+    ]) {
+        button.set_active(alignment == Some(value));
+    }
+
+    sync_list_buttons(buffer, &toolbar.bullets, &toolbar.numbered);
+    toolbar
+        .quick_numbered
+        .set_active(toolbar.numbered.is_active());
+
+    if let Some(marks) = marks {
+        sync_palette(&toolbar.foreground_palette, marks.foreground.as_deref());
+        sync_palette(&toolbar.highlight_palette, marks.highlight.as_deref());
+    } else {
+        toolbar.foreground_palette.clear_selection();
+        toolbar.highlight_palette.clear_selection();
     }
     syncing.set(false);
+}
+
+fn sync_palette(palette: &RichColorPalette, selected: Option<&str>) {
+    let index = selected.and_then(|selected| {
+        presets(palette.role)
+            .iter()
+            .position(|preset| preset.id == selected)
+    });
+    if selected.is_none() || index.is_some() {
+        palette.select_preset(index);
+    } else {
+        palette.clear_selection();
+    }
+}
+
+fn sync_history_buttons(
+    buffer: &gtk::TextBuffer,
+    undo: &gtk::Button,
+    redo: &gtk::Button,
+    editable: bool,
+) {
+    undo.set_sensitive(editable && RichBuffer::can_undo(buffer));
+    redo.set_sensitive(editable && RichBuffer::can_redo(buffer));
+}
+
+fn run_command(
+    command: EditorCommand,
+    buffer: &gtk::TextBuffer,
+    editor: &gtk::TextView,
+    saved_range: &std::rc::Rc<std::cell::RefCell<SavedTextRange>>,
+    argument: Option<&str>,
+) -> bool {
+    with_saved_range(buffer, editor, saved_range, |buffer| {
+        execute(command, buffer, argument)
+    })
+}
+
+fn with_saved_range<T>(
+    buffer: &gtk::TextBuffer,
+    editor: &gtk::TextView,
+    saved_range: &std::rc::Rc<std::cell::RefCell<SavedTextRange>>,
+    mutate: impl FnOnce(&gtk::TextBuffer) -> T,
+) -> T {
+    let range = *saved_range.borrow();
+    range.restore(buffer);
+    let result = mutate(buffer);
+    *saved_range.borrow_mut() = SavedTextRange::capture(buffer);
+    editor.grab_focus();
+    result
 }
