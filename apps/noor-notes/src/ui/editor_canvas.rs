@@ -20,7 +20,7 @@ pub fn configure_editor_canvas(editor: &gtk::TextView, rich_mode: bool) {
         editor.add_css_class("nn-source-canvas");
         editor.remove_css_class("nn-rich-writing-canvas");
     }
-    editor.set_tooltip_text(Some("Note body"));
+    editor.set_tooltip_text(None);
     editor.update_property(&[gtk::accessible::Property::Label("Note body")]);
 }
 

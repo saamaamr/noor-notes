@@ -63,6 +63,11 @@ fn active_note_body_edits_inline_and_preserves_rich_content() {
         .find_map(|widget| widget.clone().downcast::<gtk::TextView>().ok())
         .filter(|editor| editor.has_css_class("nn-preview-editor"))
         .expect("inline body editor");
+    let title_entry = widgets
+        .iter()
+        .find_map(|widget| widget.clone().downcast::<gtk::Entry>().ok())
+        .filter(|entry| entry.has_css_class("nn-preview-title-entry"))
+        .expect("inline title editor");
     let body = widgets
         .iter()
         .filter_map(|widget| widget.clone().downcast::<gtk::Label>().ok())
@@ -71,19 +76,27 @@ fn active_note_body_edits_inline_and_preserves_rich_content() {
 
     assert_eq!(edit.label().as_deref(), Some("Edit"));
     assert!(!editor.is_editable());
+    assert!(!title_entry.is_editable());
     edit.emit_clicked();
     assert_eq!(edit.label().as_deref(), Some("Done"));
     assert!(editor.is_editable());
+    assert!(title_entry.is_editable());
     assert_eq!(editor.left_margin(), 8);
     assert_eq!(editor.right_margin(), 8);
     assert_eq!(editor.top_margin(), 5);
     assert_eq!(editor.bottom_margin(), 5);
 
+    title_entry.set_text("Renamed note");
+    assert_eq!(
+        saved.borrow().last().map(|note| note.title.as_str()),
+        Some("Renamed note")
+    );
+
     let buffer = editor.buffer();
     let mut end = buffer.end_iter();
     buffer.insert(&mut end, "!");
     let latest = saved.borrow().last().cloned().expect("edited draft");
-    assert_eq!(latest.title, "Read-only title");
+    assert_eq!(latest.title, "Renamed note");
     assert_eq!(latest.content, "Important body!");
     let rich = latest.rich_content.expect("rich document remains native");
     assert!(rich.blocks[0].spans[0].marks.bold);
@@ -91,6 +104,7 @@ fn active_note_body_edits_inline_and_preserves_rich_content() {
     edit.emit_clicked();
     assert_eq!(edit.label().as_deref(), Some("Edit"));
     assert!(!editor.is_editable());
+    assert!(!title_entry.is_editable());
     assert_eq!(body.text(), "Important body!");
     assert_eq!(finished.borrow().as_slice(), &[note.id]);
 
