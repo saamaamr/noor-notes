@@ -485,6 +485,10 @@ impl NotePreview {
         }
     }
 
+    pub fn is_compact(&self) -> bool {
+        self.widget.has_css_class("compact")
+    }
+
     pub fn connect_read_only_changed<F: Fn(Note, bool) + 'static>(&self, callback: F) {
         self.on_read_only_changed.replace(Some(Rc::new(callback)));
     }

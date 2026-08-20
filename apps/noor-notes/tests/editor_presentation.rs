@@ -54,4 +54,26 @@ fn view_only_hides_editor_chrome_and_preserves_reading_access() {
         toolbar.view_only.tooltip_text().as_deref(),
         Some("Read this note without editing controls")
     );
+
+    toolbar.set_compact(true);
+    let compact_window = gtk::Window::builder()
+        .default_width(620)
+        .default_height(100)
+        .child(&toolbar.widget)
+        .build();
+    compact_window.present();
+    while gtk::glib::MainContext::default().iteration(false) {}
+    toolbar.widget.allocate(620, 100, -1, None);
+    while gtk::glib::MainContext::default().iteration(false) {}
+    assert!(toolbar.group_visible(0));
+    assert!(!toolbar.group_visible(1));
+    assert!(toolbar.group_visible(2));
+    assert!(!toolbar.group_visible(3));
+    assert!(toolbar.group_visible(4));
+    let (_, natural_height, _, _) = toolbar.widget.measure(gtk::Orientation::Vertical, 620);
+    assert!(
+        natural_height <= 48,
+        "compact toolbar needs an unexpected {natural_height}px natural height"
+    );
+    compact_window.close();
 }

@@ -103,6 +103,10 @@ impl AppHeader {
         self.new_note_label.set_visible(!compact);
         self.sort.set_visible(!compact);
     }
+
+    pub fn is_compact(&self) -> bool {
+        !self.sort.is_visible()
+    }
 }
 
 fn style_header_icon(button: &gtk::Button, accessible_label: &str) {

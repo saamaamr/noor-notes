@@ -1,7 +1,19 @@
+use std::sync::Arc;
+use std::time::Duration;
+
 use adw::prelude::*;
+use chrono::Utc;
+use noor_domain::Note;
+use noor_notes::appearance::{AppearanceManager, AppearanceStore, install_global};
+use noor_notes::autosave::AutosaveQueue;
+use noor_notes::key_store::InMemoryKeyStore;
 use noor_notes::ui::adaptive_layout::{
     LibraryLayoutMode, LibraryPaneVisibility, allocation_for_width, apply_library_layout,
 };
+use noor_notes::ui::library_window::MainWindow;
+use noor_notes::writing_assistance::{WritingAssistanceRuntime, WritingAssistanceStore};
+use noor_storage::{DatabaseKey, SqliteNoteRepository};
+use noor_windowing::FallbackWindowController;
 
 #[test]
 fn wide_allocation_targets_ten_twenty_seventy_with_readability_guards() {
@@ -101,6 +113,87 @@ fn narrow_mode_switches_between_collection_and_content_with_back_navigation() {
 #[test]
 fn real_shell_allocation_tracks_ratios_and_gives_narrow_preview_the_window_width() {
     gtk::init().unwrap();
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+    let _runtime_guard = runtime.enter();
+    let directory = tempfile::tempdir().unwrap();
+    let repository = runtime
+        .block_on(SqliteNoteRepository::open_encrypted(
+            &directory.path().join("notes.db"),
+            &DatabaseKey::generate(),
+        ))
+        .unwrap();
+    runtime
+        .block_on(repository.save_note(&Note::new(Utc::now())))
+        .unwrap();
+    let assistance = runtime.block_on(WritingAssistanceRuntime::new(
+        repository.clone(),
+        WritingAssistanceStore::at(directory.path().join("writing.json")),
+        Arc::new(InMemoryKeyStore::default()),
+    ));
+    let autosave = AutosaveQueue::new(repository.clone(), Duration::from_secs(30));
+    install_global(AppearanceManager::new(AppearanceStore::at(
+        directory.path().join("appearance.json"),
+    )));
+    let app = adw::Application::builder()
+        .application_id("io.github.saamaamr.NoorNotes.ResponsiveTest")
+        .flags(gtk::gio::ApplicationFlags::NON_UNIQUE)
+        .build();
+    app.register(None::<&gtk::gio::Cancellable>).unwrap();
+
+    let real = MainWindow::new(
+        &app,
+        repository,
+        autosave,
+        Arc::new(FallbackWindowController),
+        assistance,
+    );
+    real.window.set_default_size(1_180, 760);
+    real.present();
+    settle();
+    let wide = real.layout_snapshot();
+    assert!((158..=162).contains(&wide.sidebar_width), "{wide:?}");
+    assert!((278..=282).contains(&wide.collection_width), "{wide:?}");
+    assert!(wide.document_width > wide.collection_width, "{wide:?}");
+    assert!(!wide.back_visible, "{wide:?}");
+    assert!(!wide.header_compact, "{wide:?}");
+    assert!(!wide.preview_compact, "{wide:?}");
+    real.window.close();
+
+    let repository = runtime
+        .block_on(SqliteNoteRepository::open_encrypted(
+            &directory.path().join("notes-narrow.db"),
+            &DatabaseKey::generate(),
+        ))
+        .unwrap();
+    runtime
+        .block_on(repository.save_note(&Note::new(Utc::now())))
+        .unwrap();
+    let assistance = runtime.block_on(WritingAssistanceRuntime::new(
+        repository.clone(),
+        WritingAssistanceStore::at(directory.path().join("writing-narrow.json")),
+        Arc::new(InMemoryKeyStore::default()),
+    ));
+    let narrow = MainWindow::new(
+        &app,
+        repository.clone(),
+        AutosaveQueue::new(repository, Duration::from_secs(30)),
+        Arc::new(FallbackWindowController),
+        assistance,
+    );
+    narrow.window.set_default_size(620, 760);
+    narrow.present();
+    settle();
+    let document = narrow.layout_snapshot();
+    assert!(document.back_visible, "{document:?}");
+    assert!(!document.navigation_visible, "{document:?}");
+    assert!(document.document_width >= 600, "{document:?}");
+    assert!(document.header_compact, "{document:?}");
+    assert!(document.preview_compact, "{document:?}");
+    narrow.window.close();
+
     let window = gtk::Window::builder()
         .default_width(1_180)
         .default_height(480)
@@ -160,4 +253,11 @@ fn real_shell_allocation_tracks_ratios_and_gives_narrow_preview_the_window_width
         "position={position} preview={preview_width}"
     );
     window.close();
+}
+
+fn settle() {
+    for _ in 0..80 {
+        while gtk::glib::MainContext::default().iteration(false) {}
+        std::thread::sleep(Duration::from_millis(5));
+    }
 }

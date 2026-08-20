@@ -29,6 +29,20 @@ use noor_windowing::WindowController;
 type CardActionHandler = Rc<dyn Fn(NoteId, CardAction)>;
 type PreviewCacheHandler = Rc<dyn Fn(&Note)>;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LibraryLayoutSnapshot {
+    pub window_width: i32,
+    pub sidebar_width: i32,
+    pub collection_width: i32,
+    pub navigation_width: i32,
+    pub document_width: i32,
+    pub navigation_visible: bool,
+    pub document_visible: bool,
+    pub back_visible: bool,
+    pub header_compact: bool,
+    pub preview_compact: bool,
+}
+
 pub fn preview_edit_handler(
     notes: Rc<RefCell<Vec<Note>>>,
     autosave: AutosaveQueue,
@@ -378,6 +392,21 @@ impl MainWindow {
 
     pub fn present(&self) {
         self.window.present();
+    }
+
+    pub fn layout_snapshot(&self) -> LibraryLayoutSnapshot {
+        LibraryLayoutSnapshot {
+            window_width: self.window.width(),
+            sidebar_width: self.sidebar.widget.width(),
+            collection_width: self.collection_stack.width(),
+            navigation_width: self.navigation.width(),
+            document_width: self.preview.widget.width(),
+            navigation_visible: self.navigation.is_visible(),
+            document_visible: self.preview.widget.is_visible(),
+            back_visible: self.back.is_visible(),
+            header_compact: self.app_header.is_compact(),
+            preview_compact: self.preview.is_compact(),
+        }
     }
 
     pub fn focus_search(&self) {
