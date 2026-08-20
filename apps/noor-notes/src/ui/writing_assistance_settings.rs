@@ -39,11 +39,17 @@ impl WritingAssistanceSettings {
             .default_height(680)
             .search_enabled(false)
             .build();
+        window.add_css_class("nn-settings-window");
+        window.add_css_class("nn-writing-settings");
+        if let Some(appearance) = crate::appearance::try_global() {
+            appearance.register_window(&window);
+        }
         let page = adw::PreferencesPage::new();
         page.set_title("Writing Assistance");
         page.set_icon_name(Some("accessories-text-editor-symbolic"));
 
         let local = adw::PreferencesGroup::new();
+        local.add_css_class("nn-settings-group");
         local.set_title("Private on-device assistance");
         local.set_description(Some(
             "Spelling uses installed dictionaries. English grammar and learned predictions stay on this device.",
@@ -87,12 +93,14 @@ impl WritingAssistanceSettings {
             .title("Language")
             .subtitle("Automatic follows the installed default dictionary")
             .build();
+        language_row.add_css_class("nn-settings-row");
         language_row.add_suffix(&language);
         language_row.set_activatable_widget(Some(&language));
         local.add(&language_row);
         page.add(&local);
 
         let online = adw::PreferencesGroup::new();
+        online.add_css_class("nn-settings-group");
         online.set_title("Optional online provider");
         let privacy = "Online grammar sends only the current paragraph (up to 2,000 characters). Online prediction sends only a nearby sentence (up to 800 characters). Titles, tags, other notes, account data, and encryption keys are never sent.".to_owned();
         online.set_description(Some(&privacy));
@@ -133,6 +141,7 @@ impl WritingAssistanceSettings {
             .title("Connection")
             .subtitle_lines(2)
             .build();
+        validation_row.add_css_class("nn-settings-row");
         validation_row.add_suffix(&validation_status);
         validation_row.add_suffix(&test_connection);
         online.add(&validation_row);
@@ -313,6 +322,7 @@ fn switch_row(
         .subtitle(subtitle)
         .activatable(true)
         .build();
+    row.add_css_class("nn-settings-row");
     row.add_suffix(&switch);
     row.set_activatable_widget(Some(&switch));
     group.add(&row);
@@ -321,6 +331,7 @@ fn switch_row(
 
 fn entry_row(title: &str, entry: &impl IsA<gtk::Widget>) -> adw::ActionRow {
     let row = adw::ActionRow::builder().title(title).build();
+    row.add_css_class("nn-settings-row");
     row.add_suffix(entry);
     row.set_activatable_widget(Some(entry));
     row

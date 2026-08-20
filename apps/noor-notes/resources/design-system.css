@@ -611,14 +611,19 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-oled .paper-dark-slate { background: #121317; color: #f4f4f7; }
 .nn-theme-graphite text selection, .nn-theme-midnight text selection, .nn-theme-oled text selection { background: rgba(141,165,255,.42); color: #ffffff; }
 
-.nn-theme-swatch { min-width: 42px; min-height: 26px; border-radius: 7px; border: 1px solid rgba(127,127,127,.35); }
+.nn-settings-window preferencespage { background: @nn_app_bg; }
+.nn-settings-group { margin-top: 8px; }
+.nn-settings-row { min-height: 54px; }
+.nn-settings-row:hover { background: @nn_hover; }
+.nn-settings-row entry, .nn-settings-row dropdown { min-height: 34px; }
+.nn-theme-swatch { min-width: 42px; min-height: 26px; border-radius: 7px; border: 1px solid @nn_border_strong; }
 .nn-swatch-system { background: #7b8190; }
-.nn-swatch-light { background: #f5f5f4; }
-.nn-swatch-warm-paper { background: #f6f1e8; border-color: #cfc3b3; }
-.nn-swatch-cool-mist { background: #f2f6f8; border-color: #b9cbd4; }
-.nn-swatch-graphite { background: #24262a; border-color: #9aafff; }
-.nn-swatch-midnight { background: #172131; border-color: #73b7ff; }
-.nn-swatch-oled { background: #050506; border-color: #b1a0ff; }
+.nn-swatch-light { background: @nn_light_app_bg; border-color: @nn_light_border_strong; }
+.nn-swatch-warm-paper { background: @nn_warm_app_bg; border-color: @nn_warm_border_strong; }
+.nn-swatch-cool-mist { background: @nn_mist_app_bg; border-color: @nn_mist_border_strong; }
+.nn-swatch-graphite { background: @nn_graphite_editor_bg; border-color: @nn_graphite_accent; }
+.nn-swatch-midnight { background: @nn_midnight_editor_bg; border-color: @nn_midnight_accent; }
+.nn-swatch-oled { background: @nn_oled_app_bg; border-color: @nn_oled_accent; }
 /* prefers-reduced-motion: GTK follows the desktop animation setting; component
  * transitions remain below 180 ms and are omitted by libadwaita when disabled. */
 .nn-assistance-status {

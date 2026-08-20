@@ -19,6 +19,8 @@ fn settings_and_note_controls_are_safe_accessible_and_explicit() {
     let settings =
         WritingAssistanceSettings::new(&app, store, Arc::new(InMemoryKeyStore::default()));
 
+    assert!(settings.window.has_css_class("nn-settings-window"));
+    assert!(settings.window.has_css_class("nn-writing-settings"));
     assert!(settings.spelling.is_active());
     assert!(settings.grammar.is_active());
     assert!(settings.offline_prediction.is_active());

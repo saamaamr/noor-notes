@@ -18,11 +18,14 @@ impl AppearanceSettings {
             .search_enabled(false)
             .build();
         window.add_css_class("nn-appearance-settings");
+        window.add_css_class("nn-settings-window");
+        manager.register_window(&window);
 
         let page = adw::PreferencesPage::new();
         page.set_title("Appearance");
         page.set_icon_name(Some("applications-graphics-symbolic"));
         let group = adw::PreferencesGroup::new();
+        group.add_css_class("nn-settings-group");
         group.set_title("Theme");
         group.set_description(Some(
             "System follows GNOME and remembers your preferred light and dark palettes.",
@@ -80,6 +83,7 @@ impl AppearanceSettings {
                 .subtitle(subtitle)
                 .activatable(true)
                 .build();
+            row.add_css_class("nn-settings-row");
             let preview = gtk::Box::new(gtk::Orientation::Horizontal, 0);
             preview.set_size_request(42, 26);
             preview.add_css_class("nn-theme-swatch");
@@ -118,6 +122,10 @@ impl AppearanceSettings {
 
     pub fn choice_count(&self) -> usize {
         self.choices.len()
+    }
+
+    pub fn choice_rows(&self) -> Vec<adw::ActionRow> {
+        self.choices.clone()
     }
 
     pub fn present(&self) {

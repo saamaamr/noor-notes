@@ -32,4 +32,11 @@ fn header_button_and_settings_share_all_appearance_choices() {
     let settings = AppearanceSettings::new(&app, manager);
     assert_eq!(settings.choice_count(), 7);
     assert_eq!(settings.window.title().as_deref(), Some("Appearance"));
+    assert!(settings.window.has_css_class("nn-settings-window"));
+    for row in settings.choice_rows() {
+        assert!(row.has_css_class("nn-settings-row"));
+        assert!(row.activatable_widget().is_some());
+        assert!(!row.title().is_empty());
+        assert!(row.subtitle().is_some_and(|subtitle| !subtitle.is_empty()));
+    }
 }

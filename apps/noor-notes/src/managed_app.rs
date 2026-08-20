@@ -166,7 +166,6 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
                 settings.replace(Some(AppearanceSettings::new(&app, global())));
             }
             if let Some(settings) = settings.borrow().as_ref() {
-                global().register_window(&settings.window);
                 settings.present();
             }
         });
