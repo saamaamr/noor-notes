@@ -11,12 +11,8 @@ fn embedded_palettes_are_discoverable_complete_and_readable() {
     assert!(source_palette::register());
 
     let expected = [
-        (EffectiveTheme::Light, "noor-light"),
-        (EffectiveTheme::WarmPaper, "noor-light"),
-        (EffectiveTheme::CoolMist, "noor-light"),
-        (EffectiveTheme::Graphite, "noor-graphite"),
+        (EffectiveTheme::Snow, "noor-light"),
         (EffectiveTheme::Midnight, "noor-midnight"),
-        (EffectiveTheme::Oled, "noor-oled"),
     ];
     let manager = sourceview5::StyleSchemeManager::default();
 

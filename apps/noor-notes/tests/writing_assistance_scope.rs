@@ -31,7 +31,7 @@ fn markdown_excludes_inline_and_fenced_code() {
     let editor = SourceEditorAdapter::new_with_theme(
         text,
         Some(&SourceLanguage::Markdown),
-        EffectiveTheme::Light,
+        EffectiveTheme::Snow,
     );
     editor
         .buffer()
@@ -51,7 +51,7 @@ fn markdown_excludes_inline_and_fenced_code() {
 fn code_includes_only_comments_and_strings() {
     let text = "let executable_identifier = 1;\nlet message = \"support people\"; // clear systems";
     let rust = SourceLanguage::new("rust").unwrap();
-    let editor = SourceEditorAdapter::new_with_theme(text, Some(&rust), EffectiveTheme::Light);
+    let editor = SourceEditorAdapter::new_with_theme(text, Some(&rust), EffectiveTheme::Snow);
     editor
         .buffer()
         .ensure_highlight(&editor.buffer().start_iter(), &editor.buffer().end_iter());

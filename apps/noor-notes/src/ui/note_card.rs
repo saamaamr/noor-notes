@@ -28,6 +28,10 @@ impl NoteCard {
 pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     let card = gtk::Box::new(gtk::Orientation::Horizontal, 10);
     card.add_css_class("nn-note-card");
+    card.add_css_class("nn-p-12");
+    card.add_css_class("nn-m-4");
+    card.add_css_class("nn-radius-8");
+    card.add_css_class("nn-surface");
     card.add_css_class(note.color.css_class());
     let color = gtk::Box::new(gtk::Orientation::Vertical, 0);
     color.add_css_class("nn-color-strip");
@@ -66,6 +70,7 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     )));
     preview.add_css_class("nn-metadata");
     preview.add_css_class("nn-note-card-preview");
+    preview.add_css_class("nn-text-meta");
     preview.set_xalign(0.0);
     preview.set_lines(2);
     preview.set_ellipsize(gtk::pango::EllipsizeMode::End);
@@ -156,6 +161,10 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
         .build();
     menu.add_css_class("flat");
     menu.add_css_class("nn-card-action");
+    menu.add_css_class("nn-icon-button");
+    menu.add_css_class("nn-h-32");
+    menu.add_css_class("nn-radius-8");
+    menu.add_css_class("nn-focus-ring");
     menu.set_valign(gtk::Align::Center);
     menu.update_property(&[gtk::accessible::Property::Label("Note actions")]);
     let gesture = gtk::GestureClick::new();

@@ -28,7 +28,7 @@ impl AppearanceSettings {
         group.add_css_class("nn-settings-group");
         group.set_title("Theme");
         group.set_description(Some(
-            "System follows GNOME and remembers your preferred light and dark palettes.",
+            "Choose a calm daytime or comfortable nighttime theme.",
         ));
 
         let mut choices = Vec::new();
@@ -36,46 +36,16 @@ impl AppearanceSettings {
         let mut selectors = Vec::new();
         for (mode, title, subtitle, swatch) in [
             (
-                AppearanceMode::System,
-                "System",
-                "Follow the desktop appearance",
-                "nn-swatch-system",
-            ),
-            (
-                AppearanceMode::Light,
+                AppearanceMode::Snow,
                 "Snow",
-                "Clean neutral surfaces",
-                "nn-swatch-light",
-            ),
-            (
-                AppearanceMode::WarmPaper,
-                "Warm Paper",
-                "Soft ivory surfaces for comfortable reading",
-                "nn-swatch-warm-paper",
-            ),
-            (
-                AppearanceMode::CoolMist,
-                "Cool Mist",
-                "Calm blue-gray productivity surfaces",
-                "nn-swatch-cool-mist",
-            ),
-            (
-                AppearanceMode::Graphite,
-                "Graphite",
-                "Warm charcoal and restrained indigo",
-                "nn-swatch-graphite",
+                "Clean daytime theme",
+                "nn-swatch-snow",
             ),
             (
                 AppearanceMode::Midnight,
                 "Midnight",
-                "Deep navy and calm sky blue",
+                "Comfortable dark theme",
                 "nn-swatch-midnight",
-            ),
-            (
-                AppearanceMode::Oled,
-                "OLED",
-                "Near-black surfaces and vivid violet-blue",
-                "nn-swatch-oled",
             ),
         ] {
             let row = adw::ActionRow::builder()
@@ -93,7 +63,11 @@ impl AppearanceSettings {
             if let Some(group) = previous.as_ref() {
                 check.set_group(Some(group));
             }
-            check.set_active(manager.preferences().mode == mode);
+            let selected_mode = match manager.effective_theme() {
+                crate::appearance::EffectiveTheme::Snow => AppearanceMode::Snow,
+                crate::appearance::EffectiveTheme::Midnight => AppearanceMode::Midnight,
+            };
+            check.set_active(selected_mode == mode);
             row.add_suffix(&check);
             row.set_activatable_widget(Some(&check));
             let selection = manager.clone();
@@ -107,9 +81,13 @@ impl AppearanceSettings {
             group.add(&row);
             choices.push(row);
         }
-        manager.subscribe(move |preferences, _| {
+        manager.subscribe(move |_, theme| {
+            let selected_mode = match theme {
+                crate::appearance::EffectiveTheme::Snow => AppearanceMode::Snow,
+                crate::appearance::EffectiveTheme::Midnight => AppearanceMode::Midnight,
+            };
             for (mode, check) in &selectors {
-                if *mode == preferences.mode && !check.is_active() {
+                if *mode == selected_mode && !check.is_active() {
                     check.set_active(true);
                 }
             }

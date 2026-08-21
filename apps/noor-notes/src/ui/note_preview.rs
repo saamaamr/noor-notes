@@ -71,6 +71,7 @@ impl NotePreview {
         let title = gtk::Label::new(Some("Select a note"));
         title.add_css_class("nn-display-title");
         title.add_css_class("nn-preview-title");
+        title.add_css_class("nn-document-title");
         title.set_xalign(0.0);
         title.set_hexpand(true);
         title.set_wrap(true);
@@ -125,6 +126,7 @@ impl NotePreview {
         let metadata = gtk::Label::new(Some("Your note preview will appear here"));
         metadata.add_css_class("nn-metadata");
         metadata.add_css_class("nn-preview-metadata");
+        metadata.add_css_class("nn-text-meta");
         metadata.set_xalign(0.0);
         metadata.set_wrap(true);
         metadata.set_wrap_mode(gtk::pango::WrapMode::WordChar);
@@ -137,6 +139,7 @@ impl NotePreview {
         ));
         body.add_css_class("nn-body");
         body.add_css_class("nn-preview-body");
+        body.add_css_class("nn-text-body");
         body.set_xalign(0.0);
         body.set_yalign(0.0);
         body.set_hexpand(true);
@@ -155,6 +158,9 @@ impl NotePreview {
             .build();
         let editor = sourceview5::View::with_buffer(&source_buffer);
         editor.add_css_class("nn-preview-editor");
+        editor.add_css_class("nn-text-body");
+        editor.add_css_class("nn-radius-8");
+        editor.add_css_class("nn-focus-ring");
         editor.set_editable(false);
         editor.set_cursor_visible(false);
         editor.set_wrap_mode(gtk::WrapMode::WordChar);
@@ -472,7 +478,7 @@ impl NotePreview {
             &buffer,
             try_global()
                 .map(|appearance| appearance.effective_theme())
-                .unwrap_or(EffectiveTheme::Light),
+                .unwrap_or(EffectiveTheme::Snow),
         );
     }
 
@@ -671,7 +677,7 @@ fn configure_note_mode(editor: &sourceview5::View, toolbar: &EditorToolbar, note
         &source_buffer,
         try_global()
             .map(|appearance| appearance.effective_theme())
-            .unwrap_or(EffectiveTheme::Light),
+            .unwrap_or(EffectiveTheme::Snow),
     );
     editor.set_show_line_numbers(!rich);
     editor.set_highlight_current_line(!rich);

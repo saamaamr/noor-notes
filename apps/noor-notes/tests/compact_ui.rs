@@ -14,9 +14,10 @@ fn note_chrome_is_compact_but_keeps_accessible_hit_targets() {
     assert!(CSS.contains(".nn-menu-danger"));
     assert!(CSS.contains(".nn-note-card"));
     assert!(CSS.contains("border-radius: 8px"));
-    assert!(CSS.contains(".nn-theme-light"));
-    assert!(CSS.contains(".nn-theme-graphite"));
+    assert!(CSS.contains(".nn-theme-snow"));
     assert!(CSS.contains(".nn-theme-midnight"));
-    assert!(CSS.contains(".nn-theme-oled"));
+    assert!(!CSS.contains(".nn-theme-graphite"));
+    assert!(!CSS.contains(".nn-theme-oled"));
+    assert!(CSS.contains(".nn-icon-button"));
     assert!(CSS.contains(".nn-icon-neutral"));
 }

@@ -4,10 +4,7 @@ use std::rc::Rc;
 
 use adw::prelude::*;
 
-use super::{
-    AppearanceMode, AppearancePreferences, AppearanceStore, DarkPalette, EffectiveTheme,
-    LightPalette, SystemScheme,
-};
+use super::{AppearanceMode, AppearancePreferences, AppearanceStore, EffectiveTheme, SystemScheme};
 
 type Listener = Rc<dyn Fn(AppearancePreferences, EffectiveTheme)>;
 
@@ -55,24 +52,6 @@ impl AppearanceManager {
         let (preferences, save_result) = {
             let mut state = self.state.borrow_mut();
             state.preferences.mode = mode;
-            state.preferences.preferred_light = match mode {
-                AppearanceMode::Light => LightPalette::Snow,
-                AppearanceMode::WarmPaper => LightPalette::WarmPaper,
-                AppearanceMode::CoolMist => LightPalette::CoolMist,
-                AppearanceMode::System
-                | AppearanceMode::Graphite
-                | AppearanceMode::Midnight
-                | AppearanceMode::Oled => state.preferences.preferred_light,
-            };
-            state.preferences.preferred_dark = match mode {
-                AppearanceMode::Graphite => DarkPalette::Graphite,
-                AppearanceMode::Midnight => DarkPalette::Midnight,
-                AppearanceMode::Oled => DarkPalette::Oled,
-                AppearanceMode::System
-                | AppearanceMode::Light
-                | AppearanceMode::WarmPaper
-                | AppearanceMode::CoolMist => state.preferences.preferred_dark,
-            };
             let save_result = state.store.save(&state.preferences);
             (state.preferences.clone(), save_result)
         };
@@ -80,24 +59,10 @@ impl AppearanceManager {
         save_result
     }
 
-    pub fn cycle_dark_palette(&self) -> io::Result<EffectiveTheme> {
-        let next = match self.state.borrow().preferences.preferred_dark {
-            DarkPalette::Graphite => AppearanceMode::Midnight,
-            DarkPalette::Midnight => AppearanceMode::Oled,
-            DarkPalette::Oled => AppearanceMode::Graphite,
-        };
-        self.set_mode(next)?;
-        Ok(self.effective_theme())
-    }
-
-    pub fn cycle_palette(&self) -> io::Result<EffectiveTheme> {
+    pub fn toggle_theme(&self) -> io::Result<EffectiveTheme> {
         let next = match self.effective_theme() {
-            EffectiveTheme::Light => AppearanceMode::WarmPaper,
-            EffectiveTheme::WarmPaper => AppearanceMode::CoolMist,
-            EffectiveTheme::CoolMist => AppearanceMode::Light,
-            EffectiveTheme::Graphite => AppearanceMode::Midnight,
-            EffectiveTheme::Midnight => AppearanceMode::Oled,
-            EffectiveTheme::Oled => AppearanceMode::Graphite,
+            EffectiveTheme::Snow => AppearanceMode::Midnight,
+            EffectiveTheme::Midnight => AppearanceMode::Snow,
         };
         self.set_mode(next)?;
         Ok(self.effective_theme())
@@ -116,12 +81,8 @@ impl AppearanceManager {
 
     pub fn active_label(&self) -> &'static str {
         match self.effective_theme() {
-            EffectiveTheme::Light => "Snow",
-            EffectiveTheme::WarmPaper => "Warm Paper",
-            EffectiveTheme::CoolMist => "Cool Mist",
-            EffectiveTheme::Graphite => "Graphite",
+            EffectiveTheme::Snow => "Snow",
             EffectiveTheme::Midnight => "Midnight",
-            EffectiveTheme::Oled => "OLED",
         }
     }
 

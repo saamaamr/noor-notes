@@ -6,7 +6,7 @@ use noor_notes::writing_assistance::SpellService;
 #[test]
 fn spelling_attaches_named_actions_lists_languages_and_can_be_toggled() {
     gtk::init().unwrap();
-    let editor = SourceEditorAdapter::new_rich("mispelled", EffectiveTheme::Light);
+    let editor = SourceEditorAdapter::new_rich("mispelled", EffectiveTheme::Snow);
 
     let session = SpellService::attach(editor.buffer(), editor.view(), "en_US", true);
 

@@ -7,7 +7,7 @@ use sourceview5::prelude::*;
 #[test]
 fn rich_buffer_round_trip_preserves_bold_selection_and_emoji() {
     gtk::init().unwrap();
-    let editor = SourceEditorAdapter::new_rich("Hello world", EffectiveTheme::Light);
+    let editor = SourceEditorAdapter::new_rich("Hello world", EffectiveTheme::Snow);
     assert!(!editor.buffer().is_highlight_syntax());
     let buffer: gtk::TextBuffer = editor.buffer().clone().upcast();
     RichBuffer::load(

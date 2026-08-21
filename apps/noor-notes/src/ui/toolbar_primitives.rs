@@ -48,6 +48,9 @@ pub fn text_toggle(label: &str, tooltip: &str, class: &str) -> gtk::ToggleButton
         .build();
     button.add_css_class("format-choice");
     button.add_css_class("nn-control-compact");
+    button.add_css_class("nn-h-32");
+    button.add_css_class("nn-radius-6");
+    button.add_css_class("nn-focus-ring");
     button.add_css_class(class);
     button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
     expose_toggle_checked(&button);
@@ -70,6 +73,10 @@ fn update_checked(button: &gtk::ToggleButton) {
 pub fn style_menu_button(button: &gtk::MenuButton, accessible_label: &str) {
     button.add_css_class("toolbar-button");
     button.add_css_class("nn-control-compact");
+    button.add_css_class("nn-icon-button");
+    button.add_css_class("nn-h-32");
+    button.add_css_class("nn-radius-6");
+    button.add_css_class("nn-focus-ring");
     button.update_property(&[gtk::accessible::Property::Label(accessible_label)]);
 }
 
@@ -96,5 +103,9 @@ pub fn bind_menu_popover(button: &gtk::MenuButton, popover: &gtk::Popover) {
 fn style_control<W: IsA<gtk::Widget> + IsA<gtk::Accessible>>(control: &W, label: &str) {
     control.add_css_class("toolbar-button");
     control.add_css_class("nn-control-compact");
+    control.add_css_class("nn-icon-button");
+    control.add_css_class("nn-h-32");
+    control.add_css_class("nn-radius-6");
+    control.add_css_class("nn-focus-ring");
     control.update_property(&[gtk::accessible::Property::Label(label)]);
 }

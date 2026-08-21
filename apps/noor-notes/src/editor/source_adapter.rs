@@ -16,7 +16,7 @@ pub struct SourceEditorAdapter {
 
 impl SourceEditorAdapter {
     pub fn new(text: &str, language: &SourceLanguage) -> Self {
-        Self::new_with_theme(text, Some(language), EffectiveTheme::Light)
+        Self::new_with_theme(text, Some(language), EffectiveTheme::Snow)
     }
 
     pub fn new_rich(text: &str, theme: EffectiveTheme) -> Self {

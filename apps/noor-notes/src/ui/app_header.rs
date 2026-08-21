@@ -27,6 +27,7 @@ impl AppHeader {
     pub fn new(appearance: AppearanceManager, initial_sort: NoteSort) -> Self {
         let widget = adw::HeaderBar::new();
         widget.add_css_class("nn-app-header");
+        widget.add_css_class("nn-surface");
         widget.set_title_widget(Some(&crate::identity::window_title()));
 
         let back = gtk::Button::builder()
@@ -68,6 +69,9 @@ impl AppHeader {
         new_note.add_css_class("suggested-action");
         new_note.add_css_class("nn-new-note");
         new_note.add_css_class("nn-control-primary");
+        new_note.add_css_class("nn-h-36");
+        new_note.add_css_class("nn-radius-8");
+        new_note.add_css_class("nn-focus-ring");
         new_note.update_property(&[gtk::accessible::Property::Label("New Note")]);
         widget.pack_start(&new_note);
 
@@ -99,6 +103,9 @@ impl AppHeader {
         sort.set_tooltip_text(Some("Sort notes"));
         sort.add_css_class("flat");
         sort.add_css_class("nn-sort-control");
+        sort.add_css_class("nn-h-36");
+        sort.add_css_class("nn-radius-8");
+        sort.add_css_class("nn-focus-ring");
         sort.update_property(&[gtk::accessible::Property::Label("Sort notes")]);
         widget.pack_end(&sort);
 
@@ -164,6 +171,8 @@ impl AppHeader {
         search_toggle.add_css_class("nn-header-control");
         search_toggle.add_css_class("nn-control-compact");
         search_toggle.add_css_class("nn-icon-neutral");
+        search_toggle.add_css_class("nn-icon-button");
+        search_toggle.add_css_class("nn-focus-ring");
         search_toggle.update_property(&[gtk::accessible::Property::Label("Search notes (Ctrl+F)")]);
         super::toolbar_primitives::expose_toggle_checked(&search_toggle);
         widget.pack_end(&search_toggle);
@@ -231,6 +240,10 @@ fn style_header_icon(button: &gtk::Button, accessible_label: &str) {
     button.add_css_class("flat");
     button.add_css_class("nn-header-control");
     button.add_css_class("nn-control-compact");
+    button.add_css_class("nn-icon-button");
+    button.add_css_class("nn-h-32");
+    button.add_css_class("nn-radius-6");
+    button.add_css_class("nn-focus-ring");
     button.add_css_class("nn-icon-neutral");
     button.update_property(&[gtk::accessible::Property::Label(accessible_label)]);
 }
@@ -239,6 +252,10 @@ fn style_header_menu(button: &gtk::MenuButton, accessible_label: &str) {
     button.add_css_class("flat");
     button.add_css_class("nn-header-control");
     button.add_css_class("nn-control-compact");
+    button.add_css_class("nn-icon-button");
+    button.add_css_class("nn-h-32");
+    button.add_css_class("nn-radius-6");
+    button.add_css_class("nn-focus-ring");
     button.add_css_class("nn-icon-neutral");
     button.update_property(&[gtk::accessible::Property::Label(accessible_label)]);
 }
@@ -250,13 +267,8 @@ fn application_menu() -> gtk::gio::Menu {
 
     let appearance = gtk::gio::Menu::new();
     for (label, action) in [
-        ("System", "app.appearance::system"),
-        ("Snow", "app.appearance::light"),
-        ("Warm Paper", "app.appearance::warm-paper"),
-        ("Cool Mist", "app.appearance::cool-mist"),
-        ("Graphite", "app.appearance::graphite"),
+        ("Snow", "app.appearance::snow"),
         ("Midnight", "app.appearance::midnight"),
-        ("OLED", "app.appearance::oled"),
     ] {
         appearance.append(Some(label), Some(action));
     }

@@ -25,11 +25,11 @@ fn professional_palettes_are_complete_and_custom_rgb_is_canonical() {
 #[test]
 fn preset_rendering_is_theme_adaptive_and_custom_rgb_is_exact() {
     assert_eq!(
-        rendered_color(ColorRole::Foreground, "blue", EffectiveTheme::Light).as_deref(),
+        rendered_color(ColorRole::Foreground, "blue", EffectiveTheme::Snow).as_deref(),
         Some("#1D4ED8")
     );
     assert_eq!(
-        rendered_color(ColorRole::Foreground, "blue", EffectiveTheme::Oled).as_deref(),
+        rendered_color(ColorRole::Foreground, "blue", EffectiveTheme::Midnight).as_deref(),
         Some("#93C5FD")
     );
     assert_eq!(
@@ -37,11 +37,11 @@ fn preset_rendering_is_theme_adaptive_and_custom_rgb_is_exact() {
         Some("#ABCDEF")
     );
     assert_eq!(
-        rendered_color(ColorRole::Foreground, "blue", EffectiveTheme::WarmPaper).as_deref(),
+        rendered_color(ColorRole::Foreground, "blue", EffectiveTheme::Snow).as_deref(),
         Some("#1D4ED8")
     );
     assert_eq!(
-        rendered_color(ColorRole::Highlight, "yellow", EffectiveTheme::CoolMist).as_deref(),
+        rendered_color(ColorRole::Highlight, "yellow", EffectiveTheme::Snow).as_deref(),
         Some("#FEF3C7")
     );
 }
@@ -64,13 +64,13 @@ fn rich_buffer_preset_tags_follow_the_active_theme() {
     RichBuffer::prepare(&buffer);
     let tag = buffer.tag_table().lookup("noor-fg-blue").unwrap();
 
-    RichBuffer::apply_color_theme(&buffer, EffectiveTheme::Light);
+    RichBuffer::apply_color_theme(&buffer, EffectiveTheme::Snow);
     let light = tag.foreground_rgba().unwrap();
     assert!((light.red() - 0x1D as f32 / 255.0).abs() < 0.001);
     assert!((light.green() - 0x4E as f32 / 255.0).abs() < 0.001);
     assert!((light.blue() - 0xD8 as f32 / 255.0).abs() < 0.001);
 
-    RichBuffer::apply_color_theme(&buffer, EffectiveTheme::Graphite);
+    RichBuffer::apply_color_theme(&buffer, EffectiveTheme::Midnight);
     let dark = tag.foreground_rgba().unwrap();
     assert!((dark.red() - 0x93 as f32 / 255.0).abs() < 0.001);
     assert!((dark.green() - 0xC5 as f32 / 255.0).abs() < 0.001);

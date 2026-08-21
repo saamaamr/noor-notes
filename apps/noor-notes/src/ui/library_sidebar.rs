@@ -21,6 +21,7 @@ impl LibrarySidebar {
     pub fn new() -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 8);
         widget.add_css_class("nn-sidebar");
+        widget.add_css_class("nn-p-8");
 
         let heading = gtk::Label::new(Some("Library"));
         heading.add_css_class("nn-caption");
@@ -37,6 +38,9 @@ impl LibrarySidebar {
         for (index, section) in LibrarySection::NAVIGATION.iter().enumerate() {
             let row = gtk::ListBoxRow::new();
             row.add_css_class("nn-sidebar-row");
+            row.add_css_class("nn-h-40");
+            row.add_css_class("nn-radius-8");
+            row.add_css_class("nn-focus-ring");
             row.set_height_request(40);
             row.set_tooltip_text(Some(section.label()));
             row.update_property(&[gtk::accessible::Property::Label(section.label())]);

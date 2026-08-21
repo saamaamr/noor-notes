@@ -56,7 +56,7 @@ fn source_editor_supports_languages_regex_unicode_lines_and_bookmarks() {
 }
 
 fn rich_editor_uses_source_widgets_without_source_presentation() {
-    let editor = SourceEditorAdapter::new_rich("hello", EffectiveTheme::Light);
+    let editor = SourceEditorAdapter::new_rich("hello", EffectiveTheme::Snow);
 
     assert!(!editor.buffer().is_highlight_syntax());
     assert!(editor.buffer().style_scheme().is_some());
@@ -73,7 +73,7 @@ fn source_editor_applies_theme_without_losing_text_selection_or_undo() {
     let mut editor = SourceEditorAdapter::new_with_theme(
         "hello বাংলা",
         Some(&SourceLanguage::Markdown),
-        EffectiveTheme::Light,
+        EffectiveTheme::Snow,
     );
     editor.replace_text("hello বাংলা!".into(), 12);
     editor.select_range(0, 5);
@@ -90,15 +90,15 @@ fn source_editor_applies_theme_without_losing_text_selection_or_undo() {
 }
 
 fn plain_text_has_no_language_while_markdown_and_code_keep_theirs() {
-    let plain = SourceEditorAdapter::new_with_theme("let value = 1;", None, EffectiveTheme::Light);
+    let plain = SourceEditorAdapter::new_with_theme("let value = 1;", None, EffectiveTheme::Snow);
     let markdown = SourceEditorAdapter::new_with_theme(
         "# Heading",
         Some(&SourceLanguage::Markdown),
-        EffectiveTheme::Graphite,
+        EffectiveTheme::Midnight,
     );
     let rust = SourceLanguage::new("rust").unwrap();
     let code =
-        SourceEditorAdapter::new_with_theme("fn main() {}", Some(&rust), EffectiveTheme::Oled);
+        SourceEditorAdapter::new_with_theme("fn main() {}", Some(&rust), EffectiveTheme::Midnight);
 
     assert!(plain.buffer().language().is_none());
     assert_eq!(
@@ -112,10 +112,10 @@ fn plain_text_has_no_language_while_markdown_and_code_keep_theirs() {
     );
     assert_eq!(
         markdown.buffer().style_scheme().unwrap().id().as_str(),
-        "noor-graphite"
+        "noor-midnight"
     );
     assert_eq!(
         code.buffer().style_scheme().unwrap().id().as_str(),
-        "noor-oled"
+        "noor-midnight"
     );
 }

@@ -1,26 +1,22 @@
 const CSS: &str = include_str!("../resources/design-system.css");
 
 #[test]
-fn all_dark_palettes_style_every_major_surface_and_semantic_icon_state() {
-    for palette in ["graphite", "midnight", "oled"] {
-        let root = format!(".nn-theme-{palette}");
-        assert!(CSS.contains(&root), "missing palette root: {root}");
-        for component in [
-            "headerbar",
-            ".nn-sidebar",
-            ".nn-note-list",
-            ".nn-note-card",
-            ".nn-preview",
-            ".nn-rich-writing-canvas",
-            ".nn-find-panel",
-            ".nn-statusbar",
-            "popover",
-        ] {
-            let selector = format!("{root} {component}");
-            assert!(CSS.contains(&selector), "missing selector: {selector}");
-        }
+fn midnight_styles_every_major_surface_and_semantic_icon_state() {
+    let root = ".nn-theme-midnight";
+    for component in [
+        "headerbar",
+        ".nn-sidebar",
+        ".nn-note-list",
+        ".nn-note-card",
+        ".nn-preview",
+        ".nn-rich-writing-canvas",
+        ".nn-find-panel",
+        ".nn-statusbar",
+        "popover",
+    ] {
+        let selector = format!("{root} {component}");
+        assert!(CSS.contains(&selector), "missing selector: {selector}");
     }
-
     for class in [
         ".nn-icon-neutral",
         ".nn-icon-secondary",
@@ -35,10 +31,11 @@ fn all_dark_palettes_style_every_major_surface_and_semantic_icon_state() {
 }
 
 #[test]
-fn browser_custom_properties_are_not_used_for_gtk_palette_switching() {
+fn gtk_palette_switching_uses_only_namespaced_snow_and_midnight_layers() {
     assert!(!CSS.contains("--nn-"));
     assert!(!CSS.contains(".theme-dark"));
-    assert!(CSS.contains(".nn-theme-light"));
+    assert!(CSS.contains(".nn-theme-snow"));
+    assert!(CSS.contains(".nn-theme-midnight"));
     for paper in [
         "paper-warm-white",
         "paper-cream",
@@ -50,8 +47,8 @@ fn browser_custom_properties_are_not_used_for_gtk_palette_switching() {
         "paper-dark-slate",
     ] {
         assert!(
-            CSS.contains(&format!(".nn-theme-oled .{paper}")),
-            "missing OLED paper mapping: {paper}"
+            CSS.contains(&format!(".nn-theme-midnight .{paper}")),
+            "missing Midnight paper mapping: {paper}"
         );
     }
 }

@@ -1,153 +1,97 @@
-/* Complete namespaced palettes. GTK color definitions are global, so each
- * effective theme owns a namespace and themed component rules consume it. */
-@define-color nn_light_app_bg #f7f8fa;
-@define-color nn_light_sidebar_bg #f6f7f9;
-@define-color nn_light_list_bg #fafafb;
-@define-color nn_light_editor_bg #ffffff;
-@define-color nn_light_surface #ffffff;
-@define-color nn_light_surface_raised #ffffff;
-@define-color nn_light_popover_bg #ffffff;
-@define-color nn_light_input_bg #ffffff;
-@define-color nn_light_text_primary #1f2937;
-@define-color nn_light_text_secondary #667085;
-@define-color nn_light_text_muted #6b7280;
-@define-color nn_light_border #e5e7eb;
-@define-color nn_light_border_strong #d0d5dd;
-@define-color nn_light_accent #4f6fe8;
-@define-color nn_light_accent_soft #eef2ff;
-@define-color nn_light_focus #4f6fe8;
-@define-color nn_light_danger #dc2626;
-@define-color nn_light_danger_soft #fef2f2;
+/* Noor Notes GTK design system: two namespaced palettes + curated atomic utilities. */
+@define-color nn_snow_app_bg #f6f7f9;
+@define-color nn_snow_sidebar_bg #f4f6f8;
+@define-color nn_snow_list_bg #f8f9fb;
+@define-color nn_snow_editor_bg #ffffff;
+@define-color nn_snow_surface #ffffff;
+@define-color nn_snow_surface_raised #ffffff;
+@define-color nn_snow_popover_bg #ffffff;
+@define-color nn_snow_input_bg #ffffff;
+@define-color nn_snow_text_primary #1f2937;
+@define-color nn_snow_text_secondary #475467;
+@define-color nn_snow_text_muted #667085;
+@define-color nn_snow_border #e4e7ec;
+@define-color nn_snow_border_strong #d0d5dd;
+@define-color nn_snow_accent #4f6fe8;
+@define-color nn_snow_accent_soft #eef2ff;
+@define-color nn_snow_focus #4f6fe8;
+@define-color nn_snow_danger #dc2626;
+@define-color nn_snow_danger_soft #fef2f2;
 
-@define-color nn_warm_app_bg #f6f1e8;
-@define-color nn_warm_sidebar_bg #f3ede4;
-@define-color nn_warm_list_bg #faf7f1;
-@define-color nn_warm_editor_bg #fffdf8;
-@define-color nn_warm_surface #fffdf8;
-@define-color nn_warm_surface_raised #fffaf2;
-@define-color nn_warm_popover_bg #fffdf8;
-@define-color nn_warm_input_bg #fffdf8;
-@define-color nn_warm_text_primary #2c2925;
-@define-color nn_warm_text_secondary #6f675e;
-@define-color nn_warm_text_muted #81786d;
-@define-color nn_warm_border #e5ddd1;
-@define-color nn_warm_border_strong #d8cdbf;
-@define-color nn_warm_accent #4f6fe8;
-@define-color nn_warm_accent_soft #edf0ff;
-@define-color nn_warm_focus #4f6fe8;
-@define-color nn_warm_danger #b42318;
-@define-color nn_warm_danger_soft #fff1ef;
+@define-color nn_midnight_app_bg #0f1724;
+@define-color nn_midnight_sidebar_bg #111a2a;
+@define-color nn_midnight_list_bg #121c2d;
+@define-color nn_midnight_editor_bg #0f1724;
+@define-color nn_midnight_surface #172235;
+@define-color nn_midnight_surface_raised #1d2a40;
+@define-color nn_midnight_popover_bg #1d2a40;
+@define-color nn_midnight_input_bg #172235;
+@define-color nn_midnight_text_primary #f1f5f9;
+@define-color nn_midnight_text_secondary #cbd5e1;
+@define-color nn_midnight_text_muted #94a3b8;
+@define-color nn_midnight_border #26364d;
+@define-color nn_midnight_border_strong #33465f;
+@define-color nn_midnight_accent #6d8bff;
+@define-color nn_midnight_accent_soft #1d2a4a;
+@define-color nn_midnight_focus #6d8bff;
+@define-color nn_midnight_danger #f87171;
+@define-color nn_midnight_danger_soft rgba(248,113,113,.14);
 
-@define-color nn_mist_app_bg #f2f6f8;
-@define-color nn_mist_sidebar_bg #eef3f6;
-@define-color nn_mist_list_bg #f6f9fa;
-@define-color nn_mist_editor_bg #fcfeff;
-@define-color nn_mist_surface #fcfeff;
-@define-color nn_mist_surface_raised #f9fcfd;
-@define-color nn_mist_popover_bg #fcfeff;
-@define-color nn_mist_input_bg #fcfeff;
-@define-color nn_mist_text_primary #20303b;
-@define-color nn_mist_text_secondary #60727e;
-@define-color nn_mist_text_muted #72838e;
-@define-color nn_mist_border #dce6eb;
-@define-color nn_mist_border_strong #ccdbe2;
-@define-color nn_mist_accent #4f6fe8;
-@define-color nn_mist_accent_soft #e9f0ff;
-@define-color nn_mist_focus #4f6fe8;
-@define-color nn_mist_danger #c4322b;
-@define-color nn_mist_danger_soft #fff1f0;
-
-@define-color nn_graphite_app_bg #1c1d20;
-@define-color nn_graphite_sidebar_bg #202226;
-@define-color nn_graphite_list_bg #1c1d20;
-@define-color nn_graphite_editor_bg #24262a;
-@define-color nn_graphite_surface #282a2f;
-@define-color nn_graphite_surface_raised #303238;
-@define-color nn_graphite_popover_bg #303238;
-@define-color nn_graphite_input_bg #2d3035;
-@define-color nn_graphite_text_primary #f3f4f6;
-@define-color nn_graphite_text_secondary #b8bbc3;
-@define-color nn_graphite_text_muted #9297a1;
-@define-color nn_graphite_border rgba(255,255,255,.10);
-@define-color nn_graphite_border_strong rgba(154,175,255,.26);
-@define-color nn_graphite_accent #9aafff;
-@define-color nn_graphite_accent_soft #30364a;
-@define-color nn_graphite_focus #9aafff;
-@define-color nn_graphite_danger #ff858b;
-@define-color nn_graphite_danger_soft rgba(255,133,139,.14);
-
-@define-color nn_midnight_app_bg #101722;
-@define-color nn_midnight_sidebar_bg #131c2a;
-@define-color nn_midnight_list_bg #101722;
-@define-color nn_midnight_editor_bg #172131;
-@define-color nn_midnight_surface #1a2638;
-@define-color nn_midnight_surface_raised #202d41;
-@define-color nn_midnight_popover_bg #202d41;
-@define-color nn_midnight_input_bg #1d2b40;
-@define-color nn_midnight_text_primary #edf5ff;
-@define-color nn_midnight_text_secondary #abc0da;
-@define-color nn_midnight_text_muted #849bb8;
-@define-color nn_midnight_border rgba(168,205,255,.12);
-@define-color nn_midnight_border_strong rgba(115,183,255,.28);
-@define-color nn_midnight_accent #73b7ff;
-@define-color nn_midnight_accent_soft #203858;
-@define-color nn_midnight_focus #73b7ff;
-@define-color nn_midnight_danger #ff8a91;
-@define-color nn_midnight_danger_soft rgba(255,138,145,.15);
-
-@define-color nn_oled_app_bg #050506;
-@define-color nn_oled_sidebar_bg #09090b;
-@define-color nn_oled_list_bg #050506;
-@define-color nn_oled_editor_bg #0d0d0f;
-@define-color nn_oled_surface #121216;
-@define-color nn_oled_surface_raised #18181d;
-@define-color nn_oled_popover_bg #18181d;
-@define-color nn_oled_input_bg #17171c;
-@define-color nn_oled_text_primary #f7f7fa;
-@define-color nn_oled_text_secondary #bdbdc7;
-@define-color nn_oled_text_muted #92929f;
-@define-color nn_oled_border rgba(255,255,255,.13);
-@define-color nn_oled_border_strong rgba(177,160,255,.30);
-@define-color nn_oled_accent #b1a0ff;
-@define-color nn_oled_accent_soft #211d38;
-@define-color nn_oled_focus #b1a0ff;
-@define-color nn_oled_danger #ff858b;
-@define-color nn_oled_danger_soft rgba(255,133,139,.16);
-
-@define-color nn_bg #f7f8fa;
-@define-color nn_app_bg #f7f8fa;
-@define-color nn_sidebar_bg #f6f7f9;
-@define-color nn_note_list_bg #fafafb;
-@define-color nn_surface #ffffff;
+/* Snow is the default semantic layer. */
+@define-color nn_bg #f6f7f9;
+@define-color nn_app_bg #f6f7f9;
+@define-color nn_sidebar_bg #f4f6f8;
+@define-color nn_note_list_bg #f8f9fb;
 @define-color nn_editor_bg #ffffff;
+@define-color nn_surface #ffffff;
 @define-color nn_surface_raised #ffffff;
-@define-color nn_popover_bg @nn_surface_raised;
-@define-color nn_modal_bg @nn_surface_raised;
-@define-color nn_input_bg @nn_surface;
-@define-color nn_hover #f1f3f6;
+@define-color nn_popover_bg #ffffff;
+@define-color nn_modal_bg #ffffff;
+@define-color nn_input_bg #ffffff;
+@define-color nn_hover #f1f3f5;
+@define-color nn_selected #eef2ff;
 @define-color nn_text #1f2937;
-@define-color nn_text_secondary #667085;
-@define-color nn_text_muted #6b7280;
-@define-color nn_text_disabled alpha(@nn_text_muted, .72);
+@define-color nn_text_secondary #475467;
+@define-color nn_text_muted #667085;
+@define-color nn_text_disabled alpha(@nn_text_muted,.72);
 @define-color nn_text_inverse #ffffff;
-@define-color nn_border #e5e7eb;
+@define-color nn_border #e4e7ec;
 @define-color nn_border_subtle #eef0f2;
 @define-color nn_border_strong #d0d5dd;
 @define-color nn_accent #4f6fe8;
 @define-color nn_accent_hover #425fcc;
 @define-color nn_accent_soft #eef2ff;
 @define-color nn_accent_strong #344fc4;
+@define-color nn_focus #4f6fe8;
+@define-color nn_focus_ring alpha(@nn_accent,.24);
+@define-color nn_success #16a34a;
+@define-color nn_warning #d97706;
 @define-color nn_danger #dc2626;
 @define-color nn_danger_soft #fef2f2;
-@define-color nn_success #16a34a;
+@define-color nn_error #dc2626;
 @define-color nn_info #2563eb;
 @define-color nn_scrollbar #c7cdd6;
 @define-color nn_scrollbar_hover #aeb7c4;
-@define-color nn_warning #9a6400;
-@define-color nn_error #dc2626;
-@define-color nn_focus #4f6fe8;
-@define-color nn_focus_ring alpha(@nn_accent, .25);
-@define-color nn_selected #eef2ff;
+
+/* Curated Atomic CSS: small, static, GTK-safe utilities only. */
+.nn-p-4 { padding: 4px; }
+.nn-p-8 { padding: 8px; }
+.nn-p-12 { padding: 12px; }
+.nn-p-16 { padding: 16px; }
+.nn-m-4 { margin: 4px; }
+.nn-h-28 { min-height: 28px; }
+.nn-h-32 { min-height: 32px; }
+.nn-h-36 { min-height: 36px; }
+.nn-h-40 { min-height: 40px; }
+.nn-radius-6 { border-radius: 6px; }
+.nn-radius-8 { border-radius: 8px; }
+.nn-radius-10 { border-radius: 10px; }
+.nn-text-body { font-size: 16px; }
+.nn-text-meta { font-size: 13px; color: @nn_text_muted; }
+.nn-text-muted { color: @nn_text_muted; }
+.nn-surface { background: @nn_surface; }
+.nn-icon-button { min-width: 32px; min-height: 32px; padding: 0; border-radius: 6px; }
+.nn-focus-ring:focus-visible { outline: 2px solid @nn_focus; outline-offset: 2px; box-shadow: 0 0 0 3px @nn_focus_ring; }
 
 window { background: @nn_app_bg; color: @nn_text; }
 headerbar { min-height: 44px; background: @nn_surface; border-bottom: 1px solid @nn_border; box-shadow: none; }
@@ -169,7 +113,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-menu-row:hover { background: @nn_hover; }
 .nn-selected-menu-row { background: @nn_accent_soft; color: @nn_accent; }
 .nn-menu-separator { margin: 4px 6px; background: @nn_border_subtle; }
-.nn-menu-danger { color: @nn_danger; }
+.nn-menu-danger, .destructive-action { color: @nn_danger; }
 .nn-menu-danger:hover { background: @nn_danger_soft; color: @nn_danger; }
 .nn-document-title { font-size: 30px; font-weight: 700; line-height: 1.2; color: @nn_text; }
 
@@ -178,11 +122,11 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-header-control:hover { background: @nn_hover; color: @nn_text; }
 .nn-header-control:checked { background: @nn_accent_soft; color: @nn_accent; }
 .nn-header-control image { -gtk-icon-size: 18px; }
-.nn-new-note { min-height: 36px; padding: 0 12px; border-radius: 9px; }
+.nn-new-note { min-height: 36px; padding: 0 12px; border-radius: 8px; }
 .nn-sort-control { min-height: 36px; padding: 0 8px; border: 1px solid transparent; border-radius: 8px; background: @nn_hover; color: @nn_text; }
-.nn-search-entry { min-height: 36px; border-radius: 8px; border-color: @nn_border; background: @nn_surface; color: @nn_text; }
+.nn-search-entry { min-height: 36px; border-radius: 8px; border-color: @nn_border; background: @nn_input_bg; color: @nn_text; }
 
-.nn-sidebar { background: @nn_sidebar_bg; border-right: 0; padding: 12px 8px; }
+.nn-sidebar { background: @nn_sidebar_bg; padding: 12px 8px; }
 .nn-pane-separator { min-width: 1px; background: @nn_border; }
 .nn-sidebar-row { min-height: 40px; margin: 2px 0; padding: 0 12px; border-radius: 8px; transition: 140ms ease; }
 .nn-sidebar-row:hover { background: @nn_hover; }
@@ -192,31 +136,17 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-sidebar-icon { color: @nn_text_secondary; -gtk-icon-size: 18px; }
 .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_accent; }
 .nn-sidebar-count { color: @nn_text_muted; font-weight: 400; }
+
 .nn-note-list { background: @nn_note_list_bg; padding: 12px 10px; }
-.nn-note-list row { background: transparent; padding: 0; }
-.nn-note-list row:selected { background: transparent; }
-.nn-note-list row:selected .nn-note-card {
-  background: @nn_selected;
-  border-color: alpha(@nn_accent, .35);
-  box-shadow: 0 0 0 1px alpha(@nn_accent, .14);
-}
+.nn-note-list row, .nn-note-list row:selected { background: transparent; padding: 0; }
+.nn-note-list row:selected .nn-note-card { background: @nn_selected; border-color: alpha(@nn_accent,.35); box-shadow: 0 0 0 1px alpha(@nn_accent,.14); }
 .nn-note-list row:selected .nn-color-strip { min-width: 5px; }
-.nn-note-card {
-  min-height: 92px;
-  margin: 5px 4px;
-  padding: 14px;
-  background: @nn_surface;
-  border: 1px solid @nn_border;
-  border-radius: 10px;
-  box-shadow: 0 1px 2px rgba(16,24,40,.03);
-  transition: 150ms ease;
-}
-.nn-note-card:hover { border-color: #d6dae1; box-shadow: 0 2px 5px rgba(16,24,40,.05); }
+.nn-note-card { min-height: 92px; margin: 5px 4px; padding: 14px; background: @nn_surface; border: 1px solid @nn_border; border-radius: 8px; box-shadow: 0 1px 2px rgba(16,24,40,.03); transition: 150ms ease; }
+.nn-note-card:hover { border-color: @nn_border_strong; box-shadow: 0 2px 5px rgba(16,24,40,.05); }
 .nn-note-card-content { padding: 0 2px; }
 .nn-note-title { font-size: 16px; font-weight: 600; }
 .nn-note-card-preview { font-size: 13px; color: @nn_text_secondary; }
-.nn-note-card-tags { font-size: 12px; color: @nn_text_secondary; }
-.nn-note-card-meta { font-size: 12px; color: @nn_text_muted; }
+.nn-note-card-tags, .nn-note-card-meta { font-size: 12px; color: @nn_text_muted; }
 .nn-note-status-icon { color: @nn_text_secondary; }
 .nn-card-action { min-width: 32px; min-height: 32px; padding: 0; border-radius: 8px; background: transparent; }
 .nn-card-action:hover { background: @nn_hover; }
@@ -227,123 +157,100 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .note-green .nn-color-strip { background: #55a36c; }
 .note-rose .nn-color-strip { background: #cc6c7f; }
 .note-lavender .nn-color-strip { background: #8f76bf; }
-.nn-preview-surface { background: @nn_surface; }
-.nn-preview { background: @nn_surface; padding: 32px 40px; }
+
+.nn-preview-surface, .nn-preview { background: @nn_editor_bg; }
+.nn-preview { padding: 32px 40px; }
 .nn-preview-heading { min-height: 44px; }
 .nn-preview-heading .nn-preview-title { margin: 0; }
 .nn-preview-surface.compact .nn-preview { padding: 24px; }
 .nn-preview-edit { min-width: 36px; min-height: 36px; padding: 0 10px; border-radius: 8px; color: @nn_text_secondary; }
-.nn-preview-edit.suggested-action { background: @nn_accent; color: white; }
-.nn-preview-edit.suggested-action:hover { background: shade(@nn_accent, .9); }
+.nn-preview-edit.suggested-action { background: @nn_accent; color: @nn_text_inverse; }
+.nn-preview-edit.suggested-action:hover { background: @nn_accent_hover; }
 .nn-preview-read-only-button { min-width: 92px; min-height: 36px; padding: 0 12px; border-radius: 8px; }
-.nn-preview-title-entry { min-height: 40px; padding: 4px 10px; font-size: 28px; font-weight: 700; border-radius: 8px; }
-.nn-preview-format-toolbar { margin-top: 10px; margin-bottom: 10px; border: 1px solid @nn_border; border-radius: 9px; }
+.nn-preview-title-entry { min-height: 40px; padding: 4px 10px; font-size: 20px; font-weight: 700; border-radius: 8px; }
+.nn-preview-format-toolbar { margin-top: 10px; margin-bottom: 10px; border: 1px solid @nn_border; border-radius: 8px; }
 .nn-preview-edit:hover { background: @nn_hover; color: @nn_text; }
-.nn-preview-editor { min-height: 280px; font-size: 16px; background: @nn_surface; color: @nn_text; border: 1px solid @nn_border_subtle; border-radius: 8px; }
-.nn-preview-editor:focus { border-color: alpha(@nn_accent, .45); }
+.nn-preview-editor { min-height: 280px; font-size: 16px; background: @nn_editor_bg; color: @nn_text; border: 1px solid @nn_border_subtle; border-radius: 8px; }
+.nn-preview-editor:focus { border-color: alpha(@nn_accent,.45); }
+.nn-preview-title { font-size: 20px; font-weight: 700; color: @nn_text; }
+.nn-preview-metadata { font-size: 13px; color: @nn_text_muted; }
+.nn-preview-body { font-size: 16px; color: @nn_text; }
+
 .nn-sticky-note-window { background: @nn_editor_bg; }
 .nn-sticky-header { min-height: 40px; background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; }
-.nn-sticky-header windowtitle > label:first-child { color: @nn_text; font-weight: 650; }
+.nn-sticky-header windowtitle > label:first-child { color: @nn_text; font-weight: 600; }
 .nn-sticky-pin { min-width: 34px; min-height: 34px; padding: 0; border-radius: 7px; color: @nn_text_secondary; }
 .nn-sticky-pin:checked { background: @nn_accent_soft; color: @nn_accent; }
-.nn-sticky-body .nn-preview { padding: 20px 24px; background: @nn_editor_bg; }
-.nn-sticky-body .nn-preview-body { color: @nn_text; font-size: 16px; }
+.nn-sticky-body .nn-preview { padding: 20px 24px; }
+.nn-sticky-body .nn-preview-body { font-size: 16px; }
 .nn-empty-state { padding: 48px 32px; color: @nn_text_secondary; }
 .nn-empty-state-icon { color: @nn_text_muted; -gtk-icon-size: 40px; }
 .nn-empty-state .nn-section-title { color: @nn_text; }
 .nn-empty-state .nn-metadata { color: @nn_text_muted; }
+
 .nn-editor-window { background: @nn_bg; color: @nn_text; }
-.nn-editor-toolbar { min-height: 44px; padding: 5px 10px; background: @nn_surface; border: 1px solid @nn_border; border-radius: 9px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+.nn-editor-menu-bar { min-height: 34px; padding: 3px 8px; background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; }
+.nn-editor-menu-button { min-height: 28px; padding: 0 10px; border-radius: 6px; color: @nn_text_secondary; }
+.nn-editor-menu-button:hover, .nn-editor-menu-button:checked { background: @nn_hover; color: @nn_text; }
+.nn-editor-menu-popover { min-width: 170px; padding: 6px; }
+.nn-editor-menu-popover button { min-height: 30px; padding: 0 10px; border-radius: 6px; }
+.nn-editor-toolbar { min-height: 44px; padding: 5px 10px; background: @nn_surface; border: 1px solid @nn_border; border-radius: 8px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
 .nn-command-bar { min-width: 0; }
 .nn-command-group { border-spacing: 2px; }
 .nn-command-secondary { opacity: .96; }
 .nn-command-overflow { opacity: .92; }
 .nn-editor-toolbar button, .nn-editor-toolbar menubutton > button { min-width: 32px; min-height: 32px; padding: 0 8px; border-radius: 6px; color: @nn_text_secondary; transition: 140ms ease; }
 .nn-editor-toolbar button:hover, .nn-editor-toolbar menubutton > button:hover { background: @nn_hover; color: @nn_text; }
-.nn-editor-toolbar button:checked, .nn-editor-toolbar menubutton > button:checked, .nn-editor-toolbar menubutton.active > button { background: @nn_accent_soft; color: @nn_accent; box-shadow: inset 0 0 0 1px alpha(@nn_accent, .16); }
+.nn-editor-toolbar button:checked, .nn-editor-toolbar menubutton > button:checked, .nn-editor-toolbar menubutton.active > button { background: @nn_accent_soft; color: @nn_accent; box-shadow: inset 0 0 0 1px alpha(@nn_accent,.16); }
 .nn-editor-toolbar button:disabled { opacity: .42; }
 .nn-editor-toolbar .nn-toolbar-font-size { min-width: 62px; min-height: 32px; border-radius: 6px; }
 .nn-editor-toolbar separator { margin: 6px 5px; background: @nn_border; }
-.nn-editor-menu-bar { min-height: 34px; padding: 3px 8px; background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; }
-.nn-editor-menu-button { min-height: 28px; padding: 0 10px; border-radius: 6px; color: @nn_text_secondary; }
-.nn-editor-menu-button:hover, .nn-editor-menu-button:checked { background: @nn_hover; color: @nn_text; }
-.nn-editor-menu-popover { min-width: 170px; padding: 6px; }
-.nn-editor-menu-popover button { min-height: 30px; padding: 0 10px; border-radius: 6px; }
-.nn-editor-menu-popover button:hover { background: @nn_hover; }
 .nn-editor-toolbar > flowboxchild { padding: 0; }
 .nn-formatting-popover { min-width: 320px; }
 .nn-format-section-label { margin-top: 2px; font-size: 12px; font-weight: 700; color: @nn_text_secondary; }
 .nn-rich-color-palette { margin-top: 4px; }
 .nn-color-choices > flowboxchild { padding: 0; }
 .nn-color-button, .nn-custom-color-button { min-width: 30px; min-height: 30px; padding: 5px; border-radius: 7px; }
-.nn-color-button:checked { box-shadow: inset 0 0 0 2px @accent_color; }
-.nn-color-swatch { min-width: 18px; min-height: 18px; border-radius: 9px; border: 1px solid alpha(currentColor, .22); }
+.nn-color-button:checked { box-shadow: inset 0 0 0 2px @nn_accent; }
+.nn-color-swatch { min-width: 18px; min-height: 18px; border-radius: 9px; border: 1px solid alpha(currentColor,.22); }
 .nn-color-check { color: white; -gtk-icon-shadow: 0 1px 2px rgba(0,0,0,.65); }
-.nn-text-swatch.nn-color-slate { background: #334155; }
-.nn-text-swatch.nn-color-blue { background: #1D4ED8; }
-.nn-text-swatch.nn-color-teal { background: #0F766E; }
-.nn-text-swatch.nn-color-green { background: #15803D; }
-.nn-text-swatch.nn-color-amber { background: #A16207; }
-.nn-text-swatch.nn-color-red { background: #B91C1C; }
-.nn-text-swatch.nn-color-purple { background: #7E22CE; }
-.nn-highlight-swatch.nn-color-yellow { background: #FEF3C7; }
-.nn-highlight-swatch.nn-color-blue { background: #DBEAFE; }
-.nn-highlight-swatch.nn-color-mint { background: #CCFBF1; }
-.nn-highlight-swatch.nn-color-green { background: #DCFCE7; }
-.nn-highlight-swatch.nn-color-peach { background: #FFEDD5; }
-.nn-highlight-swatch.nn-color-pink { background: #FCE7F3; }
-.nn-highlight-swatch.nn-color-lavender { background: #EDE9FE; }
-.nn-theme-graphite .nn-text-swatch.nn-color-slate, .nn-theme-midnight .nn-text-swatch.nn-color-slate, .nn-theme-oled .nn-text-swatch.nn-color-slate { background: #E2E8F0; }
-.nn-theme-graphite .nn-text-swatch.nn-color-blue, .nn-theme-midnight .nn-text-swatch.nn-color-blue, .nn-theme-oled .nn-text-swatch.nn-color-blue { background: #93C5FD; }
-.nn-theme-graphite .nn-text-swatch.nn-color-teal, .nn-theme-midnight .nn-text-swatch.nn-color-teal, .nn-theme-oled .nn-text-swatch.nn-color-teal { background: #5EEAD4; }
-.nn-theme-graphite .nn-text-swatch.nn-color-green, .nn-theme-midnight .nn-text-swatch.nn-color-green, .nn-theme-oled .nn-text-swatch.nn-color-green { background: #86EFAC; }
-.nn-theme-graphite .nn-text-swatch.nn-color-amber, .nn-theme-midnight .nn-text-swatch.nn-color-amber, .nn-theme-oled .nn-text-swatch.nn-color-amber { background: #FCD34D; }
-.nn-theme-graphite .nn-text-swatch.nn-color-red, .nn-theme-midnight .nn-text-swatch.nn-color-red, .nn-theme-oled .nn-text-swatch.nn-color-red { background: #FCA5A5; }
-.nn-theme-graphite .nn-text-swatch.nn-color-purple, .nn-theme-midnight .nn-text-swatch.nn-color-purple, .nn-theme-oled .nn-text-swatch.nn-color-purple { background: #D8B4FE; }
-.nn-theme-graphite .nn-highlight-swatch.nn-color-yellow, .nn-theme-midnight .nn-highlight-swatch.nn-color-yellow, .nn-theme-oled .nn-highlight-swatch.nn-color-yellow { background: #5F4B16; }
-.nn-theme-graphite .nn-highlight-swatch.nn-color-blue, .nn-theme-midnight .nn-highlight-swatch.nn-color-blue, .nn-theme-oled .nn-highlight-swatch.nn-color-blue { background: #1E3A5F; }
-.nn-theme-graphite .nn-highlight-swatch.nn-color-mint, .nn-theme-midnight .nn-highlight-swatch.nn-color-mint, .nn-theme-oled .nn-highlight-swatch.nn-color-mint { background: #134E4A; }
-.nn-theme-graphite .nn-highlight-swatch.nn-color-green, .nn-theme-midnight .nn-highlight-swatch.nn-color-green, .nn-theme-oled .nn-highlight-swatch.nn-color-green { background: #14532D; }
-.nn-theme-graphite .nn-highlight-swatch.nn-color-peach, .nn-theme-midnight .nn-highlight-swatch.nn-color-peach, .nn-theme-oled .nn-highlight-swatch.nn-color-peach { background: #7C2D12; }
-.nn-theme-graphite .nn-highlight-swatch.nn-color-pink, .nn-theme-midnight .nn-highlight-swatch.nn-color-pink, .nn-theme-oled .nn-highlight-swatch.nn-color-pink { background: #6B214B; }
-.nn-theme-graphite .nn-highlight-swatch.nn-color-lavender, .nn-theme-midnight .nn-highlight-swatch.nn-color-lavender, .nn-theme-oled .nn-highlight-swatch.nn-color-lavender { background: #4C3575; }
 .nn-more-actions { padding: 6px; }
 .nn-more-actions > flowboxchild { padding: 0; }
 .nn-more-actions button { min-width: 36px; min-height: 32px; }
+
+.nn-text-swatch.nn-color-slate { background: #334155; }
+.nn-text-swatch.nn-color-blue { background: #1d4ed8; }
+.nn-text-swatch.nn-color-teal { background: #0f766e; }
+.nn-text-swatch.nn-color-green { background: #15803d; }
+.nn-text-swatch.nn-color-amber { background: #a16207; }
+.nn-text-swatch.nn-color-red { background: #b91c1c; }
+.nn-text-swatch.nn-color-purple { background: #7e22ce; }
+.nn-highlight-swatch.nn-color-yellow { background: #fef3c7; }
+.nn-highlight-swatch.nn-color-blue { background: #dbeafe; }
+.nn-highlight-swatch.nn-color-mint { background: #ccfbf1; }
+.nn-highlight-swatch.nn-color-green { background: #dcfce7; }
+.nn-highlight-swatch.nn-color-peach { background: #ffedd5; }
+.nn-highlight-swatch.nn-color-pink { background: #fce7f3; }
+.nn-highlight-swatch.nn-color-lavender { background: #ede9fe; }
+
 .nn-editor-header { background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; }
 .nn-editor-title-box { min-width: 320px; }
-.nn-editor-title {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  font-size: 20px;
-  font-weight: 700;
-}
+.nn-editor-title { background: transparent; border: 0; box-shadow: none; font-size: 20px; font-weight: 700; }
 .nn-tag-strip { background: @nn_editor_bg; color: @nn_text_secondary; border-bottom: 1px solid @nn_border_subtle; }
 .nn-tag-entry { background: transparent; border: 0; box-shadow: none; color: @nn_text_secondary; }
-.nn-canvas-scroller { background: shade(@nn_bg, .985); }
+.nn-canvas-scroller { background: @nn_app_bg; }
 .nn-writing-clamp { background: @nn_editor_bg; }
-.nn-writing-canvas {
-  padding: 0;
-  font-size: 16px;
-}
+.nn-writing-canvas { padding: 0; font-size: 16px; }
 .nn-source-canvas { font-family: monospace; }
-.nn-focus-ring:focus-visible { outline: 2px solid @nn_focus; outline-offset: 2px; }
-.nn-rich-writing-canvas {
-  background: @nn_surface;
-  color: @nn_text;
-  caret-color: @nn_accent;
-}
+.nn-rich-writing-canvas { background: @nn_surface; color: @nn_text; caret-color: @nn_accent; }
 .nn-find-panel { padding: 8px 16px; background: @nn_surface; border-bottom: 1px solid @nn_border; }
 .nn-statusbar { min-height: 30px; padding: 0 12px; background: @nn_note_list_bg; border-top: 1px solid @nn_border_subtle; font-size: 12px; color: @nn_text_muted; }
 .nn-display-title { font-size: 28px; font-weight: 700; }
 .nn-section-title { font-size: 20px; font-weight: 700; }
 .nn-body { font-size: 16px; }
 .nn-metadata { font-size: 13px; color: @nn_text_secondary; }
-.nn-caption { font-size: 12px; color: @nn_text_secondary; }
-.nn-preview-title { font-size: 28px; font-weight: 700; color: @nn_text; }
-.nn-preview-metadata { font-size: 13px; color: @nn_text_muted; }
-.nn-preview-body { font-size: 16px; color: @nn_text; }
+.nn-caption { font-size: 12px; color: @nn_text_muted; }
+
 .paper-warm-white { background: #fffefa; color: #222222; }
 .paper-cream { background: #fff8e8; color: #29251f; }
 .paper-light-yellow { background: #fff9cf; color: #292619; }
@@ -352,265 +259,106 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .paper-light-pink { background: #fff1f3; color: #302326; }
 .paper-light-purple { background: #f6f1ff; color: #282331; }
 .paper-dark-slate { background: #25282d; color: #f2f3f5; }
-.destructive-action { color: @nn_error; }
 .success { color: @nn_success; }
 .warning { color: @nn_warning; }
 .error { color: @nn_error; }
 
-/* Existing widgets remain readable while their layouts are replaced. */
+/* Compatibility presentation for the excluded legacy standalone editor. */
 .main-window list { background: @nn_bg; }
-.library-sidebar { background: shade(@nn_bg, .97); }
+.library-sidebar { background: @nn_sidebar_bg; }
 .sidebar-row { min-height: 38px; border-radius: 8px; }
 .sidebar-row:checked { background: @nn_accent; color: white; }
-.note-row { margin: 4px; border-radius: 12px; background: @nn_surface; }
-.note-preview { background: @nn_surface; }
-.noor-note { background: @nn_bg; }
+.note-row { margin: 4px; border-radius: 10px; background: @nn_surface; }
+.note-preview, .noor-note { background: @nn_surface; }
 .modern-toolbar { min-height: 38px; background: @nn_surface; border-bottom: 1px solid @nn_border; }
 .toolbar-button, .format-choice, .emoji-choice { min-width: 36px; min-height: 36px; border-radius: 8px; }
 .note-title-entry { background: transparent; border: 0; box-shadow: none; font-size: 18px; font-weight: 700; }
 .note-tags-entry { background: transparent; border: 0; box-shadow: none; }
 .note-editor { background: @nn_surface; color: @nn_text; font-size: 16px; caret-color: @nn_accent; }
-.editor-status { min-height: 30px; padding: 0 12px; background: @nn_bg; border-top: 1px solid @nn_border; }
-.find-bar { padding: 8px 12px; background: @nn_surface; border-bottom: 1px solid @nn_border; }
+.editor-status, .find-bar { padding: 8px 12px; background: @nn_surface; border-top: 1px solid @nn_border; }
 .empty-state { padding: 32px; color: @nn_text_secondary; }
 
-/* Effective light root. */
-.nn-theme-light { background: @nn_light_app_bg; color: @nn_light_text_primary; }
-.nn-theme-light headerbar { background: @nn_light_surface; color: @nn_light_text_primary; }
-.nn-theme-light .nn-icon-neutral { color: @nn_text_secondary; }
-.nn-theme-light .nn-icon-secondary { color: @nn_text_secondary; }
-.nn-theme-light .nn-icon-active { color: @nn_accent; }
-.nn-theme-light .note-yellow { background: #fffef5; }
-.nn-theme-light .note-cream { background: #fffaf4; }
-.nn-theme-light .note-blue { background: #f7f9ff; }
-.nn-theme-light .note-green { background: #f7fcf8; }
-.nn-theme-light .note-rose { background: #fff8fa; }
-.nn-theme-light .note-lavender { background: #faf8ff; }
-.nn-theme-light .nn-note-list row:selected .nn-note-card {
-  background: @nn_selected;
-  color: @nn_text;
-}
-.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-note-title { color: @nn_text; }
-.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-note-card-preview,
-.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-note-card-tags,
-.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-note-status-icon,
-.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-card-action { color: @nn_text_secondary; }
-.nn-theme-light .nn-note-list row:selected .nn-note-card .nn-note-card-meta { color: @nn_text_muted; }
-.nn-theme-light windowcontrols button { color: @nn_text_secondary; background: transparent; }
-.nn-theme-light windowcontrols button:hover { color: @nn_text; background: @nn_hover; }
-.nn-theme-light scrollbar slider { min-width: 6px; min-height: 6px; background: @nn_scrollbar; border-radius: 999px; }
-.nn-theme-light scrollbar slider:hover { background: @nn_scrollbar_hover; }
+/* Snow is explicit so System/light and manually selected Snow share one root. */
+.nn-theme-snow { background: @nn_snow_app_bg; color: @nn_snow_text_primary; }
+.nn-theme-snow headerbar { background: @nn_snow_surface; color: @nn_snow_text_primary; }
+.nn-theme-snow .nn-note-list row:selected .nn-note-card .nn-note-title { color: @nn_snow_text_primary; }
+.nn-theme-snow .nn-note-list row:selected .nn-note-card .nn-note-card-preview,
+.nn-theme-snow .nn-note-list row:selected .nn-note-card .nn-note-card-tags,
+.nn-theme-snow .nn-note-list row:selected .nn-note-card .nn-card-action { color: @nn_snow_text_secondary; }
+.nn-theme-snow .nn-note-list row:selected .nn-note-card .nn-note-card-meta { color: @nn_snow_text_muted; }
 
-/* Warm Paper: gentle ivory layers with the existing restrained blue accent. */
-.nn-theme-warm-paper { background: @nn_warm_app_bg; color: @nn_warm_text_primary; }
-.nn-theme-warm-paper headerbar { background: @nn_warm_surface; color: @nn_warm_text_primary; border-color: @nn_warm_border; }
-.nn-theme-warm-paper .nn-sidebar { background: @nn_warm_sidebar_bg; color: @nn_warm_text_primary; }
-.nn-theme-warm-paper .nn-sidebar-row:hover { background: #ebe4da; }
-.nn-theme-warm-paper .nn-sidebar-row:selected { background: @nn_warm_accent_soft; color: @nn_warm_accent; box-shadow: inset 3px 0 @nn_warm_accent; }
-.nn-theme-warm-paper .nn-sidebar-icon, .nn-theme-warm-paper .nn-sidebar-count { color: @nn_warm_text_muted; }
-.nn-theme-warm-paper .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_warm_accent; }
-.nn-theme-warm-paper .nn-note-list { background: @nn_warm_list_bg; color: @nn_warm_text_primary; }
-.nn-theme-warm-paper .nn-note-card { background: @nn_warm_surface; color: @nn_warm_text_primary; border-color: @nn_warm_border; box-shadow: 0 1px 2px rgba(76,61,42,.04); }
-.nn-theme-warm-paper .nn-note-card:hover { border-color: @nn_warm_border_strong; box-shadow: 0 2px 5px rgba(76,61,42,.07); }
-.nn-theme-warm-paper .nn-note-list row:selected .nn-note-card { background: @nn_warm_accent_soft; color: @nn_warm_text_primary; border-color: alpha(@nn_warm_accent,.30); box-shadow: 0 0 0 1px alpha(@nn_warm_accent,.12); }
-.nn-theme-warm-paper .nn-note-card-preview,
-.nn-theme-warm-paper .nn-note-card-tags,
-.nn-theme-warm-paper .nn-note-status-icon,
-.nn-theme-warm-paper .nn-card-action { color: @nn_warm_text_secondary; }
-.nn-theme-warm-paper .nn-note-card-meta,
-.nn-theme-warm-paper .nn-metadata,
-.nn-theme-warm-paper .nn-caption { color: @nn_warm_text_muted; }
-.nn-theme-warm-paper .nn-preview-surface, .nn-theme-warm-paper .nn-preview { background: @nn_warm_editor_bg; color: @nn_warm_text_primary; }
-.nn-theme-warm-paper .nn-preview-title, .nn-theme-warm-paper .nn-preview-body { color: @nn_warm_text_primary; }
-.nn-theme-warm-paper .nn-preview-editor { background: @nn_warm_editor_bg; color: @nn_warm_text_primary; border-color: @nn_warm_border; }
-.nn-theme-warm-paper .nn-sort-control { background: @nn_warm_input_bg; color: @nn_warm_text_primary; }
-.nn-theme-warm-paper .nn-pane-separator { background: @nn_warm_border; }
-.nn-theme-warm-paper .nn-editor-toolbar { background: @nn_warm_surface_raised; color: @nn_warm_text_primary; border-color: @nn_warm_border; }
-.nn-theme-warm-paper .nn-rich-writing-canvas { background: @nn_warm_editor_bg; color: @nn_warm_text_primary; caret-color: @nn_warm_focus; }
-.nn-theme-warm-paper .nn-canvas-scroller, .nn-theme-warm-paper .nn-writing-clamp { background: @nn_warm_app_bg; }
-.nn-theme-warm-paper .nn-find-panel { background: @nn_warm_surface_raised; color: @nn_warm_text_primary; border-color: @nn_warm_border; }
-.nn-theme-warm-paper .nn-statusbar { background: @nn_warm_sidebar_bg; color: @nn_warm_text_muted; border-color: @nn_warm_border; }
-.nn-theme-warm-paper popover, .nn-theme-warm-paper entry { background: @nn_warm_popover_bg; color: @nn_warm_text_primary; }
-.nn-theme-warm-paper .nn-tag-strip { background: @nn_warm_surface_raised; color: @nn_warm_text_secondary; border-color: @nn_warm_border; }
-.nn-theme-warm-paper button:hover { background: #ebe4da; }
-.nn-theme-warm-paper button:checked { background: @nn_warm_accent_soft; color: @nn_warm_accent; }
-.nn-theme-warm-paper .nn-header-control { color: @nn_warm_text_secondary; }
-.nn-theme-warm-paper .nn-icon-neutral, .nn-theme-warm-paper .nn-icon-secondary { color: @nn_warm_text_secondary; }
-.nn-theme-warm-paper .nn-icon-active { color: @nn_warm_accent; }
-.nn-theme-warm-paper windowcontrols button { color: #6f675e; background: transparent; }
-.nn-theme-warm-paper scrollbar slider { background: #c9c0b4; }
-
-/* Cool Mist: quiet blue-gray layers for a focused technical workspace. */
-.nn-theme-cool-mist { background: @nn_mist_app_bg; color: @nn_mist_text_primary; }
-.nn-theme-cool-mist headerbar { background: @nn_mist_surface; color: @nn_mist_text_primary; border-color: @nn_mist_border; }
-.nn-theme-cool-mist .nn-sidebar { background: @nn_mist_sidebar_bg; color: @nn_mist_text_primary; }
-.nn-theme-cool-mist .nn-sidebar-row:hover { background: #e5edf1; }
-.nn-theme-cool-mist .nn-sidebar-row:selected { background: @nn_mist_accent_soft; color: @nn_mist_accent; box-shadow: inset 3px 0 @nn_mist_accent; }
-.nn-theme-cool-mist .nn-sidebar-icon, .nn-theme-cool-mist .nn-sidebar-count { color: @nn_mist_text_muted; }
-.nn-theme-cool-mist .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_mist_accent; }
-.nn-theme-cool-mist .nn-note-list { background: @nn_mist_list_bg; color: @nn_mist_text_primary; }
-.nn-theme-cool-mist .nn-note-card { background: @nn_mist_surface; color: @nn_mist_text_primary; border-color: @nn_mist_border; box-shadow: 0 1px 2px rgba(24,55,72,.035); }
-.nn-theme-cool-mist .nn-note-card:hover { border-color: @nn_mist_border_strong; box-shadow: 0 2px 5px rgba(24,55,72,.06); }
-.nn-theme-cool-mist .nn-note-list row:selected .nn-note-card { background: @nn_mist_accent_soft; color: @nn_mist_text_primary; border-color: alpha(@nn_mist_accent,.30); box-shadow: 0 0 0 1px alpha(@nn_mist_accent,.12); }
-.nn-theme-cool-mist .nn-note-card-preview,
-.nn-theme-cool-mist .nn-note-card-tags,
-.nn-theme-cool-mist .nn-note-status-icon,
-.nn-theme-cool-mist .nn-card-action { color: @nn_mist_text_secondary; }
-.nn-theme-cool-mist .nn-note-card-meta,
-.nn-theme-cool-mist .nn-metadata,
-.nn-theme-cool-mist .nn-caption { color: @nn_mist_text_muted; }
-.nn-theme-cool-mist .nn-preview-surface, .nn-theme-cool-mist .nn-preview { background: @nn_mist_editor_bg; color: @nn_mist_text_primary; }
-.nn-theme-cool-mist .nn-preview-title, .nn-theme-cool-mist .nn-preview-body { color: @nn_mist_text_primary; }
-.nn-theme-cool-mist .nn-preview-editor { background: @nn_mist_editor_bg; color: @nn_mist_text_primary; border-color: @nn_mist_border; }
-.nn-theme-cool-mist .nn-sort-control { background: @nn_mist_input_bg; color: @nn_mist_text_primary; }
-.nn-theme-cool-mist .nn-pane-separator { background: @nn_mist_border; }
-.nn-theme-cool-mist .nn-editor-toolbar { background: @nn_mist_surface_raised; color: @nn_mist_text_primary; border-color: @nn_mist_border; }
-.nn-theme-cool-mist .nn-rich-writing-canvas { background: @nn_mist_editor_bg; color: @nn_mist_text_primary; caret-color: @nn_mist_focus; }
-.nn-theme-cool-mist .nn-canvas-scroller, .nn-theme-cool-mist .nn-writing-clamp { background: @nn_mist_app_bg; }
-.nn-theme-cool-mist .nn-find-panel { background: @nn_mist_surface_raised; color: @nn_mist_text_primary; border-color: @nn_mist_border; }
-.nn-theme-cool-mist .nn-statusbar { background: @nn_mist_sidebar_bg; color: @nn_mist_text_muted; border-color: @nn_mist_border; }
-.nn-theme-cool-mist popover, .nn-theme-cool-mist entry { background: @nn_mist_popover_bg; color: @nn_mist_text_primary; }
-.nn-theme-cool-mist .nn-tag-strip { background: @nn_mist_surface_raised; color: @nn_mist_text_secondary; border-color: @nn_mist_border; }
-.nn-theme-cool-mist button:hover { background: #e5edf1; }
-.nn-theme-cool-mist button:checked { background: @nn_mist_accent_soft; color: @nn_mist_accent; }
-.nn-theme-cool-mist .nn-header-control { color: @nn_mist_text_secondary; }
-.nn-theme-cool-mist .nn-icon-neutral, .nn-theme-cool-mist .nn-icon-secondary { color: @nn_mist_text_secondary; }
-.nn-theme-cool-mist .nn-icon-active { color: @nn_mist_accent; }
-.nn-theme-cool-mist windowcontrols button { color: #60727e; background: transparent; }
-.nn-theme-cool-mist scrollbar slider { background: #becbd2; }
-
-/* Graphite: warm neutral charcoal with restrained indigo. */
-.nn-theme-graphite { background: @nn_graphite_app_bg; color: @nn_graphite_text_primary; }
-.nn-theme-graphite headerbar { background: @nn_graphite_editor_bg; color: @nn_graphite_text_primary; border-color: @nn_graphite_border; }
-.nn-theme-graphite .nn-sidebar { background: @nn_graphite_sidebar_bg; color: @nn_graphite_text_primary; border-color: @nn_graphite_border; }
-.nn-theme-graphite .nn-sidebar-row:hover { background: #2e3137; }
-.nn-theme-graphite .nn-sidebar-row:selected { background: @nn_graphite_accent_soft; color: @nn_graphite_text_primary; box-shadow: inset 3px 0 @nn_graphite_accent; }
-.nn-theme-graphite .nn-sidebar-icon { color: @nn_graphite_text_secondary; }
-.nn-theme-graphite .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_graphite_accent; }
-.nn-theme-graphite .nn-note-list { background: @nn_graphite_list_bg; color: @nn_graphite_text_primary; }
-.nn-theme-graphite .nn-note-card-tags { color: @nn_graphite_text_secondary; }
-.nn-theme-graphite .nn-note-card { background: @nn_graphite_surface; color: @nn_graphite_text_primary; border-color: @nn_graphite_border; box-shadow: 0 1px 3px rgba(0,0,0,.32); }
-.nn-theme-graphite .nn-note-card:hover { background: @nn_graphite_surface_raised; border-color: @nn_graphite_border_strong; }
-.nn-theme-graphite .nn-note-list row:selected .nn-note-card { background: @nn_graphite_accent_soft; border-color: @nn_graphite_accent; box-shadow: 0 0 0 1px alpha(@nn_graphite_accent,.18); }
-.nn-theme-graphite .nn-preview-surface, .nn-theme-graphite .nn-preview { background: @nn_graphite_editor_bg; color: @nn_graphite_text_primary; }
-.nn-theme-graphite .nn-preview-title, .nn-theme-graphite .nn-preview-body { color: @nn_graphite_text_primary; }
-.nn-theme-graphite .nn-preview-editor { background: @nn_graphite_surface; color: @nn_graphite_text_primary; border-color: @nn_graphite_border; }
-.nn-theme-graphite .nn-sort-control { background: @nn_graphite_input_bg; color: @nn_graphite_text_primary; }
-.nn-theme-graphite .nn-pane-separator { background: rgba(255,255,255,.09); }
-.nn-theme-graphite .nn-editor-toolbar { background: #222428; color: #e8e9ed; border-color: rgba(255,255,255,.09); }
-.nn-theme-graphite .nn-rich-writing-canvas { background: #282a2f; color: #f5f6f8; caret-color: #9aafff; }
-.nn-theme-graphite .nn-canvas-scroller, .nn-theme-graphite .nn-writing-clamp { background: #1c1d20; }
-.nn-theme-graphite .nn-find-panel { background: #24262a; color: #f3f4f6; border-color: rgba(255,255,255,.10); }
-.nn-theme-graphite .nn-statusbar { background: #202226; color: #b8bbc3; border-color: rgba(255,255,255,.09); }
-.nn-theme-graphite popover { background: @nn_graphite_popover_bg; color: @nn_graphite_text_primary; }
-.nn-theme-graphite entry { background: @nn_graphite_input_bg; color: @nn_graphite_text_primary; caret-color: @nn_graphite_focus; }
-.nn-theme-graphite .nn-metadata, .nn-theme-graphite .nn-caption, .nn-theme-graphite .nn-tag-strip { color: #b8bbc3; }
-.nn-theme-graphite .nn-tag-strip { background: #282a2f; border-color: rgba(255,255,255,.09); }
-.nn-theme-graphite button:hover { background: rgba(154,175,255,.13); }
-.nn-theme-graphite button:checked { background: rgba(154,175,255,.22); color: #ffffff; }
-.nn-theme-graphite .nn-header-control { color: #b8bbc3; }
-
-/* Midnight: deep navy layers with calm sky-blue interaction. */
+/* Midnight consumes only namespaced colors because GTK color definitions are global. */
 .nn-theme-midnight { background: @nn_midnight_app_bg; color: @nn_midnight_text_primary; }
 .nn-theme-midnight headerbar { background: @nn_midnight_editor_bg; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
-.nn-theme-midnight .nn-sidebar { background: @nn_midnight_sidebar_bg; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
-.nn-theme-midnight .nn-sidebar-row:hover { background: #203049; }
-.nn-theme-midnight .nn-sidebar-row:selected { background: @nn_midnight_accent_soft; color: @nn_midnight_text_primary; box-shadow: inset 3px 0 @nn_midnight_accent; }
-.nn-theme-midnight .nn-sidebar-icon { color: @nn_midnight_text_secondary; }
+.nn-theme-midnight .nn-sidebar { background: @nn_midnight_sidebar_bg; color: @nn_midnight_text_primary; }
+.nn-theme-midnight .nn-sidebar-row:hover { background: @nn_midnight_surface; }
+.nn-theme-midnight .nn-sidebar-row:selected { background: @nn_midnight_accent_soft; color: @nn_midnight_accent; box-shadow: inset 3px 0 @nn_midnight_accent; }
+.nn-theme-midnight .nn-sidebar-icon, .nn-theme-midnight .nn-sidebar-count { color: @nn_midnight_text_muted; }
 .nn-theme-midnight .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_midnight_accent; }
 .nn-theme-midnight .nn-note-list { background: @nn_midnight_list_bg; color: @nn_midnight_text_primary; }
-.nn-theme-midnight .nn-note-card-tags { color: @nn_midnight_text_secondary; }
-.nn-theme-midnight .nn-note-card { background: @nn_midnight_surface; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; box-shadow: 0 1px 4px rgba(0,5,14,.40); }
+.nn-theme-midnight .nn-note-card { background: @nn_midnight_surface; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; box-shadow: 0 1px 3px rgba(0,0,0,.28); }
 .nn-theme-midnight .nn-note-card:hover { background: @nn_midnight_surface_raised; border-color: @nn_midnight_border_strong; }
-.nn-theme-midnight .nn-note-list row:selected .nn-note-card { background: @nn_midnight_accent_soft; border-color: @nn_midnight_accent; box-shadow: 0 0 0 1px alpha(@nn_midnight_accent,.18); }
+.nn-theme-midnight .nn-note-list row:selected .nn-note-card { background: @nn_midnight_accent_soft; border-color: @nn_midnight_accent; }
+.nn-theme-midnight .nn-note-card-preview, .nn-theme-midnight .nn-note-card-tags, .nn-theme-midnight .nn-note-status-icon, .nn-theme-midnight .nn-card-action { color: @nn_midnight_text_secondary; }
+.nn-theme-midnight .nn-note-card-meta, .nn-theme-midnight .nn-metadata, .nn-theme-midnight .nn-caption { color: @nn_midnight_text_muted; }
 .nn-theme-midnight .nn-preview-surface, .nn-theme-midnight .nn-preview { background: @nn_midnight_editor_bg; color: @nn_midnight_text_primary; }
 .nn-theme-midnight .nn-preview-title, .nn-theme-midnight .nn-preview-body { color: @nn_midnight_text_primary; }
-.nn-theme-midnight .nn-preview-editor { background: @nn_midnight_surface; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
-.nn-theme-midnight .nn-sort-control { background: @nn_midnight_input_bg; color: @nn_midnight_text_primary; }
-.nn-theme-midnight .nn-pane-separator { background: rgba(168,205,255,.10); }
-.nn-theme-midnight .nn-editor-toolbar { background: #141e2c; color: #e4efff; border-color: rgba(168,205,255,.10); }
-.nn-theme-midnight .nn-rich-writing-canvas { background: #1a2638; color: #f2f7ff; caret-color: #73b7ff; }
-.nn-theme-midnight .nn-canvas-scroller, .nn-theme-midnight .nn-writing-clamp { background: #101722; }
-.nn-theme-midnight .nn-find-panel { background: #172131; color: #edf5ff; border-color: rgba(168,205,255,.12); }
-.nn-theme-midnight .nn-statusbar { background: #131c2a; color: #abc0da; border-color: rgba(168,205,255,.10); }
+.nn-theme-midnight .nn-preview-editor { background: @nn_midnight_editor_bg; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
+.nn-theme-midnight .nn-rich-writing-canvas { background: @nn_midnight_editor_bg; color: @nn_midnight_text_primary; caret-color: @nn_midnight_focus; }
+.nn-theme-midnight .nn-editor-menu-bar, .nn-theme-midnight .nn-editor-toolbar, .nn-theme-midnight .nn-editor-header, .nn-theme-midnight .nn-sticky-header { background: @nn_midnight_surface; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
+.nn-theme-midnight .nn-editor-toolbar button, .nn-theme-midnight .nn-editor-toolbar menubutton > button, .nn-theme-midnight .nn-editor-menu-button { color: @nn_midnight_text_secondary; }
+.nn-theme-midnight .nn-editor-toolbar button:hover, .nn-theme-midnight .nn-editor-menu-button:hover { background: @nn_midnight_surface_raised; color: @nn_midnight_text_primary; }
+.nn-theme-midnight .nn-editor-toolbar button:checked, .nn-theme-midnight .nn-editor-toolbar menubutton > button:checked { background: @nn_midnight_accent_soft; color: @nn_midnight_accent; }
+.nn-theme-midnight .nn-canvas-scroller, .nn-theme-midnight .nn-writing-clamp, .nn-theme-midnight .nn-sticky-note-window { background: @nn_midnight_app_bg; }
+.nn-theme-midnight .nn-find-panel { background: @nn_midnight_surface_raised; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
+.nn-theme-midnight .nn-statusbar { background: @nn_midnight_sidebar_bg; color: @nn_midnight_text_muted; border-color: @nn_midnight_border; }
 .nn-theme-midnight popover { background: @nn_midnight_popover_bg; color: @nn_midnight_text_primary; }
 .nn-theme-midnight entry { background: @nn_midnight_input_bg; color: @nn_midnight_text_primary; caret-color: @nn_midnight_focus; }
-.nn-theme-midnight .nn-metadata, .nn-theme-midnight .nn-caption, .nn-theme-midnight .nn-tag-strip { color: #abc0da; }
-.nn-theme-midnight .nn-tag-strip { background: #1a2638; border-color: rgba(168,205,255,.10); }
-.nn-theme-midnight button:hover { background: rgba(115,183,255,.14); }
-.nn-theme-midnight button:checked { background: rgba(115,183,255,.24); color: #ffffff; }
-.nn-theme-midnight .nn-header-control { color: #abc0da; }
+.nn-theme-midnight .nn-sort-control, .nn-theme-midnight .nn-tag-strip { background: @nn_midnight_surface; color: @nn_midnight_text_secondary; border-color: @nn_midnight_border; }
+.nn-theme-midnight button:hover { background: @nn_midnight_surface_raised; }
+.nn-theme-midnight button:checked { background: @nn_midnight_accent_soft; color: @nn_midnight_accent; }
+.nn-theme-midnight windowcontrols button { color: @nn_midnight_text_secondary; background: transparent; }
+.nn-theme-midnight scrollbar slider { background: @nn_midnight_border_strong; }
+.nn-theme-midnight text selection { background: rgba(109,139,255,.42); color: #ffffff; }
 
-/* OLED: near-black canvas with carefully separated elevated layers. */
-.nn-theme-oled { background: @nn_oled_app_bg; color: @nn_oled_text_primary; }
-.nn-theme-oled headerbar { background: @nn_oled_editor_bg; color: @nn_oled_text_primary; border-color: @nn_oled_border; }
-.nn-theme-oled .nn-sidebar { background: @nn_oled_sidebar_bg; color: @nn_oled_text_primary; border-color: @nn_oled_border; }
-.nn-theme-oled .nn-sidebar-row:hover { background: #19191f; }
-.nn-theme-oled .nn-sidebar-row:selected { background: @nn_oled_accent_soft; color: @nn_oled_text_primary; box-shadow: inset 3px 0 @nn_oled_accent; }
-.nn-theme-oled .nn-sidebar-icon { color: @nn_oled_text_secondary; }
-.nn-theme-oled .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_oled_accent; }
-.nn-theme-oled .nn-note-list { background: @nn_oled_list_bg; color: @nn_oled_text_primary; }
-.nn-theme-oled .nn-note-card-tags { color: @nn_oled_text_secondary; }
-.nn-theme-oled .nn-note-card { background: @nn_oled_surface; color: @nn_oled_text_primary; border-color: @nn_oled_border; box-shadow: 0 1px 4px rgba(0,0,0,.65); }
-.nn-theme-oled .nn-note-card:hover { background: @nn_oled_surface_raised; border-color: @nn_oled_border_strong; }
-.nn-theme-oled .nn-note-list row:selected .nn-note-card { background: @nn_oled_accent_soft; border-color: @nn_oled_accent; box-shadow: 0 0 0 1px alpha(@nn_oled_accent,.20); }
-.nn-theme-oled .nn-preview-surface, .nn-theme-oled .nn-preview { background: @nn_oled_editor_bg; color: @nn_oled_text_primary; }
-.nn-theme-oled .nn-preview-title, .nn-theme-oled .nn-preview-body { color: @nn_oled_text_primary; }
-.nn-theme-oled .nn-preview-editor { background: @nn_oled_surface; color: @nn_oled_text_primary; border-color: @nn_oled_border; }
-.nn-theme-oled .nn-sort-control { background: @nn_oled_input_bg; color: @nn_oled_text_primary; }
-.nn-theme-oled .nn-pane-separator { background: rgba(255,255,255,.11); }
-.nn-theme-oled .nn-editor-toolbar { background: #0a0a0c; color: #eeeeF4; border-color: rgba(255,255,255,.11); }
-.nn-theme-oled .nn-rich-writing-canvas { background: #121216; color: #fafaff; caret-color: #b1a0ff; }
-.nn-theme-oled .nn-canvas-scroller, .nn-theme-oled .nn-writing-clamp { background: #050506; }
-.nn-theme-oled .nn-find-panel { background: #0d0d0f; color: #f7f7fa; border-color: rgba(255,255,255,.13); }
-.nn-theme-oled .nn-statusbar { background: #09090b; color: #bdbdc7; border-color: rgba(255,255,255,.11); }
-.nn-theme-oled popover { background: @nn_oled_popover_bg; color: @nn_oled_text_primary; }
-.nn-theme-oled entry { background: @nn_oled_input_bg; color: @nn_oled_text_primary; caret-color: @nn_oled_focus; }
-.nn-theme-oled .nn-metadata, .nn-theme-oled .nn-caption, .nn-theme-oled .nn-tag-strip { color: #bdbdc7; }
-.nn-theme-oled .nn-tag-strip { background: #121216; border-color: rgba(255,255,255,.11); }
-.nn-theme-oled button:hover { background: rgba(177,160,255,.16); }
-.nn-theme-oled button:checked { background: rgba(177,160,255,.26); color: #ffffff; }
-.nn-theme-oled .nn-header-control { color: #bdbdc7; }
-
-/* Symbolic icons inherit these semantic states in every palette. */
 .nn-icon-neutral { color: @nn_text; }
 .nn-icon-secondary { color: @nn_text_secondary; }
 .nn-icon-active { color: @nn_accent; }
 .nn-icon-success { color: @nn_success; }
 .nn-icon-warning { color: @nn_warning; }
 .nn-icon-destructive { color: inherit; }
-.nn-icon-destructive:hover { color: @nn_error; }
-.nn-theme-graphite .nn-icon-neutral { color: #e8e9ed; }
-.nn-theme-graphite .nn-icon-secondary { color: #b8bbc3; }
-.nn-theme-graphite .nn-icon-active { color: #9aafff; }
-.nn-theme-midnight .nn-icon-neutral { color: #e4efff; }
-.nn-theme-midnight .nn-icon-secondary { color: #abc0da; }
-.nn-theme-midnight .nn-icon-active { color: #73b7ff; }
-.nn-theme-oled .nn-icon-neutral { color: #eeeeF4; }
-.nn-theme-oled .nn-icon-secondary { color: #bdbdc7; }
-.nn-theme-oled .nn-icon-active { color: #b1a0ff; }
-.nn-theme-graphite .nn-icon-success, .nn-theme-midnight .nn-icon-success, .nn-theme-oled .nn-icon-success { color: #6fd69a; }
-.nn-theme-graphite .nn-icon-warning, .nn-theme-midnight .nn-icon-warning, .nn-theme-oled .nn-icon-warning { color: #f1c56a; }
-.nn-theme-graphite .nn-icon-destructive:hover, .nn-theme-midnight .nn-icon-destructive:hover, .nn-theme-oled .nn-icon-destructive:hover { color: #ff858b; }
+.nn-icon-destructive:hover { color: @nn_danger; }
+.nn-theme-midnight .nn-icon-neutral { color: @nn_midnight_text_primary; }
+.nn-theme-midnight .nn-icon-secondary { color: @nn_midnight_text_secondary; }
+.nn-theme-midnight .nn-icon-active { color: @nn_midnight_accent; }
+.nn-theme-midnight .nn-icon-success { color: #6fd69a; }
+.nn-theme-midnight .nn-icon-warning { color: #f1c56a; }
+.nn-theme-midnight .nn-icon-destructive { color: inherit; }
+.nn-theme-midnight .nn-icon-destructive:hover { color: @nn_midnight_danger; }
 
-/* Dark paper colors preserve warmth without sacrificing foreground contrast. */
-.nn-theme-graphite .paper-warm-white, .nn-theme-midnight .paper-warm-white { background: #302f2b; color: #f5f2e8; }
-.nn-theme-graphite .paper-cream, .nn-theme-midnight .paper-cream { background: #332d24; color: #f7eddc; }
-.nn-theme-graphite .paper-light-yellow, .nn-theme-midnight .paper-light-yellow { background: #34301f; color: #fbf0bd; }
-.nn-theme-graphite .paper-light-blue, .nn-theme-midnight .paper-light-blue { background: #202e3d; color: #e5f1ff; }
-.nn-theme-graphite .paper-light-green, .nn-theme-midnight .paper-light-green { background: #203429; color: #e4f5e9; }
-.nn-theme-graphite .paper-light-pink, .nn-theme-midnight .paper-light-pink { background: #39262d; color: #f9e7ec; }
-.nn-theme-graphite .paper-light-purple, .nn-theme-midnight .paper-light-purple { background: #30273d; color: #f0e8ff; }
-.nn-theme-graphite .paper-dark-slate, .nn-theme-midnight .paper-dark-slate { background: #202329; color: #f2f3f5; }
-.nn-theme-oled .paper-warm-white { background: #211f1b; color: #f8f3e5; }
-.nn-theme-oled .paper-cream { background: #241f18; color: #faedd6; }
-.nn-theme-oled .paper-light-yellow { background: #242113; color: #fff0ad; }
-.nn-theme-oled .paper-light-blue { background: #111e2a; color: #e5f2ff; }
-.nn-theme-oled .paper-light-green { background: #11251a; color: #e1f7e8; }
-.nn-theme-oled .paper-light-pink { background: #28171d; color: #fde5ec; }
-.nn-theme-oled .paper-light-purple { background: #21182d; color: #f1e5ff; }
-.nn-theme-oled .paper-dark-slate { background: #121317; color: #f4f4f7; }
-.nn-theme-graphite text selection, .nn-theme-midnight text selection, .nn-theme-oled text selection { background: rgba(141,165,255,.42); color: #ffffff; }
+.nn-theme-midnight .nn-text-swatch.nn-color-slate { background: #e2e8f0; }
+.nn-theme-midnight .nn-text-swatch.nn-color-blue { background: #93c5fd; }
+.nn-theme-midnight .nn-text-swatch.nn-color-teal { background: #5eead4; }
+.nn-theme-midnight .nn-text-swatch.nn-color-green { background: #86efac; }
+.nn-theme-midnight .nn-text-swatch.nn-color-amber { background: #fcd34d; }
+.nn-theme-midnight .nn-text-swatch.nn-color-red { background: #fca5a5; }
+.nn-theme-midnight .nn-text-swatch.nn-color-purple { background: #d8b4fe; }
+.nn-theme-midnight .nn-highlight-swatch.nn-color-yellow { background: #5f4b16; }
+.nn-theme-midnight .nn-highlight-swatch.nn-color-blue { background: #1e3a5f; }
+.nn-theme-midnight .nn-highlight-swatch.nn-color-mint { background: #134e4a; }
+.nn-theme-midnight .nn-highlight-swatch.nn-color-green { background: #14532d; }
+.nn-theme-midnight .nn-highlight-swatch.nn-color-peach { background: #7c2d12; }
+.nn-theme-midnight .nn-highlight-swatch.nn-color-pink { background: #6b214b; }
+.nn-theme-midnight .nn-highlight-swatch.nn-color-lavender { background: #4c3575; }
+
+.nn-theme-midnight .paper-warm-white { background: #302f2b; color: #f5f2e8; }
+.nn-theme-midnight .paper-cream { background: #332d24; color: #f7eddc; }
+.nn-theme-midnight .paper-light-yellow { background: #34301f; color: #fbf0bd; }
+.nn-theme-midnight .paper-light-blue { background: #202e3d; color: #e5f1ff; }
+.nn-theme-midnight .paper-light-green { background: #203429; color: #e4f5e9; }
+.nn-theme-midnight .paper-light-pink { background: #39262d; color: #f9e7ec; }
+.nn-theme-midnight .paper-light-purple { background: #30273d; color: #f0e8ff; }
+.nn-theme-midnight .paper-dark-slate { background: #202329; color: #f2f3f5; }
 
 .nn-settings-window preferencespage { background: @nn_app_bg; }
 .nn-settings-group { margin-top: 8px; }
@@ -618,29 +366,12 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-settings-row:hover { background: @nn_hover; }
 .nn-settings-row entry, .nn-settings-row dropdown { min-height: 34px; }
 .nn-theme-swatch { min-width: 42px; min-height: 26px; border-radius: 7px; border: 1px solid @nn_border_strong; }
-.nn-swatch-system { background: #7b8190; }
-.nn-swatch-light { background: @nn_light_app_bg; border-color: @nn_light_border_strong; }
-.nn-swatch-warm-paper { background: @nn_warm_app_bg; border-color: @nn_warm_border_strong; }
-.nn-swatch-cool-mist { background: @nn_mist_app_bg; border-color: @nn_mist_border_strong; }
-.nn-swatch-graphite { background: @nn_graphite_editor_bg; border-color: @nn_graphite_accent; }
+.nn-swatch-snow { background: @nn_snow_app_bg; border-color: @nn_snow_border_strong; }
 .nn-swatch-midnight { background: @nn_midnight_editor_bg; border-color: @nn_midnight_accent; }
-.nn-swatch-oled { background: @nn_oled_app_bg; border-color: @nn_oled_accent; }
-/* prefers-reduced-motion: the application maps GTK's desktop animation setting
- * to this root class, while libadwaita also follows the same native setting. */
-.nn-reduced-motion,
-.nn-reduced-motion * {
-  transition: none;
-}
-.nn-assistance-status {
-  color: alpha(currentColor, 0.72);
-  font-size: 0.9em;
-}
+.nn-theme-midnight .nn-settings-window preferencespage { background: @nn_midnight_app_bg; }
+.nn-theme-midnight .nn-settings-row:hover { background: @nn_midnight_surface_raised; }
 
-.nn-prediction-ghost {
-  color: alpha(currentColor, 0.5);
-  padding: 0 2px;
-}
-
-.nn-prediction-ghost.nn-reduced-motion {
-  transition: none;
-}
+.nn-reduced-motion, .nn-reduced-motion * { transition: none; }
+.nn-assistance-status { color: alpha(currentColor,.72); font-size: .9em; }
+.nn-prediction-ghost { color: alpha(currentColor,.5); padding: 0 2px; }
+.nn-prediction-ghost.nn-reduced-motion { transition: none; }

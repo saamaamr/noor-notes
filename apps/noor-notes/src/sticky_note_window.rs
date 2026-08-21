@@ -49,6 +49,10 @@ impl StickyNoteWindow {
             .build();
         always_on_top.add_css_class("flat");
         always_on_top.add_css_class("nn-sticky-pin");
+        always_on_top.add_css_class("nn-icon-button");
+        always_on_top.add_css_class("nn-h-32");
+        always_on_top.add_css_class("nn-radius-6");
+        always_on_top.add_css_class("nn-focus-ring");
         always_on_top.set_tooltip_text(Some("Keep this note always on top"));
         always_on_top.update_property(&[gtk::accessible::Property::Label(
             "Keep this note always on top",

@@ -120,14 +120,14 @@ impl RichBuffer {
         }
         for role in [ColorRole::Foreground, ColorRole::Highlight] {
             for preset in presets(role) {
-                ensure_color_tag(buffer, role, preset.id, EffectiveTheme::Light);
+                ensure_color_tag(buffer, role, preset.id, EffectiveTheme::Snow);
             }
         }
         ensure_color_tag(
             buffer,
             ColorRole::Highlight,
             "charcoal",
-            EffectiveTheme::Light,
+            EffectiveTheme::Snow,
         );
         for (name, justification) in [
             ("noor-align-start", gtk::Justification::Left),
@@ -737,21 +737,21 @@ fn apply_marks(
     }
     if let Some(color) = &marks.foreground {
         if let Some(name) =
-            ensure_color_tag(buffer, ColorRole::Foreground, color, EffectiveTheme::Light)
+            ensure_color_tag(buffer, ColorRole::Foreground, color, EffectiveTheme::Snow)
         {
             buffer.apply_tag_by_name(&name, start, end);
         }
     }
     if let Some(color) = &marks.highlight {
         if let Some(name) =
-            ensure_color_tag(buffer, ColorRole::Highlight, color, EffectiveTheme::Light)
+            ensure_color_tag(buffer, ColorRole::Highlight, color, EffectiveTheme::Snow)
         {
             buffer.apply_tag_by_name(&name, start, end);
         }
     }
 }
 fn apply_color(buffer: &gtk::TextBuffer, role: ColorRole, value: &str) {
-    let Some(name) = ensure_color_tag(buffer, role, value, EffectiveTheme::Light) else {
+    let Some(name) = ensure_color_tag(buffer, role, value, EffectiveTheme::Snow) else {
         return;
     };
     replace_selection_tag(buffer, role.tag_prefix(), &name);
