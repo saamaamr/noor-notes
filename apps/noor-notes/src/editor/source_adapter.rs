@@ -41,6 +41,7 @@ impl SourceEditorAdapter {
             .highlight_syntax(true)
             .highlight_matching_brackets(true)
             .build();
+        crate::rich_buffer::RichBuffer::prepare(&buffer.clone().upcast::<gtk::TextBuffer>());
         if let Some(language) = language.and_then(|language| resolve_language(&manager, language)) {
             buffer.set_language(Some(&language));
         }

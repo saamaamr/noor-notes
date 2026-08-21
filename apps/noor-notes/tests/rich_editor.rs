@@ -1,5 +1,5 @@
 use gtk::prelude::*;
-use noor_domain::{RichDocument, TextMarks};
+use noor_domain::{RichDocument, SourceLanguage, TextMarks};
 use noor_notes::rich_buffer::RichBuffer;
 use noor_notes::{appearance::EffectiveTheme, editor::SourceEditorAdapter};
 use sourceview5::prelude::*;
@@ -102,4 +102,17 @@ fn rich_buffer_round_trip_preserves_bold_selection_and_emoji() {
     RichBuffer::load(&custom_reloaded, &custom_plain, Some(&custom_document));
     let (_, custom_reloaded_document) = RichBuffer::snapshot(&custom_reloaded);
     assert_eq!(custom_reloaded_document, custom_document);
+    let language = SourceLanguage::new("rust").unwrap();
+    let source_editor = SourceEditorAdapter::new("fn main() {}", &language);
+    let source_buffer: gtk::TextBuffer = source_editor.buffer().clone().upcast();
+    assert!(!RichBuffer::can_undo(&source_buffer));
+    source_buffer.insert_at_cursor("// Noor Notes\n");
+    assert!(RichBuffer::can_undo(&source_buffer));
+    RichBuffer::undo(&source_buffer);
+    assert_eq!(
+        source_buffer
+            .text(&source_buffer.start_iter(), &source_buffer.end_iter(), true,)
+            .as_str(),
+        "fn main() {}"
+    );
 }
