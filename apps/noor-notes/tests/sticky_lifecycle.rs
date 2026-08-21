@@ -1,6 +1,12 @@
-use chrono::{Duration, Utc};
+use std::sync::Arc;
+use std::time::Duration;
+
+use chrono::{Duration as ChronoDuration, Utc};
 use noor_domain::{Note, NoteState};
-use noor_notes::ui::library_window::{apply_saved_card_action, persist_sticky_preferences};
+use noor_notes::autosave::AutosaveQueue;
+use noor_notes::ui::library_window::{
+    apply_saved_card_action, persist_sticky_preferences, persist_sticky_preferences_serialized,
+};
 use noor_notes::ui::note_card::CardAction;
 use noor_storage::SqliteNoteRepository;
 
@@ -19,7 +25,7 @@ async fn sticky_close_preserves_lifecycle_state_and_never_resurrects_deleted_not
         &repository,
         note.id,
         CardAction::Archive,
-        now + Duration::seconds(1),
+        now + ChronoDuration::seconds(1),
     )
     .await
     .unwrap();
@@ -28,7 +34,7 @@ async fn sticky_close_preserves_lifecycle_state_and_never_resurrects_deleted_not
         note.id,
         Some(false),
         None,
-        now + Duration::seconds(2),
+        now + ChronoDuration::seconds(2),
     )
     .await
     .unwrap()
@@ -40,7 +46,7 @@ async fn sticky_close_preserves_lifecycle_state_and_never_resurrects_deleted_not
         &repository,
         note.id,
         CardAction::Trash,
-        now + Duration::seconds(3),
+        now + ChronoDuration::seconds(3),
     )
     .await
     .unwrap();
@@ -49,7 +55,7 @@ async fn sticky_close_preserves_lifecycle_state_and_never_resurrects_deleted_not
         note.id,
         Some(false),
         None,
-        now + Duration::seconds(4),
+        now + ChronoDuration::seconds(4),
     )
     .await
     .unwrap()
@@ -60,7 +66,7 @@ async fn sticky_close_preserves_lifecycle_state_and_never_resurrects_deleted_not
         &repository,
         note.id,
         CardAction::DeletePermanently,
-        now + Duration::seconds(5),
+        now + ChronoDuration::seconds(5),
     )
     .await
     .unwrap();
@@ -70,7 +76,7 @@ async fn sticky_close_preserves_lifecycle_state_and_never_resurrects_deleted_not
             note.id,
             Some(false),
             None,
-            now + Duration::seconds(6),
+            now + ChronoDuration::seconds(6),
         )
         .await
         .unwrap()
@@ -96,7 +102,7 @@ async fn sticky_always_on_top_updates_only_the_current_authoritative_note() {
         note.id,
         None,
         Some(true),
-        now + Duration::seconds(1),
+        now + ChronoDuration::seconds(1),
     )
     .await
     .unwrap()
@@ -107,4 +113,51 @@ async fn sticky_always_on_top_updates_only_the_current_authoritative_note() {
 
     let reopened = repository.get_note(note.id).await.unwrap().unwrap();
     assert_eq!(reopened, saved);
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn rapid_sticky_preferences_persist_latest_intent() {
+    let directory = tempfile::tempdir().unwrap();
+    let repository = SqliteNoteRepository::open(&directory.path().join("notes.db"))
+        .await
+        .unwrap();
+    let now = Utc::now();
+    let note = Note::new(now);
+    repository.save_note(&note).await.unwrap();
+    let autosave = AutosaveQueue::new(repository.clone(), Duration::from_secs(30));
+    let lane = Arc::new(tokio::sync::Mutex::new(()));
+    let gate = lane.clone().lock_owned().await;
+
+    let first = tokio::spawn(persist_sticky_preferences_serialized(
+        repository.clone(),
+        autosave.clone(),
+        lane.clone(),
+        note.id,
+        None,
+        Some(true),
+        now + ChronoDuration::seconds(1),
+    ));
+    tokio::task::yield_now().await;
+    let latest = tokio::spawn(persist_sticky_preferences_serialized(
+        repository.clone(),
+        autosave,
+        lane,
+        note.id,
+        None,
+        Some(false),
+        now + ChronoDuration::seconds(2),
+    ));
+    tokio::task::yield_now().await;
+    drop(gate);
+
+    first.await.unwrap().unwrap();
+    latest.await.unwrap().unwrap();
+    assert!(
+        !repository
+            .get_note(note.id)
+            .await
+            .unwrap()
+            .unwrap()
+            .always_on_top
+    );
 }

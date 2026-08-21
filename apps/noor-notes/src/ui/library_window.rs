@@ -84,6 +84,7 @@ pub struct MainWindow {
     writing_runtime: WritingAssistanceRuntime,
     controller: Arc<dyn WindowController>,
     sticky_window: Rc<RefCell<Option<StickyNoteWindow>>>,
+    sticky_persistence: Arc<tokio::sync::Mutex<()>>,
     notes: Rc<RefCell<Vec<Note>>>,
     section: Rc<Cell<LibrarySection>>,
     showing_content: Rc<Cell<bool>>,
@@ -233,6 +234,7 @@ impl MainWindow {
             writing_runtime,
             controller,
             sticky_window: sticky_window.clone(),
+            sticky_persistence: Arc::new(tokio::sync::Mutex::new(())),
             notes,
             section: Rc::new(Cell::new(LibrarySection::AllNotes)),
             showing_content: Rc::new(Cell::new(false)),
@@ -471,12 +473,10 @@ impl MainWindow {
     ) {
         let this = self.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
-            if let Err(error) = this.autosave.flush(id).await {
-                this.set_status(&format!("Could not save sticky note: {error}"));
-                return;
-            }
-            match persist_sticky_preferences(
-                &this.repository,
+            match persist_sticky_preferences_serialized(
+                this.repository.clone(),
+                this.autosave.clone(),
+                this.sticky_persistence.clone(),
                 id,
                 view_only,
                 always_on_top,
@@ -592,13 +592,11 @@ impl MainWindow {
             } else {
                 false
             };
-            if let Err(error) = this.autosave.flush(id).await {
-                this.set_status(&format!("Could not save note before action: {error}"));
-                return;
-            }
             if closed_sticky {
-                match persist_sticky_preferences(
-                    &this.repository,
+                match persist_sticky_preferences_serialized(
+                    this.repository.clone(),
+                    this.autosave.clone(),
+                    this.sticky_persistence.clone(),
                     id,
                     Some(false),
                     None,
@@ -613,6 +611,9 @@ impl MainWindow {
                         return;
                     }
                 }
+            } else if let Err(error) = this.autosave.flush(id).await {
+                this.set_status(&format!("Could not save note before action: {error}"));
+                return;
             }
             let result = apply_saved_card_action(&this.repository, id, action, Utc::now()).await;
             match result {
@@ -668,6 +669,20 @@ pub async fn persist_sticky_preferences(
     repository
         .update_note_window_preferences(id, view_only, always_on_top, now)
         .await
+}
+
+pub async fn persist_sticky_preferences_serialized(
+    repository: SqliteNoteRepository,
+    autosave: AutosaveQueue,
+    lane: Arc<tokio::sync::Mutex<()>>,
+    id: NoteId,
+    view_only: Option<bool>,
+    always_on_top: Option<bool>,
+    now: DateTime<Utc>,
+) -> Result<Option<Note>, StorageError> {
+    let _guard = lane.lock().await;
+    autosave.flush(id).await?;
+    persist_sticky_preferences(&repository, id, view_only, always_on_top, now).await
 }
 
 fn sort_from_selected(selected: u32) -> NoteSort {
