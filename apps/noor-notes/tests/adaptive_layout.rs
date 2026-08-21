@@ -18,7 +18,7 @@ use noor_storage::{DatabaseKey, SqliteNoteRepository};
 use noor_windowing::FallbackWindowController;
 
 #[test]
-fn wide_allocation_targets_ten_twenty_seventy_with_readability_guards() {
+fn wide_allocation_targets_ten_eighteen_and_remaining_document_width() {
     let standard = allocation_for_width(LibraryLayoutMode::Wide, 1_180, false);
     assert_eq!(standard.sidebar, 160);
     assert_eq!(standard.collection, 280);
@@ -26,8 +26,8 @@ fn wide_allocation_targets_ten_twenty_seventy_with_readability_guards() {
 
     let large = allocation_for_width(LibraryLayoutMode::Wide, 1_920, false);
     assert_eq!(large.sidebar, 192);
-    assert_eq!(large.collection, 360);
-    assert_eq!(large.navigation, 552);
+    assert_eq!(large.collection, 346);
+    assert_eq!(large.navigation, 538);
 }
 
 #[test]

@@ -31,7 +31,7 @@ pub fn allocation_for_width(
     match mode {
         LibraryLayoutMode::Wide => {
             let sidebar = ((width * 10 + 50) / 100).clamp(160, 220);
-            let collection = ((width * 20 + 50) / 100).clamp(280, 360);
+            let collection = ((width * 18 + 50) / 100).clamp(280, 360);
             LibraryPaneAllocation {
                 sidebar,
                 collection,
