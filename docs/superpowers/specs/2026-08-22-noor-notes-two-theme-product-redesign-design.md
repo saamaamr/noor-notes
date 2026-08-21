@@ -160,6 +160,12 @@ The compact header appearance action toggles Snow/Midnight and has an accurate i
 
 The stylesheet uses one shared component language with semantic roles for app, sidebar, notes list, editor, surface, elevated surface, input, text states, borders, accent states, feedback states, selection, focus, and disabled controls. Snow defines the default values; Midnight overrides the same roles.
 
+The implementation uses a GTK-compatible Atomic CSS architecture. Small reusable utility classes own single, stable presentation responsibilities such as spacing, control height, radius, typography, surface, muted text, icon-button geometry, and focus treatment. Representative utilities include `.nn-p-8`, `.nn-p-12`, `.nn-gap-8`, `.nn-h-32`, `.nn-h-36`, `.nn-radius-6`, `.nn-radius-8`, `.nn-text-body`, `.nn-text-meta`, `.nn-text-muted`, `.nn-surface`, `.nn-icon-button`, and `.nn-focus-ring`.
+
+Atomic utilities do not replace semantic state or structural component selectors. Complex behavior such as selected note contrast, destructive actions, sticky pin state, mode-aware editor chrome, list-row state, and Midnight overrides remains in small focused component/state classes. Widgets attach the required utilities explicitly in Rust so repeated padding, radius, height, and typography declarations are not copied across component selectors.
+
+This is not a web Tailwind integration. No CSS generator, JavaScript pipeline, runtime class composer, new dependency, or unbounded utility matrix is introduced. The utility set is curated from the approved compact scales, and tests enforce required utilities, valid GTK parsing, absence of obsolete theme layers, and a compact stylesheet line budget.
+
 The compact scale is:
 
 - Spacing: 4, 8, 12, 16, 20, 24, 32, 40, 48.
