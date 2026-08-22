@@ -189,4 +189,3 @@ Build Noor Notes Dev, switch Snow → Midnight → Snow, and inspect integrated 
 - [ ] **Step 4: Commit, merge, push, and rebuild**
 
 Commit only theme implementation/tests/docs, merge the isolated branch into current `main` without staging the primary checkout's screenshot artifacts, push `main`, verify local/remote hashes, and run `scripts/install-local.sh` to install the rebuilt Noor Notes Dev.
-

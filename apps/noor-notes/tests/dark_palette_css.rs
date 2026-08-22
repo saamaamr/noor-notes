@@ -17,7 +17,10 @@ fn midnight_uses_one_display_wide_semantic_palette_for_every_major_surface() {
         "@define-color nn_border #26364d;",
         "@define-color nn_accent #6d8bff;",
     ] {
-        assert!(css.contains(declaration), "missing Midnight role: {declaration}");
+        assert!(
+            css.contains(declaration),
+            "missing Midnight role: {declaration}"
+        );
     }
     for component_role in [
         "window, .background { background: @nn_app_bg; color: @nn_text; }",

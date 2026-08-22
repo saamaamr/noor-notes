@@ -57,7 +57,10 @@ impl AppearanceManager {
         let theme = self.effective_theme();
         let styles = {
             let mut state = self.state.borrow_mut();
-            state.styles.get_or_insert_with(ThemeStyleRuntime::new).clone()
+            state
+                .styles
+                .get_or_insert_with(ThemeStyleRuntime::new)
+                .clone()
         };
         styles.install(display, theme);
     }

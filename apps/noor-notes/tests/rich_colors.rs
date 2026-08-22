@@ -75,25 +75,19 @@ fn rich_buffer_preset_tags_follow_the_active_theme() {
     assert!((dark.red() - 0x93 as f32 / 255.0).abs() < 0.001);
     assert!((dark.green() - 0xC5 as f32 / 255.0).abs() < 0.001);
     assert!((dark.blue() - 0xFD as f32 / 255.0).abs() < 0.001);
-}
 
-#[test]
-fn rich_link_foreground_follows_the_active_theme() {
-    gtk::init().unwrap();
-    let buffer = gtk::TextBuffer::new(None);
-    RichBuffer::prepare(&buffer);
-    let tag = buffer.tag_table().lookup("noor-link").unwrap();
+    let link_tag = buffer.tag_table().lookup("noor-link").unwrap();
 
     for theme in EffectiveTheme::ALL {
         RichBuffer::apply_color_theme(&buffer, theme);
-        let actual = tag.foreground_rgba().unwrap();
+        let actual = link_tag.foreground_rgba().unwrap();
         assert_rgb(&actual, ThemePalette::for_theme(theme).info);
     }
 }
 
 fn assert_rgb(actual: &gtk::gdk::RGBA, expected: &str) {
-    let channel = |offset| u8::from_str_radix(&expected[offset..offset + 2], 16).unwrap() as f32
-        / 255.0;
+    let channel =
+        |offset| u8::from_str_radix(&expected[offset..offset + 2], 16).unwrap() as f32 / 255.0;
     assert!((actual.red() - channel(1)).abs() < 0.001);
     assert!((actual.green() - channel(3)).abs() < 0.001);
     assert!((actual.blue() - channel(5)).abs() < 0.001);

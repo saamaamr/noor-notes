@@ -138,15 +138,23 @@ fn replacement_design_system_is_valid_gtk_css() {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use noor_notes::appearance::{EffectiveTheme, semantic_stylesheet};
+
     gtk::init().unwrap();
-    let errors = Rc::new(RefCell::new(Vec::new()));
-    let captured = errors.clone();
-    let provider = gtk::CssProvider::new();
-    provider.connect_parsing_error(move |_, section, error| {
-        captured.borrow_mut().push(format!("{section:?}: {error}"));
-    });
-    provider.load_from_string(CSS);
-    assert!(errors.borrow().is_empty(), "{}", errors.borrow().join("\n"));
+    for theme in EffectiveTheme::ALL {
+        let errors = Rc::new(RefCell::new(Vec::new()));
+        let captured = errors.clone();
+        let provider = gtk::CssProvider::new();
+        provider.connect_parsing_error(move |_, section, error| {
+            captured.borrow_mut().push(format!("{section:?}: {error}"));
+        });
+        provider.load_from_string(&semantic_stylesheet(theme));
+        assert!(
+            errors.borrow().is_empty(),
+            "{theme:?}: {}",
+            errors.borrow().join("\n")
+        );
+    }
 }
 
 fn rule_after(marker: &str) -> &str {

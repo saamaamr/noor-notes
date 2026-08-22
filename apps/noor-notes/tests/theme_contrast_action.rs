@@ -1,9 +1,7 @@
 #![cfg(feature = "development")]
 
 use adw::prelude::*;
-use noor_notes::appearance::{
-    AppearanceManager, AppearanceMode, AppearanceStore, EffectiveTheme,
-};
+use noor_notes::appearance::{AppearanceManager, AppearanceMode, AppearanceStore, EffectiveTheme};
 use noor_notes::ui::app_header::AppHeader;
 use noor_storage::NoteSort;
 

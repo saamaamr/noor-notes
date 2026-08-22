@@ -35,4 +35,3 @@ Development builds expose a `Theme Contrast Test` application action. It cycles 
 - Keep the existing curated Atomic GTK CSS approach.
 - Do not perform database or filesystem work during style switching.
 - Prevent preference/theme notification re-entry and redundant stylesheet reloads.
-

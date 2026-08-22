@@ -5,12 +5,7 @@ fn snow_and_midnight_keep_text_readable_on_every_primary_surface() {
     for theme in EffectiveTheme::ALL {
         let palette = ThemePalette::for_theme(theme);
         for (label, foreground, background, minimum) in [
-            (
-                "primary/app",
-                palette.text_primary,
-                palette.app_bg,
-                4.5,
-            ),
+            ("primary/app", palette.text_primary, palette.app_bg, 4.5),
             (
                 "primary/surface",
                 palette.text_primary,
@@ -29,30 +24,15 @@ fn snow_and_midnight_keep_text_readable_on_every_primary_surface() {
                 palette.popover_bg,
                 4.5,
             ),
-            (
-                "muted/surface",
-                palette.text_muted,
-                palette.surface,
-                3.0,
-            ),
+            ("muted/surface", palette.text_muted, palette.surface, 3.0),
             (
                 "disabled/surface",
                 palette.text_disabled,
                 palette.surface,
                 2.0,
             ),
-            (
-                "accent/soft",
-                palette.accent,
-                palette.accent_soft,
-                3.0,
-            ),
-            (
-                "selection",
-                palette.selection_fg,
-                palette.selection_bg,
-                4.5,
-            ),
+            ("accent/soft", palette.accent, palette.accent_soft, 3.0),
+            ("selection", palette.selection_fg, palette.selection_bg, 4.5),
             ("danger/surface", palette.danger, palette.surface, 3.0),
         ] {
             let ratio = contrast_ratio(foreground, background);

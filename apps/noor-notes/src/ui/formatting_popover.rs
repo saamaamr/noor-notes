@@ -2,8 +2,8 @@ use adw::prelude::*;
 
 use crate::rich_color::ColorRole;
 
-use super::rich_color_palette::RichColorPalette;
 use super::popover_primitives::themed_popover;
+use super::rich_color_palette::RichColorPalette;
 use super::toolbar_primitives::expose_toggle_checked;
 
 #[derive(Clone)]
