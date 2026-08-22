@@ -37,7 +37,14 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
         BackendKind::GnomeWayland | BackendKind::Fallback => Arc::new(FallbackWindowController),
     };
     let app = crate::identity::application();
-    app.connect_startup(|_| load_css());
+    app.connect_startup(|_| {
+        if let Some(display) = gtk::gdk::Display::default() {
+            crate::appearance::install_static_styles(
+                &display,
+                crate::appearance::EffectiveTheme::Snow,
+            );
+        }
+    });
     let runtime = writing_runtime.clone();
     app.connect_activate(move |app| {
         let note = Note::new(Utc::now());
@@ -62,16 +69,4 @@ fn data_path() -> std::path::PathBuf {
         })
         .unwrap_or_else(|| std::path::PathBuf::from("."));
     base.join("noor-notes/notes.db")
-}
-
-fn load_css() {
-    let provider = gtk::CssProvider::new();
-    provider.load_from_string(include_str!("../resources/design-system.css"));
-    if let Some(display) = gtk::gdk::Display::default() {
-        gtk::style_context_add_provider_for_display(
-            &display,
-            &provider,
-            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
-        );
-    }
 }

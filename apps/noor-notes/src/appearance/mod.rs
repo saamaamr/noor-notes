@@ -4,11 +4,13 @@ mod manager;
 mod model;
 mod palette;
 mod preferences;
+mod style_runtime;
 
 pub use manager::AppearanceManager;
 pub use model::{AppearanceMode, AppearancePreferences, EffectiveTheme, SystemScheme};
 pub use palette::ThemePalette;
 pub use preferences::AppearanceStore;
+pub use style_runtime::{ThemeStyleState, install_static_styles, semantic_stylesheet};
 
 thread_local! {
     static GLOBAL: RefCell<Option<AppearanceManager>> = const { RefCell::new(None) };

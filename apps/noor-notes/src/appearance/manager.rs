@@ -4,7 +4,10 @@ use std::rc::Rc;
 
 use adw::prelude::*;
 
-use super::{AppearanceMode, AppearancePreferences, AppearanceStore, EffectiveTheme, SystemScheme};
+use super::{
+    AppearanceMode, AppearancePreferences, AppearanceStore, EffectiveTheme, SystemScheme,
+    style_runtime::ThemeStyleRuntime,
+};
 
 type Listener = Rc<dyn Fn(AppearancePreferences, EffectiveTheme)>;
 
@@ -18,6 +21,7 @@ struct State {
     preferences: AppearancePreferences,
     windows: Vec<gtk::glib::WeakRef<gtk::Window>>,
     listeners: Vec<Listener>,
+    styles: Option<ThemeStyleRuntime>,
 }
 
 impl AppearanceManager {
@@ -29,6 +33,7 @@ impl AppearanceManager {
                 preferences,
                 windows: Vec::new(),
                 listeners: Vec::new(),
+                styles: None,
             })),
         }
     }
@@ -46,6 +51,15 @@ impl AppearanceManager {
                 }
             });
         }
+    }
+
+    pub fn install_styles(&self, display: &gtk::gdk::Display) {
+        let theme = self.effective_theme();
+        let styles = {
+            let mut state = self.state.borrow_mut();
+            state.styles.get_or_insert_with(ThemeStyleRuntime::new).clone()
+        };
+        styles.install(display, theme);
     }
 
     pub fn set_mode(&self, mode: AppearanceMode) -> io::Result<()> {
@@ -139,11 +153,18 @@ impl AppearanceManager {
             style_manager.set_color_scheme(adw::ColorScheme::Default);
         }
         let theme = preferences.resolve(current_system_scheme());
-        let (windows, listeners) = {
+        let (windows, listeners, styles) = {
             let mut state = self.state.borrow_mut();
             state.windows.retain(|window| window.upgrade().is_some());
-            (state.windows.clone(), state.listeners.clone())
+            (
+                state.windows.clone(),
+                state.listeners.clone(),
+                state.styles.clone(),
+            )
         };
+        if let Some(styles) = styles {
+            styles.apply(theme);
+        }
         for window in windows.into_iter().filter_map(|window| window.upgrade()) {
             apply_theme_class(&window, theme);
         }

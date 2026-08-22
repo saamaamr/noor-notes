@@ -41,8 +41,13 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let app = crate::identity::application();
     let appearance = AppearanceManager::new(AppearanceStore::for_current_user());
     appearance.install_action(&app);
-    install_global(appearance);
-    app.connect_startup(|_| load_css());
+    install_global(appearance.clone());
+    let startup_appearance = appearance.clone();
+    app.connect_startup(move |_| {
+        if let Some(display) = gtk::gdk::Display::default() {
+            startup_appearance.install_styles(&display);
+        }
+    });
     let main_window: Rc<RefCell<Option<MainWindow>>> = Rc::new(RefCell::new(None));
 
     {
@@ -228,16 +233,4 @@ fn data_path() -> std::path::PathBuf {
         })
         .unwrap_or_else(|| std::path::PathBuf::from("."));
     base.join("noor-notes/notes.db")
-}
-
-fn load_css() {
-    let provider = gtk::CssProvider::new();
-    provider.load_from_string(include_str!("../resources/design-system.css"));
-    if let Some(display) = gtk::gdk::Display::default() {
-        gtk::style_context_add_provider_for_display(
-            &display,
-            &provider,
-            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
-        );
-    }
 }
