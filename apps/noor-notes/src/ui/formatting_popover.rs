@@ -3,6 +3,7 @@ use adw::prelude::*;
 use crate::rich_color::ColorRole;
 
 use super::rich_color_palette::RichColorPalette;
+use super::popover_primitives::themed_popover;
 use super::toolbar_primitives::expose_toggle_checked;
 
 #[derive(Clone)]
@@ -102,8 +103,7 @@ impl FormattingPopover {
         content.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
         content.append(&clear_formatting);
 
-        let widget = gtk::Popover::builder().child(&content).build();
-        widget.add_css_class("nn-menu-surface");
+        let widget = themed_popover(&content);
         Self {
             widget,
             section_labels: vec![typography, formatting, alignment, colors, lists],

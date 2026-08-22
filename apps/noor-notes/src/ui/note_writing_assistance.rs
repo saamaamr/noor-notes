@@ -77,7 +77,7 @@ impl NoteWritingAssistancePopover {
         for switch in [&spelling, &grammar, &offline_prediction, &cloud] {
             switch.set_sensitive(enabled);
         }
-        let widget = gtk::Popover::builder().child(&content).build();
+        let widget = super::popover_primitives::themed_popover(&content);
         let value = Self {
             widget,
             override_global,

@@ -230,8 +230,7 @@ fn build_menu(definition: MenuDefinition) -> BuiltMenu {
     } = definition;
     let content = gtk::Box::new(gtk::Orientation::Vertical, 2);
     content.add_css_class("nn-editor-menu-popover");
-    let popover = gtk::Popover::builder().child(&content).build();
-    popover.add_css_class("nn-menu-surface");
+    let popover = super::popover_primitives::themed_popover(&content);
     let mut items = Vec::new();
     for definition in definitions {
         let item = build_item(definition, &popover);

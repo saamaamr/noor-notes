@@ -4,6 +4,7 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use crate::ui::formatting_popover::FormattingPopover;
+use crate::ui::popover_primitives::themed_popover;
 use crate::ui::rich_color_palette::RichColorPalette;
 use crate::ui::toolbar_primitives::{
     ToolbarGroup, bind_menu_popover, icon_button, icon_toggle, style_menu_button, text_toggle,
@@ -142,7 +143,7 @@ impl EditorToolbar {
             emoji_grid.attach(&button, (index % 6) as i32, (index / 6) as i32, 1, 1);
             emoji_buttons.push(button);
         }
-        let emoji_popover = gtk::Popover::builder().child(&emoji_grid).build();
+        let emoji_popover = themed_popover(&emoji_grid);
         let emoji = gtk::MenuButton::builder()
             .icon_name("face-smile-symbolic")
             .tooltip_text("Insert emoji")
@@ -178,7 +179,7 @@ impl EditorToolbar {
         settings_box.append(&color_row);
         settings_box.append(&all_workspaces);
         settings_box.append(&opacity);
-        let settings_popover = gtk::Popover::builder().child(&settings_box).build();
+        let settings_popover = themed_popover(&settings_box);
         let appearance = gtk::MenuButton::builder()
             .icon_name("emblem-system-symbolic")
             .tooltip_text("Note settings")
@@ -281,7 +282,7 @@ impl EditorToolbar {
         more_box.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
         more_box.append(&mode_label);
         more_box.append(&mode_actions);
-        let more_popover = gtk::Popover::builder().child(&more_box).build();
+        let more_popover = themed_popover(&more_box);
         let more = gtk::MenuButton::builder()
             .icon_name("view-more-symbolic")
             .tooltip_text("More note actions")

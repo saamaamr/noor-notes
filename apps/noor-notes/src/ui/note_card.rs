@@ -123,7 +123,7 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     popover_content.set_margin_start(6);
     popover_content.set_margin_end(6);
     let popover = gtk::Popover::new();
-    popover.add_css_class("nn-menu-surface");
+    super::popover_primitives::style_popover(&popover);
     let mut action_buttons = Vec::new();
     let mut separated_destructive_actions = false;
     for (label, card_action, destructive) in actions {

@@ -40,7 +40,7 @@ impl PredictionOverlay {
         alternatives.set_margin_bottom(8);
         alternatives.set_margin_start(8);
         alternatives.set_margin_end(8);
-        let popover = gtk::Popover::builder().child(&alternatives).build();
+        let popover = crate::ui::popover_primitives::themed_popover(&alternatives);
         popover.set_parent(view);
         popover.set_autohide(true);
 

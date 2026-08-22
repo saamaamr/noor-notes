@@ -7,6 +7,7 @@ use crate::appearance::AppearanceManager;
 use crate::library::LibrarySection;
 
 use super::appearance_button::AppearanceButton;
+use super::popover_primitives::style_popover;
 
 #[derive(Clone)]
 pub struct AppHeader {
@@ -39,7 +40,7 @@ impl AppHeader {
         widget.pack_start(&back);
 
         let navigation_popover = gtk::Popover::new();
-        navigation_popover.add_css_class("nn-menu-surface");
+        style_popover(&navigation_popover);
         let navigation_content = gtk::Box::new(gtk::Orientation::Vertical, 2);
         let mut navigation_buttons = Vec::new();
         for section in LibrarySection::NAVIGATION {
@@ -110,7 +111,7 @@ impl AppHeader {
         widget.pack_end(&sort);
 
         let sort_popover = gtk::Popover::new();
-        sort_popover.add_css_class("nn-menu-surface");
+        style_popover(&sort_popover);
         let sort_content = gtk::Box::new(gtk::Orientation::Vertical, 2);
         let mut compact_sort_buttons = Vec::new();
         for (index, label) in [

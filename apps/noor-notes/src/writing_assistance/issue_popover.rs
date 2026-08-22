@@ -40,7 +40,7 @@ impl IssuePopover {
         }
         let ignore_once = gtk::Button::with_label("Ignore once");
         content.append(&ignore_once);
-        let widget = gtk::Popover::builder().child(&content).build();
+        let widget = crate::ui::popover_primitives::themed_popover(&content);
         widget.set_focusable(true);
         let text = format!(
             "{category}\n{message}\n{}\nIgnore once",
