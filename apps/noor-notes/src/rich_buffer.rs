@@ -5,7 +5,7 @@ use adw::prelude::*;
 use gtk::glib;
 use noor_domain::{Alignment, ListKind, RichBlock, RichDocument, RichSpan, TextMarks};
 
-use crate::appearance::EffectiveTheme;
+use crate::appearance::{EffectiveTheme, ThemePalette};
 use crate::rich_color::{
     ColorRole, normalize_stored, presets, rendered_color, stored_value_from_tag, tag_name,
 };
@@ -105,7 +105,7 @@ impl RichBuffer {
             &table,
             gtk::TextTag::builder()
                 .name(LINK)
-                .foreground("#174a7e")
+                .foreground(ThemePalette::for_theme(EffectiveTheme::Snow).info)
                 .underline(gtk::pango::Underline::Single)
                 .build(),
         );
@@ -300,6 +300,9 @@ impl RichBuffer {
             }
         }
         update_color_tag(buffer, ColorRole::Highlight, "charcoal", theme);
+        if let Some(link) = buffer.tag_table().lookup(LINK) {
+            link.set_foreground(Some(ThemePalette::for_theme(theme).info));
+        }
     }
 
     pub fn align(buffer: &gtk::TextBuffer, alignment: Alignment) {

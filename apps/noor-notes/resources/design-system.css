@@ -1,77 +1,4 @@
-/* Noor Notes GTK design system: two namespaced palettes + curated atomic utilities. */
-@define-color nn_snow_app_bg #f6f7f9;
-@define-color nn_snow_sidebar_bg #f4f6f8;
-@define-color nn_snow_list_bg #f8f9fb;
-@define-color nn_snow_editor_bg #ffffff;
-@define-color nn_snow_surface #ffffff;
-@define-color nn_snow_surface_raised #ffffff;
-@define-color nn_snow_popover_bg #ffffff;
-@define-color nn_snow_input_bg #ffffff;
-@define-color nn_snow_text_primary #1f2937;
-@define-color nn_snow_text_secondary #475467;
-@define-color nn_snow_text_muted #667085;
-@define-color nn_snow_border #e4e7ec;
-@define-color nn_snow_border_strong #d0d5dd;
-@define-color nn_snow_accent #4f6fe8;
-@define-color nn_snow_accent_soft #eef2ff;
-@define-color nn_snow_focus #4f6fe8;
-@define-color nn_snow_danger #dc2626;
-@define-color nn_snow_danger_soft #fef2f2;
-
-@define-color nn_midnight_app_bg #0f1724;
-@define-color nn_midnight_sidebar_bg #111a2a;
-@define-color nn_midnight_list_bg #121c2d;
-@define-color nn_midnight_editor_bg #0f1724;
-@define-color nn_midnight_surface #172235;
-@define-color nn_midnight_surface_raised #1d2a40;
-@define-color nn_midnight_popover_bg #1d2a40;
-@define-color nn_midnight_input_bg #172235;
-@define-color nn_midnight_text_primary #f1f5f9;
-@define-color nn_midnight_text_secondary #cbd5e1;
-@define-color nn_midnight_text_muted #94a3b8;
-@define-color nn_midnight_border #26364d;
-@define-color nn_midnight_border_strong #33465f;
-@define-color nn_midnight_accent #6d8bff;
-@define-color nn_midnight_accent_soft #1d2a4a;
-@define-color nn_midnight_focus #6d8bff;
-@define-color nn_midnight_danger #f87171;
-@define-color nn_midnight_danger_soft rgba(248,113,113,.14);
-
-/* Snow is the default semantic layer. */
-@define-color nn_bg #f6f7f9;
-@define-color nn_app_bg #f6f7f9;
-@define-color nn_sidebar_bg #f4f6f8;
-@define-color nn_note_list_bg #f8f9fb;
-@define-color nn_editor_bg #ffffff;
-@define-color nn_surface #ffffff;
-@define-color nn_surface_raised #ffffff;
-@define-color nn_popover_bg #ffffff;
-@define-color nn_modal_bg #ffffff;
-@define-color nn_input_bg #ffffff;
-@define-color nn_hover #f1f3f5;
-@define-color nn_selected #eef2ff;
-@define-color nn_text #1f2937;
-@define-color nn_text_secondary #475467;
-@define-color nn_text_muted #667085;
-@define-color nn_text_disabled alpha(@nn_text_muted,.72);
-@define-color nn_text_inverse #ffffff;
-@define-color nn_border #e4e7ec;
-@define-color nn_border_subtle #eef0f2;
-@define-color nn_border_strong #d0d5dd;
-@define-color nn_accent #4f6fe8;
-@define-color nn_accent_hover #425fcc;
-@define-color nn_accent_soft #eef2ff;
-@define-color nn_accent_strong #344fc4;
-@define-color nn_focus #4f6fe8;
-@define-color nn_focus_ring alpha(@nn_accent,.24);
-@define-color nn_success #16a34a;
-@define-color nn_warning #d97706;
-@define-color nn_danger #dc2626;
-@define-color nn_danger_soft #fef2f2;
-@define-color nn_error #dc2626;
-@define-color nn_info #2563eb;
-@define-color nn_scrollbar #c7cdd6;
-@define-color nn_scrollbar_hover #aeb7c4;
+/* Noor Notes GTK design system: active semantic palette supplied at runtime. */
 
 /* Curated Atomic CSS: small, static, GTK-safe utilities only. */
 .nn-p-4 { padding: 4px; }
@@ -93,22 +20,47 @@
 .nn-icon-button { min-width: 32px; min-height: 32px; padding: 0; border-radius: 6px; }
 .nn-focus-ring:focus-visible { outline: 2px solid @nn_focus; outline-offset: 2px; box-shadow: 0 0 0 3px @nn_focus_ring; }
 
-window { background: @nn_app_bg; color: @nn_text; }
+window, .background { background: @nn_app_bg; color: @nn_text; }
 headerbar { min-height: 44px; background: @nn_surface; border-bottom: 1px solid @nn_border; box-shadow: none; }
-button { border-radius: 8px; transition: 140ms ease; }
-button:hover { background: @nn_hover; }
+label { color: inherit; }
+button { border-radius: 8px; color: @nn_text_secondary; transition: 140ms ease; }
+button:hover { background: @nn_hover; color: @nn_text; }
 button:checked, button:selected { background: @nn_accent_soft; color: @nn_accent; }
-button:disabled, entry:disabled { opacity: .48; }
+button:disabled, entry:disabled, dropdown:disabled { color: @nn_text_disabled; opacity: .72; }
 button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-visible {
   outline: 1px solid @nn_focus;
   outline-offset: 1px;
   box-shadow: 0 0 0 3px @nn_focus_ring;
 }
+entry, passwordentry { background: @nn_input_bg; color: @nn_text; border-color: @nn_border; caret-color: @nn_focus; }
+separator { background: @nn_border_subtle; }
+scrollbar slider { background: @nn_scrollbar; }
+scrollbar slider:hover { background: @nn_scrollbar_hover; }
+tooltip > contents { background: @nn_surface_raised; color: @nn_text; border: 1px solid @nn_border; }
+popover { color: @nn_text; }
+popover > contents, .nn-menu-surface > contents {
+  background: @nn_popover_bg;
+  color: @nn_text;
+  border: 1px solid @nn_border;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px alpha(@nn_app_bg,.28);
+}
+popover modelbutton, popover button { color: @nn_text; }
+popover modelbutton:hover, popover button:hover, popover row:hover { background: @nn_hover; color: @nn_text; }
+popover modelbutton:checked, popover button:checked, popover row:selected { background: @nn_accent_soft; color: @nn_accent; }
+popover separator { background: @nn_border_subtle; }
+popover list, popover listview { background: transparent; color: @nn_text; }
+popover row { color: @nn_text; }
+dropdown { color: @nn_text; }
+dropdown > button { background: @nn_input_bg; color: @nn_text; border-color: @nn_border; }
+dropdown > button:hover { background: @nn_hover; color: @nn_text; }
+text selection, textview text selection, entry selection { background: @nn_selection_bg; color: @nn_selection_fg; }
 
 .nn-control-compact { min-width: 32px; min-height: 32px; padding: 0 8px; border-radius: 6px; }
 .nn-control-primary { min-height: 36px; padding: 0 12px; border-radius: 8px; }
 .nn-surface-elevated { background: @nn_surface_raised; border: 1px solid @nn_border; border-radius: 12px; box-shadow: 0 4px 16px rgba(16,24,40,.08); }
-.nn-menu-surface { background: @nn_popover_bg; border: 1px solid @nn_border; border-radius: 10px; padding: 6px; }
+.nn-menu-surface { color: @nn_text; }
+.nn-menu-surface > contents { padding: 6px; }
 .nn-menu-row { min-height: 34px; padding: 0 10px; border-radius: 6px; color: @nn_text; }
 .nn-menu-row:hover { background: @nn_hover; }
 .nn-selected-menu-row { background: @nn_accent_soft; color: @nn_accent; }
@@ -204,6 +156,8 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-editor-toolbar button:checked, .nn-editor-toolbar menubutton > button:checked, .nn-editor-toolbar menubutton.active > button { background: @nn_accent_soft; color: @nn_accent; box-shadow: inset 0 0 0 1px alpha(@nn_accent,.16); }
 .nn-editor-toolbar button:disabled { opacity: .42; }
 .nn-editor-toolbar .nn-toolbar-font-size { min-width: 62px; min-height: 32px; border-radius: 6px; }
+.nn-editor-toolbar dropdown > button { min-height: 32px; background: transparent; color: @nn_text_secondary; border-color: transparent; }
+.nn-editor-toolbar dropdown > button:hover { background: @nn_hover; color: @nn_text; }
 .nn-editor-toolbar separator { margin: 6px 5px; background: @nn_border; }
 .nn-editor-toolbar > flowboxchild { padding: 0; }
 .nn-formatting-popover { min-width: 320px; }
@@ -218,6 +172,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-more-actions > flowboxchild { padding: 0; }
 .nn-more-actions button { min-width: 36px; min-height: 32px; }
 
+/* Theme-specific content colors: user data, not application chrome. */
 .nn-text-swatch.nn-color-slate { background: #334155; }
 .nn-text-swatch.nn-color-blue { background: #1d4ed8; }
 .nn-text-swatch.nn-color-teal { background: #0f766e; }
@@ -267,7 +222,7 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .main-window list { background: @nn_bg; }
 .library-sidebar { background: @nn_sidebar_bg; }
 .sidebar-row { min-height: 38px; border-radius: 8px; }
-.sidebar-row:checked { background: @nn_accent; color: white; }
+.sidebar-row:checked { background: @nn_accent; color: @nn_text_inverse; }
 .note-row { margin: 4px; border-radius: 10px; background: @nn_surface; }
 .note-preview, .noor-note { background: @nn_surface; }
 .modern-toolbar { min-height: 38px; background: @nn_surface; border-bottom: 1px solid @nn_border; }
@@ -278,49 +233,6 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .editor-status, .find-bar { padding: 8px 12px; background: @nn_surface; border-top: 1px solid @nn_border; }
 .empty-state { padding: 32px; color: @nn_text_secondary; }
 
-/* Snow is explicit so System/light and manually selected Snow share one root. */
-.nn-theme-snow { background: @nn_snow_app_bg; color: @nn_snow_text_primary; }
-.nn-theme-snow headerbar { background: @nn_snow_surface; color: @nn_snow_text_primary; }
-.nn-theme-snow .nn-note-list row:selected .nn-note-card .nn-note-title { color: @nn_snow_text_primary; }
-.nn-theme-snow .nn-note-list row:selected .nn-note-card .nn-note-card-preview,
-.nn-theme-snow .nn-note-list row:selected .nn-note-card .nn-note-card-tags,
-.nn-theme-snow .nn-note-list row:selected .nn-note-card .nn-card-action { color: @nn_snow_text_secondary; }
-.nn-theme-snow .nn-note-list row:selected .nn-note-card .nn-note-card-meta { color: @nn_snow_text_muted; }
-
-/* Midnight consumes only namespaced colors because GTK color definitions are global. */
-.nn-theme-midnight { background: @nn_midnight_app_bg; color: @nn_midnight_text_primary; }
-.nn-theme-midnight headerbar { background: @nn_midnight_editor_bg; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
-.nn-theme-midnight .nn-sidebar { background: @nn_midnight_sidebar_bg; color: @nn_midnight_text_primary; }
-.nn-theme-midnight .nn-sidebar-row:hover { background: @nn_midnight_surface; }
-.nn-theme-midnight .nn-sidebar-row:selected { background: @nn_midnight_accent_soft; color: @nn_midnight_accent; box-shadow: inset 3px 0 @nn_midnight_accent; }
-.nn-theme-midnight .nn-sidebar-icon, .nn-theme-midnight .nn-sidebar-count { color: @nn_midnight_text_muted; }
-.nn-theme-midnight .nn-sidebar-row:selected .nn-sidebar-icon { color: @nn_midnight_accent; }
-.nn-theme-midnight .nn-note-list { background: @nn_midnight_list_bg; color: @nn_midnight_text_primary; }
-.nn-theme-midnight .nn-note-card { background: @nn_midnight_surface; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; box-shadow: 0 1px 3px rgba(0,0,0,.28); }
-.nn-theme-midnight .nn-note-card:hover { background: @nn_midnight_surface_raised; border-color: @nn_midnight_border_strong; }
-.nn-theme-midnight .nn-note-list row:selected .nn-note-card { background: @nn_midnight_accent_soft; border-color: @nn_midnight_accent; }
-.nn-theme-midnight .nn-note-card-preview, .nn-theme-midnight .nn-note-card-tags, .nn-theme-midnight .nn-note-status-icon, .nn-theme-midnight .nn-card-action { color: @nn_midnight_text_secondary; }
-.nn-theme-midnight .nn-note-card-meta, .nn-theme-midnight .nn-metadata, .nn-theme-midnight .nn-caption { color: @nn_midnight_text_muted; }
-.nn-theme-midnight .nn-preview-surface, .nn-theme-midnight .nn-preview { background: @nn_midnight_editor_bg; color: @nn_midnight_text_primary; }
-.nn-theme-midnight .nn-preview-title, .nn-theme-midnight .nn-preview-body { color: @nn_midnight_text_primary; }
-.nn-theme-midnight .nn-preview-editor { background: @nn_midnight_editor_bg; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
-.nn-theme-midnight .nn-rich-writing-canvas { background: @nn_midnight_editor_bg; color: @nn_midnight_text_primary; caret-color: @nn_midnight_focus; }
-.nn-theme-midnight .nn-editor-menu-bar, .nn-theme-midnight .nn-editor-toolbar, .nn-theme-midnight .nn-editor-header, .nn-theme-midnight .nn-sticky-header { background: @nn_midnight_surface; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
-.nn-theme-midnight .nn-editor-toolbar button, .nn-theme-midnight .nn-editor-toolbar menubutton > button, .nn-theme-midnight .nn-editor-menu-button { color: @nn_midnight_text_secondary; }
-.nn-theme-midnight .nn-editor-toolbar button:hover, .nn-theme-midnight .nn-editor-menu-button:hover { background: @nn_midnight_surface_raised; color: @nn_midnight_text_primary; }
-.nn-theme-midnight .nn-editor-toolbar button:checked, .nn-theme-midnight .nn-editor-toolbar menubutton > button:checked { background: @nn_midnight_accent_soft; color: @nn_midnight_accent; }
-.nn-theme-midnight .nn-canvas-scroller, .nn-theme-midnight .nn-writing-clamp, .nn-theme-midnight .nn-sticky-note-window { background: @nn_midnight_app_bg; }
-.nn-theme-midnight .nn-find-panel { background: @nn_midnight_surface_raised; color: @nn_midnight_text_primary; border-color: @nn_midnight_border; }
-.nn-theme-midnight .nn-statusbar { background: @nn_midnight_sidebar_bg; color: @nn_midnight_text_muted; border-color: @nn_midnight_border; }
-.nn-theme-midnight popover { background: @nn_midnight_popover_bg; color: @nn_midnight_text_primary; }
-.nn-theme-midnight entry { background: @nn_midnight_input_bg; color: @nn_midnight_text_primary; caret-color: @nn_midnight_focus; }
-.nn-theme-midnight .nn-sort-control, .nn-theme-midnight .nn-tag-strip { background: @nn_midnight_surface; color: @nn_midnight_text_secondary; border-color: @nn_midnight_border; }
-.nn-theme-midnight button:hover { background: @nn_midnight_surface_raised; }
-.nn-theme-midnight button:checked { background: @nn_midnight_accent_soft; color: @nn_midnight_accent; }
-.nn-theme-midnight windowcontrols button { color: @nn_midnight_text_secondary; background: transparent; }
-.nn-theme-midnight scrollbar slider { background: @nn_midnight_border_strong; }
-.nn-theme-midnight text selection { background: rgba(109,139,255,.42); color: #ffffff; }
-
 .nn-icon-neutral { color: @nn_text; }
 .nn-icon-secondary { color: @nn_text_secondary; }
 .nn-icon-active { color: @nn_accent; }
@@ -328,14 +240,6 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-icon-warning { color: @nn_warning; }
 .nn-icon-destructive { color: inherit; }
 .nn-icon-destructive:hover { color: @nn_danger; }
-.nn-theme-midnight .nn-icon-neutral { color: @nn_midnight_text_primary; }
-.nn-theme-midnight .nn-icon-secondary { color: @nn_midnight_text_secondary; }
-.nn-theme-midnight .nn-icon-active { color: @nn_midnight_accent; }
-.nn-theme-midnight .nn-icon-success { color: #6fd69a; }
-.nn-theme-midnight .nn-icon-warning { color: #f1c56a; }
-.nn-theme-midnight .nn-icon-destructive { color: inherit; }
-.nn-theme-midnight .nn-icon-destructive:hover { color: @nn_midnight_danger; }
-
 .nn-theme-midnight .nn-text-swatch.nn-color-slate { background: #e2e8f0; }
 .nn-theme-midnight .nn-text-swatch.nn-color-blue { background: #93c5fd; }
 .nn-theme-midnight .nn-text-swatch.nn-color-teal { background: #5eead4; }
@@ -360,16 +264,15 @@ button:focus-visible, entry:focus-visible, row:focus-visible, textview:focus-vis
 .nn-theme-midnight .paper-light-purple { background: #30273d; color: #f0e8ff; }
 .nn-theme-midnight .paper-dark-slate { background: #202329; color: #f2f3f5; }
 
-.nn-settings-window preferencespage { background: @nn_app_bg; }
+.nn-settings-window, .nn-settings-window preferencespage { background: @nn_app_bg; color: @nn_text; }
+.nn-settings-window preferencesgroup, .nn-settings-window actionrow { color: @nn_text; }
 .nn-settings-group { margin-top: 8px; }
 .nn-settings-row { min-height: 54px; }
 .nn-settings-row:hover { background: @nn_hover; }
 .nn-settings-row entry, .nn-settings-row dropdown { min-height: 34px; }
 .nn-theme-swatch { min-width: 42px; min-height: 26px; border-radius: 7px; border: 1px solid @nn_border_strong; }
-.nn-swatch-snow { background: @nn_snow_app_bg; border-color: @nn_snow_border_strong; }
-.nn-swatch-midnight { background: @nn_midnight_editor_bg; border-color: @nn_midnight_accent; }
-.nn-theme-midnight .nn-settings-window preferencespage { background: @nn_midnight_app_bg; }
-.nn-theme-midnight .nn-settings-row:hover { background: @nn_midnight_surface_raised; }
+.nn-swatch-snow { background: #f6f7f9; border-color: #d0d5dd; }
+.nn-swatch-midnight { background: #0f1724; border-color: #6d8bff; }
 
 .nn-reduced-motion, .nn-reduced-motion * { transition: none; }
 .nn-assistance-status { color: alpha(currentColor,.72); font-size: .9em; }

@@ -1,59 +1,23 @@
 const CSS: &str = include_str!("../resources/design-system.css");
 
 #[test]
-fn every_effective_theme_defines_the_complete_semantic_palette() {
-    for theme in noor_notes::appearance::EffectiveTheme::ALL {
-        let theme = theme.palette_prefix();
-        for role in [
-            "app_bg",
-            "sidebar_bg",
-            "list_bg",
-            "editor_bg",
-            "surface",
-            "surface_raised",
-            "popover_bg",
-            "input_bg",
-            "text_primary",
-            "text_secondary",
-            "text_muted",
-            "border",
-            "border_strong",
-            "accent",
-            "accent_soft",
-            "focus",
-            "danger",
-            "danger_soft",
-        ] {
-            let token = format!("@define-color nn_{theme}_{role}");
-            assert!(CSS.contains(&token), "{theme} is missing {role}");
-        }
-    }
-}
-
-#[test]
-fn snow_defaults_match_the_approved_semantic_palette() {
-    for declaration in [
-        "@define-color nn_app_bg #f6f7f9;",
-        "@define-color nn_sidebar_bg #f4f6f8;",
-        "@define-color nn_note_list_bg #f8f9fb;",
-        "@define-color nn_editor_bg #ffffff;",
-        "@define-color nn_surface #ffffff;",
-        "@define-color nn_hover #f1f3f5;",
-        "@define-color nn_text #1f2937;",
-        "@define-color nn_text_secondary #475467;",
-        "@define-color nn_text_muted #667085;",
-        "@define-color nn_border #e4e7ec;",
-        "@define-color nn_border_subtle #eef0f2;",
-        "@define-color nn_accent #4f6fe8;",
-        "@define-color nn_accent_hover #425fcc;",
-        "@define-color nn_accent_soft #eef2ff;",
-        "@define-color nn_danger #dc2626;",
-        "@define-color nn_success #16a34a;",
+fn component_stylesheet_consumes_but_never_defines_the_active_palette() {
+    assert!(!CSS.contains("@define-color"));
+    for role in [
+        "@nn_app_bg",
+        "@nn_sidebar_bg",
+        "@nn_note_list_bg",
+        "@nn_editor_bg",
+        "@nn_surface",
+        "@nn_popover_bg",
+        "@nn_text",
+        "@nn_text_secondary",
+        "@nn_text_muted",
+        "@nn_border",
+        "@nn_accent",
+        "@nn_selection_bg",
     ] {
-        assert!(
-            CSS.contains(declaration),
-            "missing Snow token: {declaration}"
-        );
+        assert!(CSS.contains(role), "component CSS does not consume {role}");
     }
 }
 
@@ -80,9 +44,6 @@ fn curated_atomic_utilities_cover_the_approved_scale() {
 
 #[test]
 fn only_snow_and_midnight_theme_layers_remain() {
-    for required in [".nn-theme-snow", ".nn-theme-midnight"] {
-        assert!(CSS.contains(required));
-    }
     for obsolete in [
         ".nn-theme-light",
         ".nn-theme-warm-paper",
@@ -98,20 +59,15 @@ fn only_snow_and_midnight_theme_layers_remain() {
 #[test]
 fn semantic_components_preserve_calm_readable_states() {
     for token in [
-        "@define-color nn_popover_bg",
-        "@define-color nn_modal_bg",
-        "@define-color nn_input_bg",
-        "@define-color nn_text_disabled",
-        "@define-color nn_text_inverse",
-        "@define-color nn_border_strong",
-        "@define-color nn_accent_strong",
-        "@define-color nn_danger_soft",
-        "@define-color nn_info",
         ".nn-control-compact",
         ".nn-control-primary",
         ".nn-surface-elevated",
         ".nn-menu-surface",
         ".nn-document-title",
+        "popover > contents",
+        "popover modelbutton",
+        "dropdown > button",
+        "text selection",
     ] {
         assert!(CSS.contains(token), "missing semantic role: {token}");
     }

@@ -12,6 +12,22 @@ fn generated_stylesheet_uses_the_active_palette_before_shared_components() {
         let semantic_definition = css.find("@define-color nn_text ").unwrap();
         assert!(semantic_definition < palette_end);
         assert_eq!(css.matches("/* Noor Notes GTK design system").count(), 1);
+        for token in [
+            "nn_bg",
+            "nn_surface",
+            "nn_popover_bg",
+            "nn_text",
+            "nn_text_secondary",
+            "nn_border",
+            "nn_accent",
+            "nn_selection_bg",
+        ] {
+            assert_eq!(
+                css.matches(&format!("@define-color {token} ")).count(),
+                1,
+                "{token} must have exactly one active definition"
+            );
+        }
     }
 }
 

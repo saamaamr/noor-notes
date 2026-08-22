@@ -18,6 +18,14 @@ fn controller_renders_replaces_suppresses_and_presents_issues() {
         "en",
         EditorMode::PlainText,
     );
+    let grammar_tag = buffer
+        .tag_table()
+        .lookup("noor-writing-assistance-grammar")
+        .unwrap();
+    assert!(
+        grammar_tag.foreground_rgba().is_none(),
+        "grammar underline must preserve the active editor foreground"
+    );
     controller.set_preferences(ResolvedWritingAssistance {
         spelling: true,
         grammar: true,

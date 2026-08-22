@@ -467,7 +467,6 @@ fn ensure_grammar_tag(buffer: &sourceview5::Buffer) {
     let tag = gtk::TextTag::builder()
         .name(GRAMMAR_TAG)
         .underline(gtk::pango::Underline::Single)
-        .foreground("#3584e4")
         .build();
     buffer.tag_table().add(&tag);
 }
