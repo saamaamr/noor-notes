@@ -2,10 +2,12 @@ use std::cell::RefCell;
 
 mod manager;
 mod model;
+mod palette;
 mod preferences;
 
 pub use manager::AppearanceManager;
 pub use model::{AppearanceMode, AppearancePreferences, EffectiveTheme, SystemScheme};
+pub use palette::ThemePalette;
 pub use preferences::AppearanceStore;
 
 thread_local! {
