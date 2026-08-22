@@ -31,6 +31,12 @@ fn application_menu_exposes_only_canonical_theme_actions() {
     ] {
         assert!(!actions.iter().any(|action| action == historical));
     }
+    assert!(
+        !actions
+            .iter()
+            .any(|action| action == "app.theme-contrast-test"),
+        "production menu must not expose developer theme diagnostics"
+    );
 }
 
 fn collect_actions(model: &gtk::gio::MenuModel, actions: &mut Vec<String>) {

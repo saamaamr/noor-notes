@@ -41,6 +41,8 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let app = crate::identity::application();
     let appearance = AppearanceManager::new(AppearanceStore::for_current_user());
     appearance.install_action(&app);
+    #[cfg(feature = "development")]
+    appearance.install_theme_contrast_test_action(&app);
     install_global(appearance.clone());
     let startup_appearance = appearance.clone();
     app.connect_startup(move |_| {

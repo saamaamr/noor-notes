@@ -282,6 +282,11 @@ fn application_menu() -> gtk::gio::Menu {
         Some("Writing Assistance…"),
         Some("app.writing-assistance-settings"),
     );
+    #[cfg(feature = "development")]
+    menu.append(
+        Some("Theme Contrast Test"),
+        Some("app.theme-contrast-test"),
+    );
     menu.append(Some("Quit"), Some("app.quit"));
     menu
 }

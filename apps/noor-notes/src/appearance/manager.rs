@@ -136,6 +136,19 @@ impl AppearanceManager {
         });
     }
 
+    #[cfg(feature = "development")]
+    pub fn install_theme_contrast_test_action(&self, app: &adw::Application) {
+        if app.lookup_action("theme-contrast-test").is_some() {
+            return;
+        }
+        let action = gtk::gio::SimpleAction::new("theme-contrast-test", None);
+        let manager = self.clone();
+        action.connect_activate(move |_, _| {
+            let _ = manager.toggle_theme();
+        });
+        app.add_action(&action);
+    }
+
     fn initialize_native_theme(&self) {
         let system_observer = self.clone();
         adw::StyleManager::default().connect_dark_notify(move |_| {
