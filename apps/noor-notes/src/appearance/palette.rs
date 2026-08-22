@@ -37,6 +37,8 @@ pub struct ThemePalette {
     pub scrollbar_hover: &'static str,
     pub selection_bg: &'static str,
     pub selection_fg: &'static str,
+    pub rich_foreground: [(&'static str, &'static str); 7],
+    pub rich_highlight: [(&'static str, &'static str); 7],
 }
 
 impl ThemePalette {
@@ -78,6 +80,24 @@ impl ThemePalette {
                 scrollbar_hover: "#aeb7c4",
                 selection_bg: "#c7d2fe",
                 selection_fg: "#1f2937",
+                rich_foreground: [
+                    ("slate", "#334155"),
+                    ("blue", "#1d4ed8"),
+                    ("teal", "#0f766e"),
+                    ("green", "#15803d"),
+                    ("amber", "#a16207"),
+                    ("red", "#b91c1c"),
+                    ("purple", "#7e22ce"),
+                ],
+                rich_highlight: [
+                    ("yellow", "#fef3c7"),
+                    ("blue", "#dbeafe"),
+                    ("mint", "#ccfbf1"),
+                    ("green", "#dcfce7"),
+                    ("peach", "#ffedd5"),
+                    ("pink", "#fce7f3"),
+                    ("lavender", "#ede9fe"),
+                ],
             },
             EffectiveTheme::Midnight => Self {
                 app_bg: "#0f1724",
@@ -115,6 +135,24 @@ impl ThemePalette {
                 scrollbar_hover: "#465c77",
                 selection_bg: "#334a7a",
                 selection_fg: "#f1f5f9",
+                rich_foreground: [
+                    ("slate", "#e2e8f0"),
+                    ("blue", "#93c5fd"),
+                    ("teal", "#5eead4"),
+                    ("green", "#86efac"),
+                    ("amber", "#fcd34d"),
+                    ("red", "#fca5a5"),
+                    ("purple", "#d8b4fe"),
+                ],
+                rich_highlight: [
+                    ("yellow", "#5f4b16"),
+                    ("blue", "#1e3a5f"),
+                    ("mint", "#134e4a"),
+                    ("green", "#14532d"),
+                    ("peach", "#7c2d12"),
+                    ("pink", "#6b214b"),
+                    ("lavender", "#4c3575"),
+                ],
             },
         }
     }
@@ -162,6 +200,20 @@ impl ThemePalette {
         for (name, value) in declarations {
             css.push_str("@define-color ");
             css.push_str(name);
+            css.push(' ');
+            css.push_str(value);
+            css.push_str(";\n");
+        }
+        for (id, value) in self.rich_foreground {
+            css.push_str("@define-color nn_rich_fg_");
+            css.push_str(id);
+            css.push(' ');
+            css.push_str(value);
+            css.push_str(";\n");
+        }
+        for (id, value) in self.rich_highlight {
+            css.push_str("@define-color nn_rich_highlight_");
+            css.push_str(id);
             css.push(' ');
             css.push_str(value);
             css.push_str(";\n");

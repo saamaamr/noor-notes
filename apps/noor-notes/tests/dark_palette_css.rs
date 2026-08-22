@@ -46,6 +46,14 @@ fn theme_specific_selectors_are_limited_to_user_content_palettes() {
     assert!(!chrome.contains(".nn-theme-midnight"));
     assert!(!chrome.contains("@nn_snow_"));
     assert!(!chrome.contains("@nn_midnight_"));
+    assert!(
+        !COMPONENT_CSS.contains(".nn-theme-midnight .nn-text-swatch"),
+        "popover swatches must use display-wide semantic colors"
+    );
+    assert!(
+        !COMPONENT_CSS.contains(".nn-theme-midnight .nn-highlight-swatch"),
+        "popover highlights must use display-wide semantic colors"
+    );
     for paper in [
         "paper-warm-white",
         "paper-cream",

@@ -173,20 +173,20 @@ text selection, textview text selection, entry selection { background: @nn_selec
 .nn-more-actions button { min-width: 36px; min-height: 32px; }
 
 /* Theme-specific content colors: user data, not application chrome. */
-.nn-text-swatch.nn-color-slate { background: #334155; }
-.nn-text-swatch.nn-color-blue { background: #1d4ed8; }
-.nn-text-swatch.nn-color-teal { background: #0f766e; }
-.nn-text-swatch.nn-color-green { background: #15803d; }
-.nn-text-swatch.nn-color-amber { background: #a16207; }
-.nn-text-swatch.nn-color-red { background: #b91c1c; }
-.nn-text-swatch.nn-color-purple { background: #7e22ce; }
-.nn-highlight-swatch.nn-color-yellow { background: #fef3c7; }
-.nn-highlight-swatch.nn-color-blue { background: #dbeafe; }
-.nn-highlight-swatch.nn-color-mint { background: #ccfbf1; }
-.nn-highlight-swatch.nn-color-green { background: #dcfce7; }
-.nn-highlight-swatch.nn-color-peach { background: #ffedd5; }
-.nn-highlight-swatch.nn-color-pink { background: #fce7f3; }
-.nn-highlight-swatch.nn-color-lavender { background: #ede9fe; }
+.nn-text-swatch.nn-color-slate { background: @nn_rich_fg_slate; }
+.nn-text-swatch.nn-color-blue { background: @nn_rich_fg_blue; }
+.nn-text-swatch.nn-color-teal { background: @nn_rich_fg_teal; }
+.nn-text-swatch.nn-color-green { background: @nn_rich_fg_green; }
+.nn-text-swatch.nn-color-amber { background: @nn_rich_fg_amber; }
+.nn-text-swatch.nn-color-red { background: @nn_rich_fg_red; }
+.nn-text-swatch.nn-color-purple { background: @nn_rich_fg_purple; }
+.nn-highlight-swatch.nn-color-yellow { background: @nn_rich_highlight_yellow; }
+.nn-highlight-swatch.nn-color-blue { background: @nn_rich_highlight_blue; }
+.nn-highlight-swatch.nn-color-mint { background: @nn_rich_highlight_mint; }
+.nn-highlight-swatch.nn-color-green { background: @nn_rich_highlight_green; }
+.nn-highlight-swatch.nn-color-peach { background: @nn_rich_highlight_peach; }
+.nn-highlight-swatch.nn-color-pink { background: @nn_rich_highlight_pink; }
+.nn-highlight-swatch.nn-color-lavender { background: @nn_rich_highlight_lavender; }
 
 .nn-editor-header { background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; }
 .nn-editor-title-box { min-width: 320px; }
@@ -240,21 +240,6 @@ text selection, textview text selection, entry selection { background: @nn_selec
 .nn-icon-warning { color: @nn_warning; }
 .nn-icon-destructive { color: inherit; }
 .nn-icon-destructive:hover { color: @nn_danger; }
-.nn-theme-midnight .nn-text-swatch.nn-color-slate { background: #e2e8f0; }
-.nn-theme-midnight .nn-text-swatch.nn-color-blue { background: #93c5fd; }
-.nn-theme-midnight .nn-text-swatch.nn-color-teal { background: #5eead4; }
-.nn-theme-midnight .nn-text-swatch.nn-color-green { background: #86efac; }
-.nn-theme-midnight .nn-text-swatch.nn-color-amber { background: #fcd34d; }
-.nn-theme-midnight .nn-text-swatch.nn-color-red { background: #fca5a5; }
-.nn-theme-midnight .nn-text-swatch.nn-color-purple { background: #d8b4fe; }
-.nn-theme-midnight .nn-highlight-swatch.nn-color-yellow { background: #5f4b16; }
-.nn-theme-midnight .nn-highlight-swatch.nn-color-blue { background: #1e3a5f; }
-.nn-theme-midnight .nn-highlight-swatch.nn-color-mint { background: #134e4a; }
-.nn-theme-midnight .nn-highlight-swatch.nn-color-green { background: #14532d; }
-.nn-theme-midnight .nn-highlight-swatch.nn-color-peach { background: #7c2d12; }
-.nn-theme-midnight .nn-highlight-swatch.nn-color-pink { background: #6b214b; }
-.nn-theme-midnight .nn-highlight-swatch.nn-color-lavender { background: #4c3575; }
-
 .nn-theme-midnight .paper-warm-white { background: #302f2b; color: #f5f2e8; }
 .nn-theme-midnight .paper-cream { background: #332d24; color: #f7eddc; }
 .nn-theme-midnight .paper-light-yellow { background: #34301f; color: #fbf0bd; }
