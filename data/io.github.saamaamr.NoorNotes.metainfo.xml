@@ -52,6 +52,11 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.0.3" date="2026-08-24" type="stable">
+      <description>
+        <p>Restores complete sidebar, toolbar, menu, and status icons when a confined desktop cannot provide the user's selected icon theme.</p>
+      </description>
+    </release>
     <release version="1.0.2" date="2026-08-24" type="stable">
       <description>
         <p>Adds a responsive integrated editor, reliable shared formatting controls, safe DOCX, PDF, HTML, Markdown, and plain-text exports, and clearer editor-mode switching.</p>

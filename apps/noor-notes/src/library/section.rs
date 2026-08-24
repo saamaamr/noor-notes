@@ -38,7 +38,7 @@ impl LibrarySection {
             Self::AllNotes => "document-open-recent-symbolic",
             Self::Pinned => "view-pin-symbolic",
             Self::Favorites => "starred-symbolic",
-            Self::Tags => "tag-symbolic",
+            Self::Tags => "user-bookmarks-symbolic",
             Self::Archived => "package-x-generic-symbolic",
             Self::Trash => "user-trash-symbolic",
             Self::Recent => "document-open-recent-symbolic",

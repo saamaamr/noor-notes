@@ -97,7 +97,7 @@ impl NoteWindow {
         metadata.set_margin_end(24);
         metadata.set_margin_top(8);
         metadata.set_margin_bottom(8);
-        metadata.append(&gtk::Image::from_icon_name("tag-symbolic"));
+        metadata.append(&gtk::Image::from_icon_name("user-bookmarks-symbolic"));
         let tags_entry = gtk::Entry::builder()
             .text(current.tags.join(", "))
             .placeholder_text("Add tags, separated by commas")

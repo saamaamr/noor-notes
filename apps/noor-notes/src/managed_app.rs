@@ -47,6 +47,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let startup_appearance = appearance.clone();
     app.connect_startup(move |_| {
         if let Some(display) = gtk::gdk::Display::default() {
+            crate::icon_theme::ensure_required_icons(&display);
             startup_appearance.install_styles(&display);
         }
     });

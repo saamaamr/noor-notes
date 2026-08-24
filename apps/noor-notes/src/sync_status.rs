@@ -11,7 +11,7 @@ pub struct SyncStatusView {
 impl SyncStatusView {
     pub fn new() -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-        let icon = gtk::Image::from_icon_name("emblem-synchronizing-symbolic");
+        let icon = gtk::Image::from_icon_name("view-refresh-symbolic");
         let label = gtk::Label::new(Some("Local only"));
         label.set_xalign(0.0);
         widget.append(&icon);
@@ -26,16 +26,16 @@ impl SyncStatusView {
     pub fn update(&self, status: SyncStatus, pending: usize, last_success: Option<&str>) {
         let (icon, message) = match status {
             SyncStatus::Idle if pending == 0 => (
-                "emblem-ok-symbolic",
+                "object-select-symbolic",
                 last_success
                     .map(|value| format!("Synced · {value}"))
                     .unwrap_or_else(|| "Ready to sync".into()),
             ),
             SyncStatus::Idle => (
-                "emblem-synchronizing-symbolic",
+                "view-refresh-symbolic",
                 format!("{pending} changes waiting"),
             ),
-            SyncStatus::Syncing => ("emblem-synchronizing-symbolic", "Syncing…".into()),
+            SyncStatus::Syncing => ("view-refresh-symbolic", "Syncing…".into()),
             SyncStatus::Offline => (
                 "network-offline-symbolic",
                 "Offline · changes are safe".into(),

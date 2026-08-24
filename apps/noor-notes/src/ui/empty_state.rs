@@ -16,7 +16,7 @@ impl EmptyState {
         widget.add_css_class("nn-empty-state");
         widget.set_valign(gtk::Align::Center);
         widget.set_halign(gtk::Align::Center);
-        let icon = gtk::Image::from_icon_name("note-symbolic");
+        let icon = gtk::Image::from_icon_name("x-office-document-symbolic");
         icon.add_css_class("nn-empty-state-icon");
         icon.set_pixel_size(40);
         widget.append(&icon);

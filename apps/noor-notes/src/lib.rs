@@ -9,6 +9,7 @@ pub mod editor_actions;
 pub mod editor_commands;
 pub mod editor_status;
 pub mod export;
+pub mod icon_theme;
 pub mod identity;
 pub mod import_dialog;
 pub mod key_store;

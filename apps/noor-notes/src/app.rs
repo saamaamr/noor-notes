@@ -39,6 +39,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     let app = crate::identity::application();
     app.connect_startup(|_| {
         if let Some(display) = gtk::gdk::Display::default() {
+            crate::icon_theme::ensure_required_icons(&display);
             crate::appearance::install_static_styles(
                 &display,
                 crate::appearance::EffectiveTheme::Snow,
