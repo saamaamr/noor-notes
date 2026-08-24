@@ -52,6 +52,11 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.0.2" date="2026-08-24" type="stable">
+      <description>
+        <p>Adds a responsive integrated editor, reliable shared formatting controls, safe DOCX, PDF, HTML, Markdown, and plain-text exports, and clearer editor-mode switching.</p>
+      </description>
+    </release>
     <release version="1.0.0" date="2026-08-19" type="stable">
       <description>
         <p>First production release with encrypted local storage, focused Rich Text and source editors, private writing assistance, refined Light and dark appearances, adaptive library navigation, reliable autosave, and recovery workflows.</p>
