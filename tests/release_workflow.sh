@@ -55,6 +55,16 @@ if not any(
     for step in snap_steps
 ):
     raise SystemExit("Release workflow must reject a Snap version that differs from the tag")
+snap_steps_by_name = {
+    step.get("name"): step for step in snap_steps if isinstance(step, dict)
+}
+runtime_contract = snap_steps_by_name.get("Verify Snap runtime contract")
+if not isinstance(runtime_contract, dict):
+    raise SystemExit("Release workflow must verify the built Snap runtime contract")
+runtime_run = runtime_contract.get("run", "")
+for fragment in ("tests/snap_runtime_contract.sh", "${{ steps.build-snap.outputs.snap }}"):
+    if fragment not in runtime_run:
+        raise SystemExit(f"Release Snap runtime contract must include: {fragment}")
 
 flatpak_steps = jobs["flatpak"].get("steps", [])
 if not any(

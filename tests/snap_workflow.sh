@@ -51,6 +51,14 @@ lint_run = lint.get("run", "")
 if 'sudo -u "$(id -un)" -E /snap/bin/snapcraft lint' not in lint_run:
     raise SystemExit("Snap lint must run in a fresh runner-user context with LXD group membership")
 
+runtime_contract = steps_by_name.get("Verify Snap runtime contract")
+if not isinstance(runtime_contract, dict):
+    raise SystemExit("Snap workflow must verify the built artifact runtime contract")
+runtime_run = runtime_contract.get("run", "")
+for fragment in ("tests/snap_runtime_contract.sh", "${{ steps.build-snap.outputs.snap }}"):
+    if fragment not in runtime_run:
+        raise SystemExit(f"Snap runtime contract must include: {fragment}")
+
 smoke = steps_by_name.get("Install and smoke-test built Snap")
 if not isinstance(smoke, dict):
     raise SystemExit("Snap workflow must install and smoke-test the built Snap")

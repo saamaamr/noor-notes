@@ -68,12 +68,18 @@ if edge.get("if") != "needs.decide.outputs.publish_edge == 'true'":
     raise SystemExit("Edge build must skip when main has already been published")
 for name in (
     "Set automatic build version",
+    "Verify Snap runtime contract",
     "Lint built Snap",
     "Install and smoke-test built Snap",
     "Publish to edge",
 ):
     if name not in steps_by_name:
         raise SystemExit(f"Edge publication must include: {name}")
+runtime_contract = steps_by_name["Verify Snap runtime contract"]
+runtime_run = runtime_contract.get("run", "")
+for fragment in ("tests/snap_runtime_contract.sh", "${{ steps.build-snap.outputs.snap }}"):
+    if fragment not in runtime_run:
+        raise SystemExit(f"Cadence Snap runtime contract must include: {fragment}")
 versioning = steps_by_name["Set automatic build version"]
 if versioning.get("env", {}).get("RELEASE_KIND") != "${{ needs.decide.outputs.release_kind }}":
     raise SystemExit("Automatic versioning must consume the decision job's release kind")

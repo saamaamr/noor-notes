@@ -52,9 +52,9 @@
     </screenshot>
   </screenshots>
   <releases>
-    <release version="1.0.3" date="2026-08-24" type="stable">
+    <release version="1.1.0" date="2026-08-24" type="stable">
       <description>
-        <p>Restores complete sidebar, toolbar, menu, and status icons when a confined desktop cannot provide the user's selected icon theme.</p>
+        <p>Fixes Live Snap crashes during Archive and Move to Trash by using one compatible GNOME GTK runtime, restores confined-install icons and themes, and reduces duplicate runtime files.</p>
       </description>
     </release>
     <release version="1.0.2" date="2026-08-24" type="stable">

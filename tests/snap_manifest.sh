@@ -98,15 +98,18 @@ if not isinstance(part, dict):
 
 require_equal("parts.noor-notes.plugin", part.get("plugin"), "rust")
 require_equal("parts.noor-notes.source", part.get("source"), ".")
-require_equal("parts.noor-notes.after", part.get("after"), ["rust-deps"])
+require_equal(
+    "parts.noor-notes.after",
+    part.get("after"),
+    ["rust-deps", "libspelling-runtime"],
+)
 require_equal("parts.noor-notes.rust-channel", part.get("rust-channel"), "none")
 require_equal("parts.noor-notes.rust-ignore-toolchain-file", part.get("rust-ignore-toolchain-file"), None)
 for package in ("libspelling-1-dev",):
     if package not in part.get("build-packages", []):
         raise SystemExit(f"parts.noor-notes.build-packages must include {package}")
-for package in ("libspelling-1-1", "libenchant-2-2", "hunspell-en-us"):
-    if package not in part.get("stage-packages", []):
-        raise SystemExit(f"parts.noor-notes.stage-packages must include {package}")
+require_equal("parts.noor-notes.stage-packages", part.get("stage-packages"), None)
+require_equal("parts.noor-notes.stage", part.get("stage"), None)
 require_equal(
     "workspace.dependencies.sourceview5.features",
     workspace["workspace"]["dependencies"]["sourceview5"].get("features"),
@@ -139,6 +142,26 @@ require_equal(
 require_equal("parts.rust-deps.prime", rust_deps.get("prime"), ["-*"])
 if "./install.sh --prefix=\"$CRAFT_PART_INSTALL/usr\" --disable-ldconfig" not in rust_deps.get("override-build", ""):
     raise SystemExit("parts.rust-deps.override-build must install Rust into the staged prefix")
+
+spelling_runtime = manifest.get("parts", {}).get("libspelling-runtime")
+if not isinstance(spelling_runtime, dict):
+    raise SystemExit("parts.libspelling-runtime must be a mapping")
+require_equal("parts.libspelling-runtime.plugin", spelling_runtime.get("plugin"), "nil")
+require_equal(
+    "parts.libspelling-runtime.stage-packages",
+    spelling_runtime.get("stage-packages"),
+    ["libspelling-1-1"],
+)
+require_equal(
+    "parts.libspelling-runtime.stage",
+    spelling_runtime.get("stage"),
+    ["usr/lib/*/libspelling-1.so*"],
+)
+require_equal(
+    "parts.libspelling-runtime.prime",
+    spelling_runtime.get("prime"),
+    ["usr/lib/*/libspelling-1.so*"],
+)
 
 for path in (
     "target/release/noor-notes",
