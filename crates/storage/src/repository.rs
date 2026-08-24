@@ -219,17 +219,17 @@ impl SqliteNoteRepository {
         };
         let mut note: Note = serde_json::from_str(&payload)?;
         let mut changed = false;
-        if let Some(enabled) = view_only
-            && note.editor_preferences.view_only != enabled
-        {
-            note.editor_preferences.view_only = enabled;
-            changed = true;
+        if let Some(enabled) = view_only {
+            if note.editor_preferences.view_only != enabled {
+                note.editor_preferences.view_only = enabled;
+                changed = true;
+            }
         }
-        if let Some(enabled) = always_on_top
-            && note.always_on_top != enabled
-        {
-            note.always_on_top = enabled;
-            changed = true;
+        if let Some(enabled) = always_on_top {
+            if note.always_on_top != enabled {
+                note.always_on_top = enabled;
+                changed = true;
+            }
         }
         if !changed {
             tx.commit().await?;
