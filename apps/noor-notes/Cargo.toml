@@ -16,12 +16,15 @@ gdk4-x11.workspace = true
 adw.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
+cairo.workspace = true
+docx-rs.workspace = true
 noor-crypto = { path = "../../crates/crypto" }
 noor-domain = { path = "../../crates/domain" }
 noor-storage = { path = "../../crates/storage" }
 noor-sync = { path = "../../crates/sync" }
 noor-windowing = { path = "../../crates/windowing" }
 noor-xpad-import = { path = "../../crates/xpad-import" }
+pangocairo.workspace = true
 tokio.workspace = true
 thiserror.workspace = true
 oo7.workspace = true
@@ -39,6 +42,7 @@ unicode-segmentation.workspace = true
 chrono.workspace = true
 tempfile.workspace = true
 wiremock.workspace = true
+zip = { version = "=0.6.6", default-features = false, features = ["deflate"] }
 
 [build-dependencies]
 glib-build-tools = "0.21"

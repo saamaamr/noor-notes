@@ -9,7 +9,8 @@ use noor_notes::autosave::AutosaveQueue;
 use noor_notes::key_store::InMemoryKeyStore;
 use noor_notes::library::LibrarySection;
 use noor_notes::ui::adaptive_layout::{
-    LibraryLayoutMode, LibraryPaneVisibility, allocation_for_width, apply_library_layout,
+    EditorLayoutDensity, LibraryLayoutMode, LibraryPaneVisibility, allocation_for_width,
+    apply_library_layout, editor_content_width, editor_layout_density,
 };
 use noor_notes::ui::app_header::AppHeader;
 use noor_notes::ui::library_window::MainWindow;
@@ -64,6 +65,18 @@ fn width_breakpoints_choose_one_stable_library_mode() {
         LibraryLayoutMode::for_window_width(1, 1_180),
         LibraryLayoutMode::Wide
     );
+}
+
+#[test]
+fn editor_content_width_follows_the_available_pane_ratio() {
+    assert_eq!(editor_content_width(520), 520);
+    assert_eq!(editor_content_width(760), 699);
+    assert_eq!(editor_content_width(1_200), 936);
+    assert_eq!(editor_content_width(1_600), 1_248);
+
+    assert_eq!(editor_layout_density(900), EditorLayoutDensity::Spacious);
+    assert_eq!(editor_layout_density(620), EditorLayoutDensity::Compact);
+    assert_eq!(editor_layout_density(430), EditorLayoutDensity::Narrow);
 }
 
 #[test]

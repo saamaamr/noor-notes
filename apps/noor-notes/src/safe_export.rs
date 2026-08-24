@@ -1,7 +1,10 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ExportExtension {
+    Docx,
+    Pdf,
+    Html,
     PlainText,
     Markdown,
 }
@@ -9,6 +12,9 @@ pub enum ExportExtension {
 impl ExportExtension {
     pub fn as_str(self) -> &'static str {
         match self {
+            Self::Docx => "docx",
+            Self::Pdf => "pdf",
+            Self::Html => "html",
             Self::PlainText => "txt",
             Self::Markdown => "md",
         }
@@ -34,6 +40,18 @@ pub fn sanitize_export_name(title: &str, extension: ExportExtension) -> String {
         clean.chars().take(120).collect()
     };
     format!("{stem}.{}", extension.as_str())
+}
+
+pub fn ensure_export_extension(path: &Path, extension: ExportExtension) -> PathBuf {
+    if path
+        .extension()
+        .and_then(|value| value.to_str())
+        .is_some_and(|value| value.eq_ignore_ascii_case(extension.as_str()))
+    {
+        path.to_path_buf()
+    } else {
+        path.with_extension(extension.as_str())
+    }
 }
 
 #[cfg(unix)]

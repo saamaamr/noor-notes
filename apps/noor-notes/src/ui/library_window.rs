@@ -6,12 +6,13 @@ use std::time::Duration;
 use crate::appearance::global;
 use adw::prelude::*;
 use chrono::{DateTime, Utc};
-use noor_domain::{Note, NoteId};
+use noor_domain::{EditorMode, Note, NoteId};
 use noor_storage::{NoteSort, SqliteNoteRepository, StorageError};
 
 use super::adaptive_layout::{LibraryLayoutMode, allocation_for_width, apply_library_layout};
 use super::app_header::AppHeader;
 use crate::autosave::{AutosaveQueue, NoteDraft};
+use crate::editor::{apply_conversion, preview_conversion};
 use crate::library::{LibrarySection, LibraryState};
 use crate::library_preferences::LibraryPreferences;
 use crate::services::trash_command;
@@ -242,6 +243,42 @@ impl MainWindow {
         };
         {
             let this = this.clone();
+            let busy = Rc::new(Cell::new(false));
+            this.preview
+                .clone()
+                .connect_editor_mode_requested(move |note, target| {
+                    if busy.replace(true) {
+                        return;
+                    }
+                    this.preview.set_mode_controls_sensitive(false);
+                    let this = this.clone();
+                    let busy = busy.clone();
+                    gtk::glib::MainContext::default().spawn_local(async move {
+                        match this.convert_preview_editor_mode(note, target).await {
+                            Ok(Some(converted)) => {
+                                if let Some(current) = this
+                                    .notes
+                                    .borrow_mut()
+                                    .iter_mut()
+                                    .find(|current| current.id == converted.id)
+                                {
+                                    *current = converted.clone();
+                                }
+                                this.collection.update_note(&converted);
+                                this.preview.show_note(&converted);
+                                this.preview.begin_editing();
+                                this.set_status("Private · Saved locally");
+                            }
+                            Ok(None) => {}
+                            Err(error) => this.set_status(&error),
+                        }
+                        this.preview.set_mode_controls_sensitive(true);
+                        busy.set(false);
+                    });
+                });
+        }
+        {
+            let this = this.clone();
             let preview = this.preview.clone();
             preview.connect_read_only_changed(move |note, enabled| {
                 this.autosave.schedule(NoteDraft::from(note.clone()));
@@ -395,7 +432,7 @@ impl MainWindow {
             mode == LibraryLayoutMode::Narrow,
         );
         let document_pane_width = window_width.saturating_sub(allocation.navigation);
-        self.preview.set_compact(document_pane_width < 700);
+        self.preview.set_available_width(document_pane_width);
         self.back.set_visible(visibility.back);
         apply_library_layout(
             &self.panes,
@@ -529,6 +566,52 @@ impl MainWindow {
         });
     }
 
+    async fn convert_preview_editor_mode(
+        &self,
+        note: Note,
+        target: EditorMode,
+    ) -> Result<Option<Note>, String> {
+        let conversion = preview_conversion(&note, target.clone());
+        if conversion.from == conversion.to {
+            return Ok(None);
+        }
+        let body = if conversion.warnings.is_empty() {
+            format!("Switch this note to {}?", editor_mode_name(&target))
+        } else {
+            format!(
+                "{}\n\nA recovery copy will be created before conversion.",
+                conversion.warnings.join("\n")
+            )
+        };
+        if !dialog_primitives::confirm_action(&self.window, "Change editor mode?", &body, "Convert")
+            .await
+        {
+            return Ok(None);
+        }
+
+        self.autosave
+            .flush(note.id)
+            .await
+            .map_err(|error| format!("Could not save note before conversion: {error}"))?;
+        if !conversion.warnings.is_empty() {
+            self.repository
+                .duplicate_note(note.id, Utc::now())
+                .await
+                .map_err(|error| format!("Could not create recovery copy: {error}"))?;
+        }
+
+        let mut converted = note.clone();
+        apply_conversion(&mut converted, conversion);
+        self.autosave.schedule(NoteDraft::from(converted.clone()));
+        if let Err(error) = self.autosave.flush(converted.id).await {
+            // Replace the failed converted draft with the original document so
+            // a later retry cannot silently commit a conversion the UI rejected.
+            self.autosave.schedule(NoteDraft::from(note));
+            return Err(format!("Could not save converted note: {error}"));
+        }
+        Ok(Some(converted))
+    }
+
     fn render_current(&self) {
         let state = LibraryState::new(self.notes.borrow().clone());
         for section in LibrarySection::NAVIGATION {
@@ -625,6 +708,15 @@ impl MainWindow {
                 Err(error) => this.set_status(&format!("Note action failed: {error}")),
             }
         });
+    }
+}
+
+fn editor_mode_name(mode: &EditorMode) -> &'static str {
+    match mode {
+        EditorMode::Rich => "Rich Text",
+        EditorMode::Markdown => "Markdown",
+        EditorMode::PlainText => "Plain Text",
+        EditorMode::Code => "Code",
     }
 }
 

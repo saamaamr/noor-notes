@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use adw::prelude::*;
 use gtk::glib;
+use noor_domain::EditorMode;
 
 use super::editor_toolbar::EditorToolbar;
 
@@ -48,10 +49,7 @@ impl EditorMenuBar {
         widget.add_css_class("nn-editor-menu-bar");
         let mut menus = full_menu_definitions(toolbar);
         if !full {
-            menus.retain(|menu| matches!(menu.label, "Edit" | "Insert" | "Format"));
-            if let Some(edit) = menus.iter_mut().find(|menu| menu.label == "Edit") {
-                edit.items.retain(|item| item.key != "edit.find");
-            }
+            menus.retain(|menu| matches!(menu.label, "Save As" | "Editor Mode" | "Format"));
         }
 
         let mut items = HashMap::new();
@@ -90,6 +88,44 @@ impl EditorMenuBar {
 
     pub fn popovers(&self) -> &[gtk::Popover] {
         &self.popovers
+    }
+
+    pub fn set_compact(&self, compact: bool) {
+        for button in &self.menu_buttons {
+            let Some(full_label) = button.tooltip_text() else {
+                continue;
+            };
+            let label = if compact {
+                match full_label.as_str() {
+                    "Save As" => "Save",
+                    "Editor Mode" => "Mode",
+                    other => other,
+                }
+            } else {
+                full_label.as_str()
+            };
+            button.set_label(label);
+        }
+    }
+
+    pub fn set_editor_mode(&self, mode: EditorMode) {
+        for (key, candidate) in [
+            ("mode.rich", EditorMode::Rich),
+            ("mode.markdown", EditorMode::Markdown),
+            ("mode.plain", EditorMode::PlainText),
+            ("mode.code", EditorMode::Code),
+        ] {
+            let Some(button) = self.items.get(key) else {
+                continue;
+            };
+            let selected = mode == candidate;
+            button.update_state(&[gtk::accessible::State::Selected(Some(selected))]);
+            if selected {
+                button.add_css_class("nn-selected-menu-row");
+            } else {
+                button.remove_css_class("nn-selected-menu-row");
+            }
+        }
     }
 }
 
@@ -130,25 +166,34 @@ fn full_menu_definitions(toolbar: &EditorToolbar) -> Vec<MenuDefinition> {
             items: vec![
                 button_item("file.new-note", "New note", &toolbar.new_note),
                 button_item("file.duplicate", "Duplicate", &toolbar.duplicate),
-                button_item(
-                    "file.export-text",
-                    "Export plain text",
-                    &toolbar.export_text,
-                ),
-                button_item(
-                    "file.export-markdown",
-                    "Export Markdown",
-                    &toolbar.export_markdown,
-                ),
                 button_item("file.delete", "Move to Trash", &toolbar.trash),
             ],
         },
         MenuDefinition {
-            label: "Edit",
+            label: "Save As",
             items: vec![
-                button_item("edit.undo", "Undo", &toolbar.undo),
-                button_item("edit.redo", "Redo", &toolbar.redo),
-                toggle_item("edit.find", "Find", &toolbar.find),
+                button_item(
+                    "save-as.docx",
+                    "Word Document (.docx)",
+                    &toolbar.export_docx,
+                ),
+                button_item("save-as.pdf", "PDF Document (.pdf)", &toolbar.export_pdf),
+                button_item("save-as.html", "Web Page (.html)", &toolbar.export_html),
+                button_item("save-as.text", "Plain Text (.txt)", &toolbar.export_text),
+                button_item(
+                    "save-as.markdown",
+                    "Markdown (.md)",
+                    &toolbar.export_markdown,
+                ),
+            ],
+        },
+        MenuDefinition {
+            label: "Editor Mode",
+            items: vec![
+                button_item("mode.rich", "Rich Text", &toolbar.mode_rich),
+                button_item("mode.markdown", "Markdown", &toolbar.mode_markdown),
+                button_item("mode.plain", "Plain Text", &toolbar.mode_plain),
+                button_item("mode.code", "Code", &toolbar.mode_code),
             ],
         },
         MenuDefinition {
@@ -160,10 +205,6 @@ fn full_menu_definitions(toolbar: &EditorToolbar) -> Vec<MenuDefinition> {
                 button_item("view.zoom-reset", "Reset zoom", &toolbar.zoom_reset),
                 button_item("view.view-only", "View only", &toolbar.view_only),
             ],
-        },
-        MenuDefinition {
-            label: "Insert",
-            items: vec![menu_item("insert.emoji", "Emoji", &toolbar.emoji)],
         },
         MenuDefinition {
             label: "Format",
@@ -178,6 +219,7 @@ fn full_menu_definitions(toolbar: &EditorToolbar) -> Vec<MenuDefinition> {
                 ),
                 toggle_item("format.bullets", "Bullet list", &toolbar.bullets),
                 toggle_item("format.numbered", "Numbered list", &toolbar.quick_numbered),
+                menu_item("format.emoji", "Insert emoji…", &toolbar.emoji),
                 menu_item("format.more", "More formatting…", &toolbar.format),
             ],
         },

@@ -1,4 +1,78 @@
+mod document;
+mod docx;
+mod html;
+mod markdown;
+mod pdf;
+mod text;
+
 use noor_domain::{ListKind, Note, TextMarks};
+use thiserror::Error;
+
+use crate::safe_export::ExportExtension;
+
+pub use document::{ExportBlock, ExportBlockKind, ExportDocument, ExportRun};
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ExportFormat {
+    Docx,
+    Pdf,
+    Html,
+    PlainText,
+    Markdown,
+}
+
+impl ExportFormat {
+    pub const fn extension(self) -> ExportExtension {
+        match self {
+            Self::Docx => ExportExtension::Docx,
+            Self::Pdf => ExportExtension::Pdf,
+            Self::Html => ExportExtension::Html,
+            Self::PlainText => ExportExtension::PlainText,
+            Self::Markdown => ExportExtension::Markdown,
+        }
+    }
+
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Docx => "Word Document",
+            Self::Pdf => "PDF Document",
+            Self::Html => "HTML Document",
+            Self::PlainText => "Plain Text",
+            Self::Markdown => "Markdown",
+        }
+    }
+
+    pub const fn mime_type(self) -> &'static str {
+        match self {
+            Self::Docx => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            Self::Pdf => "application/pdf",
+            Self::Html => "text/html",
+            Self::PlainText => "text/plain",
+            Self::Markdown => "text/markdown",
+        }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ExportError {
+    #[error("{0} export is not available")]
+    UnsupportedFormat(&'static str),
+    #[error("could not render the exported document: {0}")]
+    Render(String),
+}
+
+pub fn render_export(
+    document: &ExportDocument,
+    format: ExportFormat,
+) -> Result<Vec<u8>, ExportError> {
+    match format {
+        ExportFormat::Docx => docx::render(document),
+        ExportFormat::Html => Ok(html::render(document).into_bytes()),
+        ExportFormat::PlainText => Ok(text::render(document).into_bytes()),
+        ExportFormat::Markdown => Ok(markdown::render(document).into_bytes()),
+        ExportFormat::Pdf => pdf::render(document),
+    }
+}
 
 pub fn export_plain(note: &Note) -> String {
     note.content.clone()

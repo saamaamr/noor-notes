@@ -103,7 +103,20 @@ impl FormattingPopover {
         content.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
         content.append(&clear_formatting);
 
-        let widget = themed_popover(&content);
+        // Keep the full formatting surface usable when the integrated editor
+        // sits midway down the window. An unconstrained popover can be taller
+        // than the available space, in which case GTK immediately dismisses it.
+        let scroll = gtk::ScrolledWindow::builder()
+            .hscrollbar_policy(gtk::PolicyType::Never)
+            .vscrollbar_policy(gtk::PolicyType::Automatic)
+            .min_content_width(360)
+            .max_content_height(420)
+            .propagate_natural_width(true)
+            .propagate_natural_height(true)
+            .child(&content)
+            .build();
+        scroll.add_css_class("nn-formatting-scroll");
+        let widget = themed_popover(&scroll);
         Self {
             widget,
             section_labels: vec![typography, formatting, alignment, colors, lists],

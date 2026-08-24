@@ -49,6 +49,9 @@ pub struct EditorToolbar {
     pub fullscreen: gtk::ToggleButton,
     pub view_only: gtk::Button,
     pub duplicate: gtk::Button,
+    pub export_docx: gtk::Button,
+    pub export_pdf: gtk::Button,
+    pub export_html: gtk::Button,
     pub export_text: gtk::Button,
     pub export_markdown: gtk::Button,
     pub mode_rich: gtk::Button,
@@ -203,8 +206,11 @@ impl EditorToolbar {
         )]);
         view_only.add_css_class("nn-view-only-toggle");
         let duplicate = icon_button("edit-copy-symbolic", "Duplicate note");
-        let export_text = gtk::Button::with_label("Plain text (.txt)");
-        let export_markdown = gtk::Button::with_label("Markdown (.md)");
+        let export_docx = export_button("Word Document (.docx)", "Save as Word document");
+        let export_pdf = export_button("PDF Document (.pdf)", "Save as PDF document");
+        let export_html = export_button("Web Page (.html)", "Save as HTML document");
+        let export_text = export_button("Plain Text (.txt)", "Save as plain text");
+        let export_markdown = export_button("Markdown (.md)", "Save as Markdown");
         let rename = icon_button("document-edit-symbolic", "Rename note");
         let archive = icon_button("folder-symbolic", "Archive note");
         let header_archive = icon_button("folder-symbolic", "Archive note");
@@ -212,9 +218,6 @@ impl EditorToolbar {
         trash.add_css_class("destructive-hover");
         let header_trash = icon_button("user-trash-symbolic", "Move to Trash");
         header_trash.add_css_class("destructive-hover");
-        let mode_label = gtk::Label::new(Some("Editor mode"));
-        mode_label.add_css_class("heading");
-        mode_label.set_halign(gtk::Align::Start);
         let mode_rich = gtk::Button::with_label("Rich Text");
         mode_rich.set_tooltip_text(Some("Convert to rich text"));
         let mode_markdown = gtk::Button::with_label("Markdown");
@@ -257,31 +260,14 @@ impl EditorToolbar {
             more_actions.insert(action, -1);
         }
 
-        let mode_actions = gtk::FlowBox::builder()
-            .selection_mode(gtk::SelectionMode::None)
-            .min_children_per_line(1)
-            .max_children_per_line(4)
-            .column_spacing(4)
-            .row_spacing(4)
-            .build();
-        for action in [
-            mode_rich.upcast_ref::<gtk::Widget>(),
-            mode_markdown.upcast_ref(),
-            mode_plain.upcast_ref(),
-            mode_code.upcast_ref(),
-        ] {
-            mode_actions.insert(action, -1);
-        }
-
         let more_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
         more_box.set_margin_top(6);
         more_box.set_margin_bottom(6);
         more_box.set_margin_start(6);
         more_box.set_margin_end(6);
         more_box.append(&more_actions);
-        more_box.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
-        more_box.append(&mode_label);
-        more_box.append(&mode_actions);
+        // Editor modes are a first-class menu-bar control. Keeping them out of
+        // More avoids two competing paths for a potentially lossy conversion.
         let more_popover = themed_popover(&more_box);
         let more = gtk::MenuButton::builder()
             .icon_name("view-more-symbolic")
@@ -383,6 +369,9 @@ impl EditorToolbar {
             fullscreen,
             view_only,
             duplicate,
+            export_docx,
+            export_pdf,
+            export_html,
             export_text,
             export_markdown,
             alignment_buttons,
@@ -520,6 +509,13 @@ impl EditorToolbar {
 fn close_more_on_click(button: &gtk::Button, more_popover: &gtk::Popover) {
     let more_popover = more_popover.clone();
     button.connect_clicked(move |_| more_popover.popdown());
+}
+
+fn export_button(label: &str, tooltip: &str) -> gtk::Button {
+    let button = gtk::Button::with_label(label);
+    button.set_tooltip_text(Some(tooltip));
+    button.update_property(&[gtk::accessible::Property::Label(tooltip)]);
+    button
 }
 
 fn close_more_on_toggle(button: &gtk::ToggleButton, more_popover: &gtk::Popover) {

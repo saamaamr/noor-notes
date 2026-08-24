@@ -1,5 +1,7 @@
 use adw::prelude::*;
-use noor_notes::ui::editor_canvas::{build_editor_canvas, configure_editor_canvas};
+use noor_notes::ui::editor_canvas::{
+    build_editor_canvas, configure_editor_canvas, set_editor_canvas_available_width,
+};
 
 #[test]
 fn rich_writing_is_clamped_while_source_modes_keep_full_editor_width() {
@@ -18,7 +20,10 @@ fn rich_writing_is_clamped_while_source_modes_keep_full_editor_width() {
     let clamp = rich_canvas
         .downcast::<adw::Clamp>()
         .expect("rich writing canvas should use an Adwaita reading-width clamp");
-    assert_eq!(clamp.maximum_size(), 860);
+    set_editor_canvas_available_width(clamp.upcast_ref(), 1_200);
+    assert_eq!(clamp.maximum_size(), 936);
+    set_editor_canvas_available_width(clamp.upcast_ref(), 620);
+    assert_eq!(clamp.maximum_size(), 620);
 
     let source_editor = gtk::TextView::new();
     configure_editor_canvas(&source_editor, false);

@@ -212,6 +212,18 @@ fn active_note_body_edits_inline_and_preserves_rich_content() {
     assert_eq!(preview.active_mode(), EditorMode::PlainText);
     assert!(preview.source_buffer().language().is_none());
     assert!(!preview.source_buffer().is_highlight_syntax());
+    let mode_requests = Rc::new(RefCell::new(Vec::new()));
+    preview.connect_editor_mode_requested({
+        let mode_requests = mode_requests.clone();
+        move |note, target| mode_requests.borrow_mut().push((note.id, target))
+    });
+    preview.begin_editing();
+    preview.toolbar().mode_rich.emit_clicked();
+    assert_eq!(
+        mode_requests.borrow().as_slice(),
+        &[(plain.id, EditorMode::Rich)]
+    );
+    preview.finish_editing();
 
     let mut note = Note::new(Utc::now());
     note.title = "Sticky state".into();

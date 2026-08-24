@@ -113,8 +113,16 @@ text selection, textview text selection, entry selection { background: @nn_selec
 .nn-preview-surface, .nn-preview { background: @nn_editor_bg; }
 .nn-preview { padding: 32px 40px; }
 .nn-preview-heading { min-height: 44px; }
+.nn-preview-heading-actions { border-spacing: 8px; }
 .nn-preview-heading .nn-preview-title { margin: 0; }
 .nn-preview-surface.compact .nn-preview { padding: 24px; }
+.nn-preview-surface.narrow .nn-preview { padding: 16px; }
+.nn-preview-surface.narrow .nn-preview-heading { border-spacing: 10px; }
+.nn-preview-surface.narrow .nn-preview-title,
+.nn-preview-surface.narrow .nn-preview-title-entry { font-size: 18px; }
+.nn-preview-surface.narrow .nn-editor-menu-bar { padding-left: 2px; padding-right: 2px; }
+.nn-preview-surface.narrow .nn-editor-menu-button { padding-left: 7px; padding-right: 7px; }
+.nn-preview-surface.narrow .nn-editor-toolbar { padding-left: 6px; padding-right: 6px; }
 .nn-preview-edit { min-width: 36px; min-height: 36px; padding: 0 10px; border-radius: 8px; color: @nn_text_secondary; }
 .nn-preview-edit.suggested-action { background: @nn_accent; color: @nn_text_inverse; }
 .nn-preview-edit.suggested-action:hover { background: @nn_accent_hover; }

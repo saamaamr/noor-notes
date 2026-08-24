@@ -14,15 +14,18 @@ use crate::autosave::{AutosaveQueue, NoteDraft};
 use crate::edit_save_gate::EditSaveGate;
 use crate::editor::{SourceEditorAdapter, apply_conversion, preview_conversion, source_palette};
 use crate::editor_status::{EditorStatistics, clamp_zoom, line_offset};
-use crate::export::{export_markdown, export_plain};
+use crate::export::ExportFormat;
 use crate::note_actions;
 use crate::note_find::{FindOptions, FindResults};
 use crate::rich_buffer::RichBuffer;
-use crate::safe_export::{ExportExtension, sanitize_export_name, set_owner_only};
+use crate::save_as::save_note_as;
 use crate::services::trash_command;
+use crate::ui::adaptive_layout::{EditorLayoutDensity, editor_layout_density};
 use crate::ui::appearance_button::AppearanceButton;
 use crate::ui::dialog_primitives;
-use crate::ui::editor_canvas::{build_editor_canvas, configure_editor_canvas};
+use crate::ui::editor_canvas::{
+    build_editor_canvas, configure_editor_canvas, set_editor_canvas_available_width,
+};
 use crate::ui::editor_header::EditorHeader;
 use crate::ui::editor_menu_bar::EditorMenuBar;
 use crate::ui::editor_presentation::EditorPresentation;
@@ -84,6 +87,7 @@ impl NoteWindow {
         let favorite = editor_header.favorite.clone();
         layout.append(&editor_header.widget);
         let menu_bar = EditorMenuBar::new(&toolbar);
+        menu_bar.set_editor_mode(current.editor_mode.clone());
         layout.append(&menu_bar.widget);
         layout.append(&toolbar.widget);
 
@@ -312,6 +316,7 @@ impl NoteWindow {
         }
 
         let canvas = build_editor_canvas(&editor, rich_mode);
+        apply_editor_window_width(&toolbar, &menu_bar, &canvas, current.geometry.width);
         let canvas_overlay = gtk::Overlay::new();
         canvas_overlay.set_child(Some(&canvas));
         let prediction_overlay = PredictionOverlay::new(&canvas_overlay, &editor);
@@ -626,7 +631,31 @@ impl NoteWindow {
                 });
             });
         }
-        connect_export(&toolbar.export_text, &window, note.clone(), false);
+        let export_buttons = vec![
+            toolbar.export_docx.clone(),
+            toolbar.export_pdf.clone(),
+            toolbar.export_html.clone(),
+            toolbar.export_text.clone(),
+            toolbar.export_markdown.clone(),
+        ];
+        let export_busy = Rc::new(Cell::new(false));
+        let export_context = ExportContext {
+            window: window.clone(),
+            buffer: buffer.clone(),
+            note: note.clone(),
+            autosave: autosave.clone(),
+            buttons: export_buttons,
+            busy: export_busy,
+        };
+        for (button, format) in [
+            (&toolbar.export_docx, ExportFormat::Docx),
+            (&toolbar.export_pdf, ExportFormat::Pdf),
+            (&toolbar.export_html, ExportFormat::Html),
+            (&toolbar.export_text, ExportFormat::PlainText),
+            (&toolbar.export_markdown, ExportFormat::Markdown),
+        ] {
+            connect_export(button, format, export_context.clone());
+        }
         let mode_switch_busy = Rc::new(Cell::new(false));
         let mode_context = ModeSwitchContext {
             window: window.clone(),
@@ -654,8 +683,6 @@ impl NoteWindow {
         ] {
             connect_editor_mode(button, target, mode_context.clone());
         }
-        connect_export(&toolbar.export_markdown, &window, note.clone(), true);
-
         for (button, color) in toolbar.note_color_buttons.iter().zip([
             NoteColor::Yellow,
             NoteColor::Cream,
@@ -927,9 +954,14 @@ impl NoteWindow {
         {
             let note = note.clone();
             let autosave = autosave.clone();
+            let toolbar = toolbar.clone();
+            let menu_bar = menu_bar.clone();
+            let canvas = canvas.clone();
             window.connect_notify_local(Some("width"), move |window, _| {
-                note.borrow_mut().geometry.width = window.width();
+                let width = window.width();
+                note.borrow_mut().geometry.width = width;
                 autosave.schedule(NoteDraft::from(note.borrow().clone()));
+                apply_editor_window_width(&toolbar, &menu_bar, &canvas, width);
             });
         }
         {
@@ -1364,6 +1396,18 @@ fn finish_mode_switch(context: &ModeSwitchContext) {
     set_mode_buttons_sensitive(context, true);
 }
 
+fn apply_editor_window_width(
+    toolbar: &EditorToolbar,
+    menu_bar: &EditorMenuBar,
+    canvas: &gtk::Widget,
+    available_width: i32,
+) {
+    let compact = editor_layout_density(available_width) != EditorLayoutDensity::Spacious;
+    toolbar.set_compact(compact);
+    menu_bar.set_compact(compact);
+    set_editor_canvas_available_width(canvas, available_width);
+}
+
 fn editor_mode_name(mode: &EditorMode) -> &'static str {
     match mode {
         EditorMode::Rich => "Rich Text",
@@ -1373,49 +1417,42 @@ fn editor_mode_name(mode: &EditorMode) -> &'static str {
     }
 }
 
-fn connect_export(
-    button: &gtk::Button,
-    window: &adw::ApplicationWindow,
+#[derive(Clone)]
+struct ExportContext {
+    window: adw::ApplicationWindow,
+    buffer: gtk::TextBuffer,
     note: Rc<RefCell<Note>>,
-    markdown: bool,
-) {
-    let window = window.clone();
+    autosave: AutosaveQueue,
+    buttons: Vec<gtk::Button>,
+    busy: Rc<Cell<bool>>,
+}
+
+fn connect_export(button: &gtk::Button, format: ExportFormat, context: ExportContext) {
     button.connect_clicked(move |_| {
-        let window = window.clone();
-        let note = note.borrow().clone();
+        if context.busy.replace(true) {
+            return;
+        }
+        save_editor_snapshot(&context.buffer, &context.note, &context.autosave);
+        let window = context.window.clone();
+        let note = context.note.borrow().clone();
+        for button in &context.buttons {
+            button.set_sensitive(false);
+        }
+        let export_buttons = context.buttons.clone();
+        let busy = context.busy.clone();
 
         gtk::glib::MainContext::default().spawn_local(async move {
-            let extension = if markdown {
-                ExportExtension::Markdown
-            } else {
-                ExportExtension::PlainText
-            };
-            let dialog = gtk::FileDialog::builder()
-                .title("Export unencrypted note")
-                .initial_name(sanitize_export_name(note.display_title(), extension))
-                .build();
-
-            if let Ok(file) = dialog.save_future(Some(&window)).await {
-                let contents = if markdown {
-                    export_markdown(&note)
-                } else {
-                    export_plain(&note)
-                };
-                if file
-                    .replace_contents_future(
-                        contents.into_bytes(),
-                        None,
-                        false,
-                        gtk::gio::FileCreateFlags::REPLACE_DESTINATION,
-                    )
-                    .await
-                    .is_err()
-                {
-                    show_save_error(&window);
-                } else if let Some(path) = file.path() {
-                    let _ = set_owner_only(&path);
-                }
+            if let Err(error) = save_note_as(window.upcast_ref(), note, format).await {
+                dialog_primitives::show_error(
+                    &window,
+                    "Could not save exported copy",
+                    &format!("Noor Notes did not change your note. {error}"),
+                );
             }
+            for button in &export_buttons {
+                button.set_sensitive(true);
+            }
+            busy.set(false);
         });
     });
 }

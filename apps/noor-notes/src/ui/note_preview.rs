@@ -7,10 +7,13 @@ use sourceview5::prelude::*;
 
 use crate::appearance::{EffectiveTheme, try_global};
 use crate::editor::{resolve_language, source_palette};
+use crate::export::ExportFormat;
 use crate::rich_buffer::RichBuffer;
+use crate::save_as::save_note_as;
 use crate::ui::editor_menu_bar::EditorMenuBar;
 use crate::ui::editor_toolbar::EditorToolbar;
 
+use super::adaptive_layout::{EditorLayoutDensity, editor_content_width, editor_layout_density};
 use super::editor_canvas::configure_editor_canvas;
 
 // NotePreview is the concrete implementation behind the shared
@@ -19,6 +22,7 @@ use super::editor_canvas::configure_editor_canvas;
 type BodyEditHandler = Rc<dyn Fn(Note)>;
 type EditFinishedHandler = Rc<dyn Fn(NoteId)>;
 type ReadOnlyHandler = Rc<dyn Fn(Note, bool)>;
+type EditorModeRequestHandler = Rc<dyn Fn(Note, EditorMode)>;
 
 #[derive(Clone)]
 pub struct NotePreview {
@@ -26,6 +30,7 @@ pub struct NotePreview {
     title: gtk::Label,
     title_entry: gtk::Entry,
     title_stack: gtk::Stack,
+    heading: gtk::Box,
     metadata: gtk::Label,
     divider: gtk::Separator,
     body: gtk::Label,
@@ -35,10 +40,12 @@ pub struct NotePreview {
     read_only: gtk::Button,
     toolbar: EditorToolbar,
     menu_bar: EditorMenuBar,
+    document_clamp: adw::Clamp,
     current: Rc<RefCell<Option<Note>>>,
     editing: Rc<Cell<bool>>,
     on_edit_finished: EditFinishedHandler,
     on_read_only_changed: Rc<RefCell<Option<ReadOnlyHandler>>>,
+    on_editor_mode_requested: Rc<RefCell<Option<EditorModeRequestHandler>>>,
 }
 
 impl NotePreview {
@@ -102,7 +109,10 @@ impl NotePreview {
         edit.add_css_class("nn-preview-edit");
         edit.update_property(&[gtk::accessible::Property::Label("Edit note body")]);
         edit.set_valign(gtk::Align::Start);
-        heading.append(&edit);
+        let heading_actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        heading_actions.add_css_class("nn-preview-heading-actions");
+        heading_actions.set_halign(gtk::Align::Start);
+        heading_actions.append(&edit);
         {
             let edit = edit.clone();
             let click = gtk::GestureClick::new();
@@ -120,7 +130,8 @@ impl NotePreview {
             "Open read-only sticky window",
         )]);
         read_only.set_valign(gtk::Align::Start);
-        heading.append(&read_only);
+        heading_actions.append(&read_only);
+        heading.append(&heading_actions);
         document.append(&heading);
 
         let metadata = gtk::Label::new(Some("Your note preview will appear here"));
@@ -228,6 +239,7 @@ impl NotePreview {
         let current = Rc::new(RefCell::new(None::<Note>));
         let editing = Rc::new(Cell::new(false));
         let on_read_only_changed = Rc::new(RefCell::new(None::<ReadOnlyHandler>));
+        let on_editor_mode_requested = Rc::new(RefCell::new(None::<EditorModeRequestHandler>));
         {
             let current = current.clone();
             let editing = editing.clone();
@@ -361,12 +373,61 @@ impl NotePreview {
                 on_body_edited(note);
             });
         }
+        for (button, target) in [
+            (&toolbar.mode_rich, EditorMode::Rich),
+            (&toolbar.mode_markdown, EditorMode::Markdown),
+            (&toolbar.mode_plain, EditorMode::PlainText),
+            (&toolbar.mode_code, EditorMode::Code),
+        ] {
+            let current = current.clone();
+            let editing = editing.clone();
+            let on_editor_mode_requested = on_editor_mode_requested.clone();
+            button.connect_clicked(move |_| {
+                if !editing.get() {
+                    return;
+                }
+                let Some(note) = current.borrow().clone() else {
+                    return;
+                };
+                if note.editor_mode == target {
+                    return;
+                }
+                if let Some(handler) = on_editor_mode_requested.borrow().as_ref() {
+                    handler(note, target.clone());
+                }
+            });
+        }
+        let export_buttons = vec![
+            toolbar.export_docx.clone(),
+            toolbar.export_pdf.clone(),
+            toolbar.export_html.clone(),
+            toolbar.export_text.clone(),
+            toolbar.export_markdown.clone(),
+        ];
+        let export_busy = Rc::new(Cell::new(false));
+        for (button, format) in [
+            (&toolbar.export_docx, ExportFormat::Docx),
+            (&toolbar.export_pdf, ExportFormat::Pdf),
+            (&toolbar.export_html, ExportFormat::Html),
+            (&toolbar.export_text, ExportFormat::PlainText),
+            (&toolbar.export_markdown, ExportFormat::Markdown),
+        ] {
+            connect_preview_export(
+                button,
+                format,
+                &widget,
+                current.clone(),
+                export_buttons.clone(),
+                export_busy.clone(),
+            );
+        }
 
         Self {
             widget,
             title,
             title_entry,
             title_stack,
+            heading,
             metadata,
             divider,
             body,
@@ -376,10 +437,12 @@ impl NotePreview {
             read_only,
             toolbar,
             menu_bar,
+            document_clamp: clamp,
             current,
             editing,
             on_edit_finished,
             on_read_only_changed,
+            on_editor_mode_requested,
         }
     }
 
@@ -484,11 +547,41 @@ impl NotePreview {
 
     pub fn set_compact(&self, compact: bool) {
         self.toolbar.set_compact(compact);
+        self.menu_bar.set_compact(compact);
         if compact {
             self.widget.add_css_class("compact");
         } else {
             self.widget.remove_css_class("compact");
         }
+    }
+
+    pub fn set_available_width(&self, available_width: i32) {
+        let content_width = editor_content_width(available_width).max(1);
+        self.document_clamp.set_maximum_size(content_width);
+        self.document_clamp
+            .set_tightening_threshold((content_width * 85 + 50) / 100);
+
+        let density = editor_layout_density(available_width);
+        self.set_compact(density != EditorLayoutDensity::Spacious);
+        let narrow = density == EditorLayoutDensity::Narrow;
+        self.heading.set_orientation(if narrow {
+            gtk::Orientation::Vertical
+        } else {
+            gtk::Orientation::Horizontal
+        });
+        if narrow {
+            self.widget.add_css_class("narrow");
+        } else {
+            self.widget.remove_css_class("narrow");
+        }
+    }
+
+    pub fn content_maximum_width(&self) -> i32 {
+        self.document_clamp.maximum_size()
+    }
+
+    pub fn is_narrow(&self) -> bool {
+        self.widget.has_css_class("narrow")
     }
 
     pub fn is_compact(&self) -> bool {
@@ -497,6 +590,22 @@ impl NotePreview {
 
     pub fn connect_read_only_changed<F: Fn(Note, bool) + 'static>(&self, callback: F) {
         self.on_read_only_changed.replace(Some(Rc::new(callback)));
+    }
+
+    pub fn connect_editor_mode_requested<F: Fn(Note, EditorMode) + 'static>(&self, callback: F) {
+        self.on_editor_mode_requested
+            .replace(Some(Rc::new(callback)));
+    }
+
+    pub fn set_mode_controls_sensitive(&self, sensitive: bool) {
+        for button in [
+            &self.toolbar.mode_rich,
+            &self.toolbar.mode_markdown,
+            &self.toolbar.mode_plain,
+            &self.toolbar.mode_code,
+        ] {
+            button.set_sensitive(sensitive);
+        }
     }
 
     pub fn set_read_only_open(&self, enabled: bool) {
@@ -599,6 +708,49 @@ impl NotePreview {
     }
 }
 
+fn connect_preview_export(
+    button: &gtk::Button,
+    format: ExportFormat,
+    preview: &gtk::ScrolledWindow,
+    current: Rc<RefCell<Option<Note>>>,
+    export_buttons: Vec<gtk::Button>,
+    busy: Rc<Cell<bool>>,
+) {
+    let preview = preview.clone();
+    button.connect_clicked(move |_| {
+        if busy.replace(true) {
+            return;
+        }
+        let Some(note) = current.borrow().clone() else {
+            busy.set(false);
+            return;
+        };
+        let Some(parent) = preview.root().and_downcast::<gtk::Window>() else {
+            busy.set(false);
+            return;
+        };
+        for button in &export_buttons {
+            button.set_sensitive(false);
+        }
+
+        let export_buttons = export_buttons.clone();
+        let busy = busy.clone();
+        gtk::glib::MainContext::default().spawn_local(async move {
+            if let Err(error) = save_note_as(&parent, note, format).await {
+                super::dialog_primitives::show_error(
+                    &parent,
+                    "Could not save exported copy",
+                    &format!("Noor Notes did not change your note. {error}"),
+                );
+            }
+            for button in &export_buttons {
+                button.set_sensitive(true);
+            }
+            busy.set(false);
+        });
+    });
+}
+
 impl Default for NotePreview {
     fn default() -> Self {
         Self::new()
@@ -637,6 +789,7 @@ fn set_editing(
     editing.set(enabled);
     editor.set_editable(enabled);
     toolbar.set_editor_mode(mode.clone());
+    menu_bar.set_editor_mode(mode.clone());
     toolbar.set_editable(enabled);
     editor.set_cursor_visible(enabled);
     body_stack.set_visible_child_name(if enabled { "editor" } else { "preview" });
