@@ -33,6 +33,7 @@ require '<url type="homepage">https://github.com/saamaamr/noor-notes</url>' "$me
 require '<url type="bugtracker">https://github.com/saamaamr/noor-notes/issues</url>' "$metadata"
 require '<url type="vcs-browser">https://github.com/saamaamr/noor-notes</url>' "$metadata"
 require '<summary>Private, encrypted notes with focused editing for Linux</summary>' "$metadata"
+require '<release version="1.0.2" date="2026-08-24" type="stable">' "$metadata"
 require '<release version="1.0.0" date="2026-08-19" type="stable">' "$metadata"
 require '<release version="0.2.0" date="2026-08-17" type="stable">' "$metadata"
 require '<release version="0.1.1" date="2026-08-05" type="stable">' "$metadata"

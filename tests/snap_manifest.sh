@@ -27,12 +27,15 @@ manifest_path = Path(sys.argv[1])
 source = manifest_path.read_text(encoding="utf-8")
 manifest = yaml.safe_load(source)
 workspace = tomllib.loads((manifest_path.parent / "Cargo.toml").read_text(encoding="utf-8"))
+app_manifest = tomllib.loads(
+    (manifest_path.parent / "apps/noor-notes/Cargo.toml").read_text(encoding="utf-8")
+)
 spelling_source = (manifest_path.parent / "apps/noor-notes/src/writing_assistance/spelling.rs").read_text(encoding="utf-8")
 
 if not isinstance(manifest, dict):
     raise SystemExit("Snap manifest must be a YAML mapping")
 
-require_equal("version", manifest.get("version"), "1.0.0")
+require_equal("version", manifest.get("version"), app_manifest["package"]["version"])
 require_equal("title", manifest.get("title"), "Noor Notes")
 require_equal(
     "summary",

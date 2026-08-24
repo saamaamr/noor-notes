@@ -11,7 +11,9 @@ from pathlib import Path
 
 
 root = Path(sys.argv[1])
-expected = "1.0.0"
+expected = tomllib.loads(
+    (root / "apps/noor-notes/Cargo.toml").read_text(encoding="utf-8")
+)["package"]["version"]
 
 manifests = sorted(root.glob("crates/*/Cargo.toml")) + [
     root / "apps/noor-notes/Cargo.toml"
@@ -44,9 +46,9 @@ if locked != {name: expected for name in workspace_packages}:
 
 readme = (root / "README.md").read_text(encoding="utf-8")
 for fragment in (
-    "**Current release:** v1.0.0",
-    "releases/download/v1.0.0",
-    "noor-notes_1.0.0_amd64.snap",
+    f"**Current release:** v{expected}",
+    f"releases/download/v{expected}",
+    f"noor-notes_{expected}_amd64.snap",
     "Every Monday at 12:00 Bangladesh time",
     "first Monday of each month",
 ):
