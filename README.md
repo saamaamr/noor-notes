@@ -18,7 +18,7 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 
 | Dark appearance | Rich formatting and colours |
 | --- | --- |
-| ![Noor Notes library using the Graphite dark appearance](data/screenshots/noor-notes-dark.png) | ![Noor Notes rich formatting popover with text and highlight colours](data/screenshots/noor-notes-formatting.png) |
+| ![Noor Notes library using the Midnight dark appearance](data/screenshots/noor-notes-dark.png) | ![Noor Notes rich formatting popover with text and highlight colours](data/screenshots/noor-notes-formatting.png) |
 
 | Find and replace | Trash recovery | Narrow layout |
 | --- | --- | --- |
@@ -26,6 +26,8 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 
 ## Recent fixes
 
+- Released **Noor Notes 1.0.3** to Snap Store `latest/stable` as amd64 revision 14 after package linting, local install smoke testing, Store edge installation, and promotion of the same validated revision.
+- Fixed missing sidebar, toolbar, menu, formatting, and status icons in confined installs whose selected desktop icon theme is unavailable inside the Snap; Noor Notes now preserves complete themes and otherwise uses a process-local Adwaita fallback.
 - Fixed the library preview allocation so wide windows keep a readable document column instead of collapsing text into a narrow vertical strip.
 - Preserved the responsive list-to-preview transition at narrow widths without clipping the selected note or forcing horizontal scrolling.
 - Fixed inline preview edits so finishing an edit and switching notes uses the existing autosave pipeline and retains the saved content.
@@ -50,7 +52,7 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 - **Focused editor**: a readable writing canvas with a compact toolbar and live status bar. Rich Text preserves the intentionally compact 5-pixel top/bottom and 8-pixel left/right canvas margins. Find and replace, undo and redo, word wrap, zoom, go to line, full screen, line and column position, word and character counts, and keyboard shortcuts work end to end.
 - **Rich and source modes**: rich notes support persistent bold, italic, underline, strikethrough, lists, alignment, font sizes, text and highlight colours, and emoji. Markdown and code notes use GtkSourceView syntax languages, while Plain Text stays unhighlighted; all source modes include line numbers, current-line highlighting, regex search, bookmarks, and theme-matched editor palettes.
 - **Reliable saving**: debounced autosave exposes Unsaved, Saving, Saved, and retryable failure states; close-time flushing protects pending edits, and rich formatting survives save and reopen.
-- **Polished appearance**: Light uses calm semantic surfaces, restrained note-colour accents, and subtle selection states; Graphite, Midnight, and OLED provide purpose-built dark palettes, or Noor Notes can follow the GNOME system theme. The selection persists and updates library windows, editors, paper colours, controls, and symbolic icon colours together.
+- **Polished appearance**: Snow provides calm daytime surfaces, restrained note-colour accents, and subtle selection states; Midnight provides a purpose-built dark palette. System appearance resolves to one of those two maintained themes. The selection persists and updates library windows, editors, paper colours, controls, and symbolic icon colours together.
 - **Private local storage**: SQLCipher encrypts note text, titles, tags, and history with a random key held by GNOME Keyring. Existing databases migrate safely, and Noor Notes adds no analytics, advertising, or tracking.
 - **Linux desktop integration**: source installs can preview and import Xpad notes without modifying the originals. Always on Top, all-workspaces, opacity, and other window controls are available where the active desktop backend supports them.
 
@@ -169,13 +171,13 @@ The final command must report `OK` for the selected artifact before installation
 
 Choose **Editor mode** from the note More menu to switch between Rich Text, Markdown, Plain Text, and Code. Existing rich notes remain compatible. Noor Notes previews conversions before applying them and creates a recovery copy whenever rich styling would be lost.
 
-Markdown, Plain Text, and Code use the source editor with optional line numbers, current-line highlighting, bookmarks, regular-expression search, word wrap, and zoom. Markdown and Code apply language-aware syntax highlighting; Plain Text intentionally uses one consistent body colour. Light, Graphite, Midnight, and OLED each provide a dedicated high-contrast source palette that updates immediately in open editors. Rich Text retains persistent formatting and the compact formatting controls described below.
+Markdown, Plain Text, and Code use the source editor with optional line numbers, current-line highlighting, bookmarks, regular-expression search, word wrap, and zoom. Markdown and Code apply language-aware syntax highlighting; Plain Text intentionally uses one consistent body colour. Snow and Midnight each provide a dedicated high-contrast source palette that updates immediately in open editors. Rich Text retains persistent formatting and the compact formatting controls described below.
 
-## Appearance and dark palettes
+## Appearance
 
-Use the moon button in a library or editor header to cycle quickly between Graphite, Midnight, and OLED. For a direct choice, open the main menu **Appearance** submenu. **Appearance Settings** provides System, Light, Graphite, Midnight, and OLED with visual swatches.
+Use the appearance button in a library or editor header to switch quickly between Snow and Midnight. For a direct choice, open the main menu **Appearance** submenu. **Appearance Settings** presents the maintained Snow daytime theme and Midnight night theme with clear previews.
 
-System follows the current GNOME preference while remembering the last preferred dark palette. Explicit selections persist across restarts and update every open library, editor, and settings window. Native symbolic icons adapt with the palette: neutral icons follow the foreground colour, active icons use the accent colour, and success, warning, and destructive icons retain accessible semantic colours.
+Historical Light, Warm Paper, and Cool Mist preferences migrate safely to Snow; Graphite and OLED migrate to Midnight. System follows the current GNOME preference by resolving to Snow or Midnight. Explicit selections persist across restarts and update every open library, editor, sticky note, popover, and settings window. Native symbolic icons adapt with the palette: neutral icons follow the foreground colour, active icons use the accent colour, and success, warning, and destructive icons retain accessible semantic colours.
 
 ## First use and Xpad import
 
@@ -187,7 +189,7 @@ The strict Snap and Flatpak packages cannot read the host `~/.config/xpad`, so t
 
 Name a note from its title field or Rename action. Add comma-separated tags below the title and choose a note colour from Window Settings. Use the compact formatting toolbar to style selected text or insert an emoji. Repeated list-button clicks toggle the list instead of duplicating markers, and Enter continues or exits lists naturally. Preset sizes and a custom positive whole-number pixel size are available. Formatting is saved with the note; if a stored rich-text format is unsupported, Noor Notes safely displays its plain text instead.
 
-In **Rich Text** mode, the formatting popover provides seven professional text-colour presets, seven highlight presets, Automatic/No Highlight reset controls, and native custom colour pickers. Preset colours adapt for Light, Graphite, Midnight, and OLED themes, while custom RGB colours remain exact. Text and highlight colours persist through autosave, close, database reopen, export-compatible rich snapshots, and later theme changes. These controls are intentionally disabled in Markdown, Plain Text, and Code modes so source-editor syntax colours are never mixed with rich formatting.
+In **Rich Text** mode, the formatting popover provides seven professional text-colour presets, seven highlight presets, Automatic/No Highlight reset controls, and native custom colour pickers. Preset colours adapt for Snow and Midnight, while custom RGB colours remain exact. Text and highlight colours persist through autosave, close, database reopen, export-compatible rich snapshots, and later theme changes. These controls are intentionally disabled in Markdown, Plain Text, and Code modes so source-editor syntax colours are never mixed with rich formatting.
 
 The editor toolbar adapts to the note window: it stays on one compact row when space permits and automatically wraps into additional rows in narrow windows, keeping the **More note actions** (`⋮`) control visible and clickable. In short windows, the More menu limits each column to six action rows and continues the remaining actions in additional columns. **View Only** is available directly in this main More menu rather than behind a second submenu.
 
