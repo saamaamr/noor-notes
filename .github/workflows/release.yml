@@ -131,7 +131,9 @@ jobs:
             release-assets/SHA256SUMS.txt
 
   store-edge:
-    needs: [snap, release]
+    # A validated Snap hotfix must not be blocked by an unrelated Flatpak CDN
+    # outage. The GitHub release still waits for both package formats above.
+    needs: snap
     runs-on: ubuntu-24.04
     steps:
       - name: Download the validated release Snap

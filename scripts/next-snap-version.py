@@ -16,19 +16,24 @@ def next_version(release_kind: str, current: str) -> str:
         raise ValueError(f"Store version must be MAJOR.MINOR.PATCH, got {current!r}")
 
     major, minor, patch = (int(part) for part in match.groups())
-    if release_kind == "edge":
+    if release_kind in {"edge", "hotfix"}:
         patch += 1
     elif release_kind == "stable":
         minor += 1
         patch = 0
     else:
-        raise ValueError(f"Release kind must be 'edge' or 'stable', got {release_kind!r}")
+        raise ValueError(
+            f"Release kind must be 'edge', 'hotfix', or 'stable', got {release_kind!r}"
+        )
     return f"{major}.{minor}.{patch}"
 
 
 def main() -> int:
     if len(sys.argv) != 3:
-        print(f"Usage: {sys.argv[0]} edge|stable MAJOR.MINOR.PATCH", file=sys.stderr)
+        print(
+            f"Usage: {sys.argv[0]} edge|hotfix|stable MAJOR.MINOR.PATCH",
+            file=sys.stderr,
+        )
         return 2
     try:
         print(next_version(sys.argv[1], sys.argv[2]))

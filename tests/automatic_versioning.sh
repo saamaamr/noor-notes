@@ -19,6 +19,8 @@ expect_version() {
 
 expect_version edge 1.0.0 1.0.1
 expect_version edge 1.1.9 1.1.10
+expect_version hotfix 1.1.0 1.1.1
+expect_version hotfix 1.1.9 1.1.10
 expect_version stable 1.0.7 1.1.0
 expect_version stable 1.9.4 1.10.0
 

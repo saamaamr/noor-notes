@@ -28,8 +28,8 @@ on = workflow.get("on", {})
 if on.get("schedule") != [{"cron": "0 6 * * 1"}]:
     raise SystemExit("Snap cadence must run Mondays at 06:00 UTC / 12:00 Bangladesh time")
 dispatch = on.get("workflow_dispatch", {}).get("inputs", {}).get("release", {})
-if dispatch.get("default") != "edge" or dispatch.get("options") != ["edge", "stable"]:
-    raise SystemExit("Manual cadence runs must support explicit edge and stable releases")
+if dispatch.get("default") != "edge" or dispatch.get("options") != ["edge", "hotfix", "stable"]:
+    raise SystemExit("Manual cadence runs must support explicit edge, patch hotfix, and stable releases")
 
 permissions = workflow.get("permissions", {})
 if permissions != {"contents": "read", "actions": "read"}:
@@ -55,6 +55,8 @@ for fragment in (
     "promote_stable",
     "release_kind",
     "publish_edge=true",
+    '"${MANUAL_RELEASE}" = "hotfix"',
+    "release_kind=hotfix",
 ):
     if fragment not in decision_source:
         raise SystemExit(f"Cadence decision gate must include: {fragment}")
@@ -88,6 +90,7 @@ for fragment in (
     "snap info noor-notes",
     "latest/edge",
     "latest/stable",
+    "hotfix)",
     "scripts/next-snap-version.py",
     "scripts/set-build-version.py",
 ):

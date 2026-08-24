@@ -127,8 +127,10 @@ if workflow.get("concurrency", {}).get("group") != "snap-store-publication":
     raise SystemExit("Tag and cadence Store publications must share one concurrency lock")
 
 store_edge = jobs["store-edge"]
-if store_edge.get("needs") != ["snap", "release"]:
-    raise SystemExit("Store edge publication must wait for the validated Snap and GitHub release")
+if store_edge.get("needs") != "snap":
+    raise SystemExit(
+        "Store edge publication must depend only on the validated Snap so an unrelated Flatpak CDN outage cannot block a Snap hotfix"
+    )
 store_edge_steps = store_edge.get("steps", [])
 if not any(
     isinstance(step, dict)

@@ -6,12 +6,13 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: Release to edge, or publish to edge and promote the tested revision to stable
+        description: Release to edge, publish a patch hotfix, or publish the next monthly stable
         required: true
         default: edge
         type: choice
         options:
           - edge
+          - hotfix
           - stable
 
 permissions:
@@ -42,7 +43,10 @@ jobs:
 
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             publish_edge=true
-            if [ "${MANUAL_RELEASE}" = "stable" ]; then
+            if [ "${MANUAL_RELEASE}" = "hotfix" ]; then
+              promote_stable=true
+              release_kind=hotfix
+            elif [ "${MANUAL_RELEASE}" = "stable" ]; then
               promote_stable=true
               release_kind=stable
             fi
@@ -89,6 +93,7 @@ jobs:
         run: |
           case "${RELEASE_KIND}" in
             edge) source_channel=latest/edge ;;
+            hotfix) source_channel=latest/stable ;;
             stable) source_channel=latest/stable ;;
             *) printf 'Unknown release kind: %s\n' "${RELEASE_KIND}" >&2; exit 2 ;;
           esac

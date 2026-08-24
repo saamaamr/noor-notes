@@ -52,9 +52,14 @@
     </screenshot>
   </screenshots>
   <releases>
-    <release version="1.1.0" date="2026-08-24" type="stable">
+    <release version="1.1.1" date="2026-08-24" type="stable">
       <description>
         <p>Fixes Live Snap crashes during Archive and Move to Trash by using one compatible GNOME GTK runtime, restores confined-install icons and themes, and reduces duplicate runtime files.</p>
+      </description>
+    </release>
+    <release version="1.1.0" date="2026-08-24" type="stable">
+      <description>
+        <p>Refines the responsive integrated editor, shared formatting controls, document exports, theme contrast, and source-editing modes.</p>
       </description>
     </release>
     <release version="1.0.2" date="2026-08-24" type="stable">
