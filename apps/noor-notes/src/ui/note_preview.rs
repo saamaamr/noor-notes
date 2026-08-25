@@ -193,13 +193,27 @@ impl NotePreview {
             });
         }
 
+        let preview_scroll = gtk::ScrolledWindow::builder()
+            .hexpand(true)
+            .vexpand(true)
+            .hscrollbar_policy(gtk::PolicyType::Never)
+            .child(&body)
+            .build();
+        preview_scroll.add_css_class("nn-preview-body-scroll");
+        let editor_scroll = gtk::ScrolledWindow::builder()
+            .hexpand(true)
+            .vexpand(true)
+            .hscrollbar_policy(gtk::PolicyType::Automatic)
+            .child(&editor)
+            .build();
+        editor_scroll.add_css_class("nn-preview-body-scroll");
         let body_stack = gtk::Stack::new();
         body_stack.set_transition_type(gtk::StackTransitionType::Crossfade);
         body_stack.set_transition_duration(140);
         body_stack.set_hexpand(true);
         body_stack.set_vexpand(true);
-        body_stack.add_named(&body, Some("preview"));
-        body_stack.add_named(&editor, Some("editor"));
+        body_stack.add_named(&preview_scroll, Some("preview"));
+        body_stack.add_named(&editor_scroll, Some("editor"));
         body_stack.set_visible_child_name("preview");
         let toolbar = EditorToolbar::new();
         toolbar.widget.set_visible(false);
@@ -217,6 +231,8 @@ impl NotePreview {
         toolbar.set_rich_formatting_enabled(false);
         let menu_bar = EditorMenuBar::new_preview(&toolbar);
         menu_bar.widget.set_visible(false);
+        menu_bar.widget.set_hexpand(false);
+        menu_bar.widget.set_halign(gtk::Align::Start);
         document.append(&menu_bar.widget);
         document.append(&toolbar.widget);
         document.append(&body_stack);
@@ -232,6 +248,7 @@ impl NotePreview {
             .hexpand(true)
             .vexpand(true)
             .hscrollbar_policy(gtk::PolicyType::Never)
+            .vscrollbar_policy(gtk::PolicyType::Never)
             .child(&clamp)
             .build();
         widget.add_css_class("nn-preview-surface");

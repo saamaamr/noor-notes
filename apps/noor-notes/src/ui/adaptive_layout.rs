@@ -31,16 +31,18 @@ pub enum EditorLayoutDensity {
 
 /// Keeps the document proportional to the editor pane instead of pinning it to
 /// one desktop-sized pixel width. Narrow panes use all available space, medium
-/// panes retain a little breathing room, and wide panes keep readable lines.
+/// panes retain a little breathing room, and wide panes cap the document at a
+/// readable line length.
 pub fn editor_content_width(available_width: i32) -> i32 {
     let available_width = available_width.max(0);
-    if available_width < 640 {
+    let proportional_width = if available_width < 640 {
         available_width
     } else if available_width < 1_000 {
         (available_width * 92 + 50) / 100
     } else {
         (available_width * 78 + 50) / 100
-    }
+    };
+    proportional_width.min(860)
 }
 
 pub const fn editor_layout_density(available_width: i32) -> EditorLayoutDensity {

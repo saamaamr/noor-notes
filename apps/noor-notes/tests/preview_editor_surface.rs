@@ -1,6 +1,6 @@
 use adw::prelude::*;
 use chrono::Utc;
-use noor_domain::Note;
+use noor_domain::{EditorMode, Note, SourceLanguage};
 use noor_notes::ui::note_preview::NotePreview;
 
 const PREVIEW: &str = include_str!("../src/ui/note_preview.rs");
@@ -72,6 +72,149 @@ fn reading_and_editing_share_one_document_grid_without_exposing_form_chrome() {
         .expect("document bounds");
     assert!(bounds.width() <= 860.0, "document width={}", bounds.width());
     window.close();
+    preview_menu_controls_fit_their_content_instead_of_spanning_the_document();
+    long_editor_body_scrolls_without_moving_the_document_header();
+    unwrapped_source_editor_exposes_horizontal_scrolling();
+}
+
+fn preview_menu_controls_fit_their_content_instead_of_spanning_the_document() {
+    let preview = NotePreview::new();
+    preview.show_note(&Note::new(Utc::now()));
+    preview.begin_editing();
+    preview.set_available_width(900);
+    let window = gtk::Window::builder()
+        .default_width(900)
+        .default_height(600)
+        .child(&preview.widget)
+        .build();
+    window.present();
+    while gtk::glib::MainContext::default().iteration(false) {}
+
+    let widgets = descendants(preview.widget.clone().upcast());
+    let document = widgets
+        .iter()
+        .find(|widget| widget.has_css_class("nn-preview"))
+        .expect("preview document");
+    let menu = widgets
+        .iter()
+        .find(|widget| widget.has_css_class("nn-editor-menu-bar"))
+        .expect("preview editor menu");
+    let document_bounds = document
+        .compute_bounds(&preview.widget)
+        .expect("document bounds");
+    let menu_bounds = menu.compute_bounds(&preview.widget).expect("menu bounds");
+
+    assert!(
+        menu_bounds.width() < document_bounds.width() * 0.6,
+        "compact menu consumed the document width: menu={menu_bounds:?}, document={document_bounds:?}"
+    );
+    window.close();
+}
+
+fn long_editor_body_scrolls_without_moving_the_document_header() {
+    let mut note = Note::new(Utc::now());
+    note.title = "Long writing session".into();
+    note.content = (0..400)
+        .map(|line| format!("Line {line}: focused writing stays inside the editor body."))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let preview = NotePreview::new();
+    preview.show_note(&note);
+    preview.begin_editing();
+    preview.set_available_width(900);
+    let window = gtk::Window::builder()
+        .default_width(900)
+        .default_height(600)
+        .child(&preview.widget)
+        .build();
+    window.present();
+    while gtk::glib::MainContext::default().iteration(false) {}
+
+    let heading = descendants(preview.widget.clone().upcast())
+        .into_iter()
+        .find(|widget| widget.has_css_class("nn-preview-heading"))
+        .expect("document heading");
+    let body_scroll = ancestor_scrolled_window(preview.editor().upcast())
+        .expect("editor body must own an internal scroller");
+    let heading_bounds = heading
+        .compute_bounds(&preview.widget)
+        .expect("document heading bounds");
+    let scroll_bounds = body_scroll
+        .compute_bounds(&preview.widget)
+        .expect("editor body scroller bounds");
+    assert!(
+        scroll_bounds.y() >= heading_bounds.y() + heading_bounds.height(),
+        "editor body scroller must start below the fixed header: heading={heading_bounds:?}, scroll={scroll_bounds:?}"
+    );
+    let adjustment = body_scroll.vadjustment();
+    assert!(
+        adjustment.upper() > adjustment.page_size() + 100.0,
+        "long note must scroll inside the editor body: upper={}, page={}",
+        adjustment.upper(),
+        adjustment.page_size()
+    );
+    let before = heading
+        .compute_bounds(&preview.widget)
+        .expect("heading bounds before body scroll")
+        .y();
+    adjustment.set_value(100.0);
+    while gtk::glib::MainContext::default().iteration(false) {}
+    let after = heading
+        .compute_bounds(&preview.widget)
+        .expect("heading bounds after body scroll")
+        .y();
+
+    assert!(
+        (after - before).abs() < 1.0,
+        "body scrolling moved the document header from {before} to {after}"
+    );
+    window.close();
+}
+
+fn unwrapped_source_editor_exposes_horizontal_scrolling() {
+    let mut note = Note::new(Utc::now());
+    note.editor_mode = EditorMode::Code;
+    note.editor_preferences.word_wrap = false;
+    note.source_language = SourceLanguage::new("rust").unwrap();
+    note.content = format!("let uninterrupted_line = \"{}\";", "x".repeat(4_000));
+
+    let preview = NotePreview::new();
+    preview.show_note(&note);
+    preview.begin_editing();
+    preview.set_available_width(620);
+    let window = gtk::Window::builder()
+        .default_width(620)
+        .default_height(480)
+        .child(&preview.widget)
+        .build();
+    window.present();
+    while gtk::glib::MainContext::default().iteration(false) {}
+
+    let body_scroll =
+        ancestor_scrolled_window(preview.editor().upcast()).expect("source editor body scroller");
+    let adjustment = body_scroll.hadjustment();
+    assert!(
+        adjustment.upper() > adjustment.page_size() + 100.0,
+        "unwrapped source line must exceed the visible page: upper={}, page={}",
+        adjustment.upper(),
+        adjustment.page_size()
+    );
+    assert!(
+        body_scroll.hscrollbar().is_mapped(),
+        "unwrapped source mode must expose its horizontal scrollbar"
+    );
+    window.close();
+}
+
+fn ancestor_scrolled_window(mut widget: gtk::Widget) -> Option<gtk::ScrolledWindow> {
+    while let Some(parent) = widget.parent() {
+        if let Ok(scrolled) = parent.clone().downcast::<gtk::ScrolledWindow>() {
+            return Some(scrolled);
+        }
+        widget = parent;
+    }
+    None
 }
 
 fn descendants(root: gtk::Widget) -> Vec<gtk::Widget> {

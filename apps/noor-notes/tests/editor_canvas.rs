@@ -21,7 +21,7 @@ fn rich_writing_is_clamped_while_source_modes_keep_full_editor_width() {
         .downcast::<adw::Clamp>()
         .expect("rich writing canvas should use an Adwaita reading-width clamp");
     set_editor_canvas_available_width(clamp.upcast_ref(), 1_200);
-    assert_eq!(clamp.maximum_size(), 936);
+    assert_eq!(clamp.maximum_size(), 860);
     set_editor_canvas_available_width(clamp.upcast_ref(), 620);
     assert_eq!(clamp.maximum_size(), 620);
 

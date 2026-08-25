@@ -71,8 +71,8 @@ fn width_breakpoints_choose_one_stable_library_mode() {
 fn editor_content_width_follows_the_available_pane_ratio() {
     assert_eq!(editor_content_width(520), 520);
     assert_eq!(editor_content_width(760), 699);
-    assert_eq!(editor_content_width(1_200), 936);
-    assert_eq!(editor_content_width(1_600), 1_248);
+    assert_eq!(editor_content_width(1_200), 860);
+    assert_eq!(editor_content_width(1_600), 860);
 
     assert_eq!(editor_layout_density(900), EditorLayoutDensity::Spacious);
     assert_eq!(editor_layout_density(620), EditorLayoutDensity::Compact);
