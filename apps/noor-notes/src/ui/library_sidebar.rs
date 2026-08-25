@@ -149,6 +149,13 @@ impl LibrarySidebar {
             .collect()
     }
 
+    /// Moves keyboard focus away from a recyclable note card before that
+    /// card's model item is removed. The selected navigation row belongs to
+    /// the long-lived sidebar, so it remains valid across note-list refreshes.
+    pub fn focus_selected(&self) -> bool {
+        self.list.selected_row().is_some_and(|row| row.grab_focus())
+    }
+
     pub fn select_section(&self, section: LibrarySection) {
         let Some(index) = LibrarySection::NAVIGATION
             .iter()

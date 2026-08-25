@@ -52,9 +52,14 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.1.2" date="2026-08-25" type="stable">
+      <description>
+        <p>Prevents confined GTK focus use-after-free crashes during Archive, Restore, and Move to Trash by settling the note-action popover and moving focus to stable navigation before refreshing recyclable note cards.</p>
+      </description>
+    </release>
     <release version="1.1.1" date="2026-08-24" type="stable">
       <description>
-        <p>Fixes Live Snap crashes during Archive and Move to Trash by using one compatible GNOME GTK runtime, restores confined-install icons and themes, and reduces duplicate runtime files.</p>
+        <p>Uses one compatible GNOME GTK runtime, restores confined-install icons and themes, and reduces duplicate runtime files.</p>
       </description>
     </release>
     <release version="1.1.0" date="2026-08-24" type="stable">

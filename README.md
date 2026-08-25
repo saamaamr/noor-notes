@@ -2,7 +2,7 @@
 
 Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
 
-**Current release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
+**Current release:** v1.1.2 (Edge candidate) · **Stable:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
 
 ## Product overview
 
@@ -26,7 +26,8 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 
 ## Recent fixes
 
-- Fixed Live Snap crashes during Archive and Move to Trash by removing an incompatible bundled GTK 4.14 runtime and using the GNOME content snap's matching GTK/libadwaita stack.
+- Prevented the confined GTK focus use-after-free that closed the Live Snap after Archive, Restore, or Move to Trash: note-action popovers now settle before mutation, and focus moves to stable Library navigation before recyclable note cards refresh.
+- Removed the incompatible bundled GTK 4.14 runtime and use the GNOME content snap's matching GTK/libadwaita stack.
 - Added an artifact-level Snap runtime contract that blocks future releases containing duplicate GTK, libadwaita, or GtkSourceView runtimes while retaining the required libspelling library.
 - Fixed missing sidebar, toolbar, menu, formatting, and status icons in confined installs whose selected desktop icon theme is unavailable inside the Snap; Noor Notes now preserves complete themes and otherwise uses a process-local Adwaita fallback.
 - Fixed the library preview allocation so wide windows keep a readable document column instead of collapsing text into a narrow vertical strip.
@@ -77,6 +78,13 @@ Choose one installation method:
 Install the stable Snap Store release, then launch it from the application grid or terminal:
 
 The current stable release line is **Noor Notes 1.1.1** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
+
+The tested hotfix source is **1.1.2** and is published to `latest/edge` first. To help verify it before Stable promotion:
+
+```bash
+sudo snap refresh noor-notes --channel=latest/edge
+snap run noor-notes --version
+```
 
 ```bash
 sudo snap install noor-notes
@@ -294,7 +302,7 @@ Version tags build Snap and Flatpak artifacts in GitHub Actions. The `v1.1.1` ta
 
 Every Monday at 12:00 Bangladesh time, the Snap cadence workflow publishes a new `main` revision to `latest/edge` only when the source commit changed. Each scheduled or manual edge publication reads the current Store edge version and increments its patch component, for example `1.0.0` to `1.0.1` and then `1.0.2`.
 
-On the first Monday of each month, the workflow reads the current stable version, increments its minor component, and resets patch to zero, for example `1.0.0` to `1.1.0`. A manual hotfix instead increments only the current stable patch, for example `1.1.0` to `1.1.1`. The new version is built once, published to edge, installed back from the Store for a smoke test, and then promoted without rebuilding to `latest/stable`. Manual stable runs use the same minor-version policy; after `1.1.1` becomes stable, the next edge is `1.1.2`. The generated version is synchronized across the Snap manifest, application binary, Cargo workspace packages, lockfile, and AppStream metadata inside the isolated CI build workspace. A maintainer can start an explicit edge, hotfix, or stable run from GitHub Actions. Publication requires a repository secret named `SNAPCRAFT_STORE_CREDENTIALS`, scoped to Noor Notes package push, update, and release access.
+On the first Monday of each month, the workflow reads the current stable version, increments its minor component, and resets patch to zero, for example `1.0.0` to `1.1.0`. A manual hotfix instead increments only the current stable patch, for example `1.1.0` to `1.1.1`. The new version is built once, published to edge, installed back from the Store for a smoke test, and then promoted without rebuilding to `latest/stable`. Manual stable runs use the same minor-version policy; Stable `1.1.1` therefore produces Edge hotfix `1.1.2`. The generated version is synchronized across the Snap manifest, application binary, Cargo workspace packages, lockfile, and AppStream metadata inside the isolated CI build workspace. A maintainer can start an explicit edge, hotfix, or stable run from GitHub Actions. Publication requires a repository secret named `SNAPCRAFT_STORE_CREDENTIALS`, scoped to Noor Notes package push, update, and release access.
 
 The stable channel is the recommended installation path. Edge receives more frequent previews and can be less tested; stable only receives a revision after the build, local package smoke test, and Store-installed edge smoke test succeed. A Flathub submission is not created by this project's workflow.
 

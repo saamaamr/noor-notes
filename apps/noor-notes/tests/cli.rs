@@ -36,7 +36,7 @@ fn version_does_not_require_a_graphical_session_or_secret_service() {
     );
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "Noor Notes 1.1.1"
+        "Noor Notes 1.1.2"
     );
 }
 
@@ -49,9 +49,9 @@ fn development_build_is_clearly_branded_in_cli_output() {
     assert!(version.status.success());
     assert_eq!(
         String::from_utf8_lossy(&version.stdout).trim(),
-        "Noor Notes Dev 1.1.1"
+        "Noor Notes Dev 1.1.2"
     );
     let help = String::from_utf8_lossy(&help.stdout);
-    assert!(help.starts_with("Noor Notes Dev 1.1.1"));
+    assert!(help.starts_with("Noor Notes Dev 1.1.2"));
     assert!(help.contains("Usage: noor-notes-dev [OPTION]"));
 }

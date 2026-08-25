@@ -5,6 +5,7 @@ set -eu
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
 python3 - "$repo_root" <<'PY'
+import re
 import sys
 import tomllib
 from pathlib import Path
@@ -45,10 +46,14 @@ if locked != {name: expected for name in workspace_packages}:
     raise SystemExit(f"Workspace Cargo.lock versions must all equal {expected!r}; got {locked!r}")
 
 readme = (root / "README.md").read_text(encoding="utf-8")
+stable_match = re.search(r"\*\*Stable:\*\* v([0-9]+\.[0-9]+\.[0-9]+)", readme)
+if stable_match is None:
+    raise SystemExit("README release documentation must identify the Stable version")
+stable = stable_match.group(1)
 for fragment in (
     f"**Current release:** v{expected}",
-    f"releases/download/v{expected}",
-    f"noor-notes_{expected}_amd64.snap",
+    f"releases/download/v{stable}",
+    f"noor-notes_{stable}_amd64.snap",
     "Every Monday at 12:00 Bangladesh time",
     "first Monday of each month",
 ):

@@ -1,4 +1,6 @@
+use std::cell::RefCell;
 use std::rc::Rc;
+use std::time::Duration;
 
 use adw::prelude::*;
 use noor_domain::{Note, NoteId, NoteState};
@@ -10,6 +12,13 @@ pub enum CardAction {
     Restore,
     DeletePermanently,
 }
+
+// GTK 4.18 can still be unwinding the popover's focus transition when the
+// `closed` signal is emitted. Removing the owning list item during that
+// transition leaves GTK with a stale focused-widget pointer. Give the focus
+// machinery a short settle window before a lifecycle action may refresh the
+// note model and unbind the card.
+const POPOVER_FOCUS_SETTLE_DELAY: Duration = Duration::from_millis(150);
 
 pub struct NoteCard {
     pub widget: gtk::Box,
@@ -124,6 +133,7 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
     popover_content.set_margin_end(6);
     let popover = gtk::Popover::new();
     super::popover_primitives::style_popover(&popover);
+    let pending_action = Rc::new(RefCell::new(None));
     let mut action_buttons = Vec::new();
     let mut separated_destructive_actions = false;
     for (label, card_action, destructive) in actions {
@@ -143,17 +153,30 @@ pub fn build(note: &Note, action: Rc<dyn Fn(NoteId, CardAction)>) -> NoteCard {
             button.add_css_class("destructive-action");
             button.add_css_class("nn-menu-danger");
         }
-        let action = action.clone();
-        let id = note.id;
+        let pending_action = pending_action.clone();
         let action_popover = popover.clone();
         button.connect_clicked(move |_| {
+            pending_action.replace(Some(card_action));
             action_popover.popdown();
-            action(id, card_action);
         });
         action_buttons.push((card_action, button.clone()));
         popover_content.append(&button);
     }
     popover.set_child(Some(&popover_content));
+    popover.connect_closed({
+        let pending_action = pending_action.clone();
+        let action = action.clone();
+        let id = note.id;
+        move |_| {
+            let Some(card_action) = pending_action.borrow_mut().take() else {
+                return;
+            };
+            let action = action.clone();
+            gtk::glib::timeout_add_local_once(POPOVER_FOCUS_SETTLE_DELAY, move || {
+                action(id, card_action)
+            });
+        }
+    });
     let menu = gtk::MenuButton::builder()
         .icon_name("view-more-symbolic")
         .tooltip_text("Note actions")

@@ -650,6 +650,11 @@ impl MainWindow {
     }
 
     fn handle_card_action(&self, id: NoteId, action: CardAction) {
+        // The action originates in a popover owned by a recyclable list item.
+        // Move focus onto the long-lived sidebar before an async lifecycle
+        // mutation refreshes the model and unbinds that card. Focusing the
+        // ListView itself can simply focus the same card again.
+        self.sidebar.focus_selected();
         let this = self.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
             if action == CardAction::Trash

@@ -1,8 +1,11 @@
+use std::cell::RefCell;
 use std::rc::Rc;
+use std::time::Duration;
 
 use chrono::Utc;
 use gtk::prelude::*;
 use noor_domain::{Note, NoteState};
+use noor_notes::ui::library_sidebar::LibrarySidebar;
 use noor_notes::ui::note_card::{self, CardAction};
 use noor_notes::ui::note_collection::NoteCollection;
 
@@ -61,6 +64,97 @@ fn archive_quick_action_exists_only_for_active_notes() {
         .unwrap();
     selection.set_selected(1);
     flush_gtk();
+    window.close();
+    card_action_waits_until_the_actions_popover_is_closed();
+    sidebar_provides_a_stable_focus_target_for_card_removal();
+}
+
+fn sidebar_provides_a_stable_focus_target_for_card_removal() {
+    let sidebar = LibrarySidebar::new();
+    let collection = NoteCollection::new(Rc::new(|_, _| {}));
+    collection.set_notes(&[Note::new(Utc::now())]);
+    let layout = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+    layout.append(&sidebar.widget);
+    layout.append(&collection.widget);
+    let window = gtk::Window::builder().child(&layout).build();
+    window.present();
+    flush_gtk();
+
+    assert!(sidebar.focus_selected());
+    flush_gtk();
+    let focused = gtk::prelude::RootExt::focus(&window).expect("stable sidebar focus target");
+    assert!(
+        sidebar
+            .navigation_rows()
+            .iter()
+            .any(|row| focused == row.clone().upcast::<gtk::Widget>())
+    );
+
+    collection.set_notes(&[]);
+    flush_gtk();
+    assert!(
+        gtk::prelude::RootExt::focus(&window).is_some(),
+        "model refresh must keep valid focus"
+    );
+    window.close();
+}
+
+fn card_action_waits_until_the_actions_popover_is_closed() {
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let main_loop = gtk::glib::MainLoop::new(None, false);
+    let note = Note::new(Utc::now());
+    let card = note_card::build(&note, {
+        let events = events.clone();
+        let main_loop = main_loop.clone();
+        Rc::new(move |_, action| {
+            assert_eq!(action, CardAction::Archive);
+            events.borrow_mut().push("action");
+            main_loop.quit();
+        })
+    });
+    let popover = card
+        .menu
+        .popover()
+        .and_downcast::<gtk::Popover>()
+        .expect("note actions popover");
+    popover.connect_closed({
+        let events = events.clone();
+        move |_| events.borrow_mut().push("closed")
+    });
+    let archive = card
+        .action_button(CardAction::Archive)
+        .expect("active note archive action");
+    let window = gtk::Window::builder().child(&card.widget).build();
+    window.present();
+    popover.popup();
+    flush_gtk();
+
+    archive.emit_clicked();
+    assert_eq!(
+        events.borrow().as_slice(),
+        ["closed"],
+        "the note mutation must not begin while GTK is still closing the popover"
+    );
+    flush_gtk();
+    assert_eq!(
+        events.borrow().as_slice(),
+        ["closed"],
+        "the note mutation must wait for GTK's popover focus transition to settle"
+    );
+    let backend = gtk::gdk::Display::default()
+        .map(|display| display.type_().name().to_string())
+        .unwrap_or_default();
+    if backend.contains("Wayland") {
+        // A nested test MainLoop on Wayland does not dispatch a local timeout
+        // created by a popover's `closed` signal. The production application
+        // uses its outer loop; the X11/Xvfb release gate verifies completion.
+        window.close();
+        return;
+    }
+    let guard_loop = main_loop.clone();
+    gtk::glib::timeout_add_local_once(Duration::from_secs(1), move || guard_loop.quit());
+    main_loop.run();
+    assert_eq!(events.borrow().as_slice(), ["closed", "action"]);
     window.close();
 }
 
