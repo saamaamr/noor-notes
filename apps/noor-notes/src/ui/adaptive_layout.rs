@@ -94,7 +94,7 @@ pub fn allocation_for_width(
 
 impl LibraryLayoutMode {
     pub const fn for_width(width: i32) -> Self {
-        if width >= 1_080 {
+        if width >= 1_536 {
             Self::Wide
         } else if width >= 760 {
             Self::Medium

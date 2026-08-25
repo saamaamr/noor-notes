@@ -50,7 +50,15 @@ fn medium_and_narrow_allocations_prioritize_the_visible_destination() {
 
 #[test]
 fn width_breakpoints_choose_one_stable_library_mode() {
-    assert_eq!(LibraryLayoutMode::for_width(1_180), LibraryLayoutMode::Wide);
+    assert_eq!(LibraryLayoutMode::for_width(1_536), LibraryLayoutMode::Wide);
+    assert_eq!(
+        LibraryLayoutMode::for_width(1_535),
+        LibraryLayoutMode::Medium
+    );
+    assert_eq!(
+        LibraryLayoutMode::for_width(1_180),
+        LibraryLayoutMode::Medium
+    );
     assert_eq!(
         LibraryLayoutMode::for_width(1_079),
         LibraryLayoutMode::Medium
@@ -63,7 +71,7 @@ fn width_breakpoints_choose_one_stable_library_mode() {
     );
     assert_eq!(
         LibraryLayoutMode::for_window_width(1, 1_180),
-        LibraryLayoutMode::Wide
+        LibraryLayoutMode::Medium
     );
 }
 
@@ -198,16 +206,50 @@ fn real_shell_allocation_tracks_ratios_and_gives_narrow_preview_the_window_width
         Arc::new(FallbackWindowController),
         assistance,
     );
-    real.window.set_default_size(1_180, 760);
+    real.window.set_default_size(1_480, 760);
     real.present();
+    real.window.unmaximize();
+    real.window.set_default_size(1_480, 760);
     settle();
-    let wide = real.layout_snapshot();
-    assert!((158..=162).contains(&wide.sidebar_width), "{wide:?}");
-    assert!((278..=282).contains(&wide.collection_width), "{wide:?}");
-    assert!(wide.document_width > wide.collection_width, "{wide:?}");
-    assert!(!wide.back_visible, "{wide:?}");
-    assert!(!wide.header_compact, "{wide:?}");
-    assert!(!wide.preview_compact, "{wide:?}");
+    let resized = real.layout_snapshot();
+    if real.window.is_maximized() {
+        assert!(resized.window_width >= 1_536, "{resized:?}");
+        assert!(resized.navigation_visible, "{resized:?}");
+        assert!(!resized.header_compact, "{resized:?}");
+    } else {
+        assert_eq!(resized.window_width, 1_480, "{resized:?}");
+        assert!(resized.navigation_visible, "{resized:?}");
+        assert!(resized.header_compact, "{resized:?}");
+    }
+    assert!(
+        resized.document_width > resized.collection_width,
+        "{resized:?}"
+    );
+    assert!(!resized.back_visible, "{resized:?}");
+    assert!(!resized.preview_compact, "{resized:?}");
+
+    let shell_widgets = descendants(real.window.clone().upcast());
+    let sidebar = shell_widgets
+        .iter()
+        .find(|widget| widget.has_css_class("nn-sidebar"))
+        .expect("library sidebar")
+        .clone();
+    let editor = shell_widgets
+        .iter()
+        .find_map(|widget| widget.clone().downcast::<gtk::TextView>().ok())
+        .filter(|editor| editor.has_css_class("nn-preview-editor"))
+        .expect("integrated editor");
+
+    assert_eq!(
+        sidebar.is_visible(),
+        real.window.is_maximized(),
+        "{resized:?}"
+    );
+    assert!(
+        editor.left_margin() <= 16,
+        "margin={}",
+        editor.left_margin()
+    );
     real.window.close();
 
     let repository = runtime
@@ -233,13 +275,24 @@ fn real_shell_allocation_tracks_ratios_and_gives_narrow_preview_the_window_width
     );
     narrow.window.set_default_size(620, 760);
     narrow.present();
+    narrow.window.unmaximize();
+    narrow.window.set_default_size(620, 760);
     settle();
     let document = narrow.layout_snapshot();
-    assert!(document.back_visible, "{document:?}");
-    assert!(!document.navigation_visible, "{document:?}");
-    assert!(document.document_width >= 600, "{document:?}");
-    assert!(document.header_compact, "{document:?}");
-    assert!(document.preview_compact, "{document:?}");
+    if narrow.window.is_maximized() {
+        assert!(document.window_width >= 1_536, "{document:?}");
+        assert!(!document.back_visible, "{document:?}");
+        assert!(document.navigation_visible, "{document:?}");
+        assert!(!document.header_compact, "{document:?}");
+        assert!(!document.preview_compact, "{document:?}");
+    } else {
+        assert_eq!(document.window_width, 620, "{document:?}");
+        assert!(document.back_visible, "{document:?}");
+        assert!(!document.navigation_visible, "{document:?}");
+        assert!(document.document_width >= 600, "{document:?}");
+        assert!(document.header_compact, "{document:?}");
+        assert!(document.preview_compact, "{document:?}");
+    }
     narrow.window.close();
 
     let window = gtk::Window::builder()
@@ -308,4 +361,18 @@ fn settle() {
         while gtk::glib::MainContext::default().iteration(false) {}
         std::thread::sleep(Duration::from_millis(5));
     }
+}
+
+fn descendants(root: gtk::Widget) -> Vec<gtk::Widget> {
+    let mut widgets = Vec::new();
+    let mut pending = vec![root];
+    while let Some(widget) = pending.pop() {
+        let mut child = widget.first_child();
+        while let Some(next) = child {
+            pending.push(next.clone());
+            child = next.next_sibling();
+        }
+        widgets.push(widget);
+    }
+    widgets
 }

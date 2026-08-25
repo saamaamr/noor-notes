@@ -9,12 +9,8 @@ listing="$repo_root/data/store/LISTING.md"
 banner="$repo_root/data/store/noor-notes-featured-banner.png"
 screenshots='noor-notes-editor.png
 noor-notes-library.png
-noor-notes-writing-assistance.png
-noor-notes-dark.png
-noor-notes-formatting.png
-noor-notes-find-replace.png
-noor-notes-trash.png
-noor-notes-responsive.png'
+noor-notes-midnight.png'
+screenshot_root='docs/images/1.1.3'
 
 require() {
     needle=$1
@@ -33,6 +29,7 @@ require '<url type="homepage">https://github.com/saamaamr/noor-notes</url>' "$me
 require '<url type="bugtracker">https://github.com/saamaamr/noor-notes/issues</url>' "$metadata"
 require '<url type="vcs-browser">https://github.com/saamaamr/noor-notes</url>' "$metadata"
 require '<summary>Private, encrypted notes with focused editing for Linux</summary>' "$metadata"
+require '<release version="1.1.3" date="2026-08-25" type="stable">' "$metadata"
 require '<release version="1.1.2" date="2026-08-25" type="stable">' "$metadata"
 require '<release version="1.1.1" date="2026-08-24" type="stable">' "$metadata"
 require '<release version="1.1.0" date="2026-08-24" type="stable">' "$metadata"
@@ -41,7 +38,7 @@ require '<release version="1.0.0" date="2026-08-19" type="stable">' "$metadata"
 require '<release version="0.2.0" date="2026-08-17" type="stable">' "$metadata"
 require '<release version="0.1.1" date="2026-08-05" type="stable">' "$metadata"
 require '<caption>Browse and preview private notes.</caption>' "$metadata"
-require '<caption>Control private local and optional online writing assistance.</caption>' "$metadata"
+require '<caption>Write in an integrated editor that uses the available workspace.</caption>' "$metadata"
 
 require 'Exec=noor-notes' "$desktop"
 require 'Icon=io.github.saamaamr.NoorNotes' "$desktop"
@@ -60,8 +57,8 @@ if [ "$(stat -c %s "$banner")" -ge 2097152 ]; then
 fi
 
 for name in $screenshots; do
-    require "https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/$name" "$metadata"
-    screenshot="$repo_root/data/screenshots/$name"
+    require "https://raw.githubusercontent.com/saamaamr/noor-notes/main/$screenshot_root/$name" "$metadata"
+    screenshot="$repo_root/$screenshot_root/$name"
     if [ ! -s "$screenshot" ]; then
         printf 'Missing required screenshot: %s\n' "$screenshot" >&2
         exit 1

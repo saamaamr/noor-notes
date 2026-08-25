@@ -40,7 +40,11 @@ pub struct NotePreview {
     read_only: gtk::Button,
     toolbar: EditorToolbar,
     menu_bar: EditorMenuBar,
+    margin_ruler: gtk::Box,
+    left_margin: gtk::Scale,
+    right_margin: gtk::Scale,
     document_clamp: adw::Clamp,
+    available_width: Rc<Cell<i32>>,
     current: Rc<RefCell<Option<Note>>>,
     editing: Rc<Cell<bool>>,
     on_edit_finished: EditFinishedHandler,
@@ -72,6 +76,8 @@ impl NotePreview {
         document.add_css_class("nn-preview");
         document.set_valign(gtk::Align::Fill);
         document.set_vexpand(true);
+        let document_chrome = gtk::Box::new(gtk::Orientation::Vertical, 16);
+        document_chrome.set_hexpand(true);
 
         let heading = gtk::Box::new(gtk::Orientation::Horizontal, 12);
         heading.add_css_class("nn-preview-heading");
@@ -132,7 +138,7 @@ impl NotePreview {
         read_only.set_valign(gtk::Align::Start);
         heading_actions.append(&read_only);
         heading.append(&heading_actions);
-        document.append(&heading);
+        document_chrome.append(&heading);
 
         let metadata = gtk::Label::new(Some("Your note preview will appear here"));
         metadata.add_css_class("nn-metadata");
@@ -141,9 +147,11 @@ impl NotePreview {
         metadata.set_xalign(0.0);
         metadata.set_wrap(true);
         metadata.set_wrap_mode(gtk::pango::WrapMode::WordChar);
-        document.append(&metadata);
+        metadata.set_visible(false);
+        document_chrome.append(&metadata);
         let divider = gtk::Separator::new(gtk::Orientation::Horizontal);
-        document.append(&divider);
+        divider.set_visible(false);
+        document_chrome.append(&divider);
 
         let body = gtk::Label::new(Some(
             "Choose a note from the library to read it without opening another window.",
@@ -193,11 +201,18 @@ impl NotePreview {
             });
         }
 
+        let preview_body_clamp = adw::Clamp::builder()
+            .maximum_size(860)
+            .tightening_threshold(720)
+            .child(&body)
+            .build();
+        preview_body_clamp.set_hexpand(true);
+        preview_body_clamp.set_vexpand(true);
         let preview_scroll = gtk::ScrolledWindow::builder()
             .hexpand(true)
             .vexpand(true)
             .hscrollbar_policy(gtk::PolicyType::Never)
-            .child(&body)
+            .child(&preview_body_clamp)
             .build();
         preview_scroll.add_css_class("nn-preview-body-scroll");
         let editor_scroll = gtk::ScrolledWindow::builder()
@@ -225,31 +240,66 @@ impl NotePreview {
         toolbar.new_note.set_visible(false);
         toolbar.format.set_tooltip_text(Some("Formatting"));
         toolbar.widget.add_css_class("nn-preview-format-toolbar");
-        toolbar.widget.set_hexpand(false);
-        toolbar.widget.set_halign(gtk::Align::Start);
+        toolbar.widget.set_hexpand(true);
+        toolbar.widget.set_halign(gtk::Align::Fill);
         crate::editor_actions::connect(&toolbar, &buffer, editor.upcast_ref());
         toolbar.set_rich_formatting_enabled(false);
         let menu_bar = EditorMenuBar::new_preview(&toolbar);
         menu_bar.widget.set_visible(false);
-        menu_bar.widget.set_hexpand(false);
-        menu_bar.widget.set_halign(gtk::Align::Start);
-        document.append(&menu_bar.widget);
-        document.append(&toolbar.widget);
-        document.append(&body_stack);
-
-        let clamp = adw::Clamp::builder()
-            .maximum_size(860)
-            .tightening_threshold(720)
-            .child(&document)
+        menu_bar.widget.set_hexpand(true);
+        menu_bar.widget.set_halign(gtk::Align::Fill);
+        let margin_ruler = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        margin_ruler.add_css_class("nn-editor-margin-ruler");
+        margin_ruler.set_hexpand(true);
+        margin_ruler.set_visible(false);
+        let ruler_label = gtk::Label::new(Some("Margins"));
+        ruler_label.add_css_class("nn-editor-ruler-label");
+        let left_margin = margin_scale("Left margin", "nn-editor-left-margin", false);
+        let right_margin = margin_scale("Right margin", "nn-editor-right-margin", true);
+        let reset_margins = gtk::Button::builder()
+            .icon_name("edit-clear-symbolic")
+            .tooltip_text("Reset margins")
             .build();
-        clamp.set_hexpand(true);
-        clamp.set_vexpand(true);
+        reset_margins.add_css_class("flat");
+        reset_margins.update_property(&[gtk::accessible::Property::Label("Reset margins")]);
+        margin_ruler.append(&ruler_label);
+        margin_ruler.append(&left_margin);
+        margin_ruler.append(&reset_margins);
+        margin_ruler.append(&right_margin);
+        {
+            let editor = editor.clone();
+            left_margin.connect_value_changed(move |scale| {
+                let padding = editor_horizontal_padding(&editor);
+                editor.set_left_margin(padding + scale.value().round() as i32);
+            });
+        }
+        {
+            let editor = editor.clone();
+            right_margin.connect_value_changed(move |scale| {
+                let padding = editor_horizontal_padding(&editor);
+                editor.set_right_margin(padding + scale.value().round() as i32);
+            });
+        }
+        {
+            let left_margin = left_margin.clone();
+            let right_margin = right_margin.clone();
+            reset_margins.connect_clicked(move |_| {
+                left_margin.set_value(0.0);
+                right_margin.set_value(0.0);
+            });
+        }
+        document_chrome.append(&menu_bar.widget);
+        document_chrome.append(&toolbar.widget);
+        document_chrome.append(&margin_ruler);
+
+        document.append(&document_chrome);
+        document.append(&body_stack);
         let widget = gtk::ScrolledWindow::builder()
             .hexpand(true)
             .vexpand(true)
             .hscrollbar_policy(gtk::PolicyType::Never)
             .vscrollbar_policy(gtk::PolicyType::Never)
-            .child(&clamp)
+            .child(&document)
             .build();
         widget.add_css_class("nn-preview-surface");
 
@@ -293,6 +343,7 @@ impl NotePreview {
             let title_stack = title_stack.clone();
             let toolbar = toolbar.clone();
             let menu_bar = menu_bar.clone();
+            let margin_ruler = margin_ruler.clone();
             let on_body_edited = on_body_edited.clone();
             let on_edit_finished = on_edit_finished.clone();
             edit.connect_clicked(move |button| {
@@ -333,6 +384,7 @@ impl NotePreview {
                     &title_stack,
                     &toolbar,
                     &menu_bar,
+                    &margin_ruler,
                     &mode,
                     enabled,
                 );
@@ -454,7 +506,11 @@ impl NotePreview {
             read_only,
             toolbar,
             menu_bar,
-            document_clamp: clamp,
+            margin_ruler,
+            left_margin,
+            right_margin,
+            document_clamp: preview_body_clamp,
+            available_width: Rc::new(Cell::new(0)),
             current,
             editing,
             on_edit_finished,
@@ -475,6 +531,7 @@ impl NotePreview {
             &self.title_stack,
             &self.toolbar,
             &self.menu_bar,
+            &self.margin_ruler,
             &EditorMode::Rich,
             false,
         );
@@ -486,8 +543,8 @@ impl NotePreview {
         self.title_entry.set_editable(false);
         self.title.set_text("Select a note");
         self.metadata.set_text("Your note preview will appear here");
-        self.metadata.set_visible(true);
-        self.divider.set_visible(true);
+        self.metadata.set_visible(false);
+        self.divider.set_visible(false);
         self.body
             .set_text("Choose a note from the library to read it without opening another window.");
         self.editor.buffer().set_text("");
@@ -495,6 +552,12 @@ impl NotePreview {
 
     pub fn show_note(&self, note: &Note) {
         self.finish_pending_edit();
+        let changed_note =
+            self.current.borrow().as_ref().map(|current| current.id) != Some(note.id);
+        if changed_note {
+            self.left_margin.set_value(0.0);
+            self.right_margin.set_value(0.0);
+        }
         set_editing(
             &self.editing,
             &self.body_stack,
@@ -504,6 +567,7 @@ impl NotePreview {
             &self.title_stack,
             &self.toolbar,
             &self.menu_bar,
+            &self.margin_ruler,
             &note.editor_mode,
             false,
         );
@@ -520,24 +584,16 @@ impl NotePreview {
         self.edit
             .set_sensitive(!matches!(note.state, NoteState::Trashed { .. }));
         self.title.set_text(note.display_title());
-        self.metadata.set_text(&format!(
-            "Edited {}{}",
-            note.updated_at.format("%d %B %Y · %I:%M %p"),
-            if note.tags.is_empty() {
-                String::new()
-            } else {
-                format!(
-                    "  ·  {}",
-                    note.tags
-                        .iter()
-                        .map(|tag| format!("#{tag}"))
-                        .collect::<Vec<_>>()
-                        .join("  ")
-                )
-            }
-        ));
-        self.metadata.set_visible(true);
-        self.divider.set_visible(true);
+        self.metadata.set_text(
+            &note
+                .tags
+                .iter()
+                .map(|tag| format!("#{tag}"))
+                .collect::<Vec<_>>()
+                .join("  "),
+        );
+        self.metadata.set_visible(!note.tags.is_empty());
+        self.divider.set_visible(false);
         self.body.set_text(if note.content.trim().is_empty() {
             "This note is empty."
         } else {
@@ -545,6 +601,7 @@ impl NotePreview {
         });
 
         configure_note_mode(&self.editor, &self.toolbar, note);
+        self.apply_editor_margins();
         let source_buffer = preview_source_buffer(&self.editor);
         let buffer: gtk::TextBuffer = source_buffer.clone().upcast();
         RichBuffer::load(
@@ -573,10 +630,14 @@ impl NotePreview {
     }
 
     pub fn set_available_width(&self, available_width: i32) {
+        self.available_width.set(available_width);
         let content_width = editor_content_width(available_width).max(1);
         self.document_clamp.set_maximum_size(content_width);
         self.document_clamp
             .set_tightening_threshold((content_width * 85 + 50) / 100);
+        let maximum_margin = ((available_width - 240).max(0) / 2).min(320) as f64;
+        self.left_margin.set_range(0.0, maximum_margin);
+        self.right_margin.set_range(0.0, maximum_margin);
 
         let density = editor_layout_density(available_width);
         self.set_compact(density != EditorLayoutDensity::Spacious);
@@ -591,6 +652,15 @@ impl NotePreview {
         } else {
             self.widget.remove_css_class("narrow");
         }
+        self.apply_editor_margins();
+    }
+
+    fn apply_editor_margins(&self) {
+        let padding = editor_horizontal_padding(&self.editor);
+        self.editor
+            .set_left_margin(padding + self.left_margin.value().round() as i32);
+        self.editor
+            .set_right_margin(padding + self.right_margin.value().round() as i32);
     }
 
     pub fn content_maximum_width(&self) -> i32 {
@@ -711,6 +781,7 @@ impl NotePreview {
             &self.title_stack,
             &self.toolbar,
             &self.menu_bar,
+            &self.margin_ruler,
             &mode,
             false,
         );
@@ -800,6 +871,7 @@ fn set_editing(
     title_stack: &gtk::Stack,
     toolbar: &EditorToolbar,
     menu_bar: &EditorMenuBar,
+    margin_ruler: &gtk::Box,
     mode: &EditorMode,
     enabled: bool,
 ) {
@@ -822,8 +894,34 @@ fn set_editing(
     title_entry.set_editable(enabled);
     toolbar.widget.set_visible(enabled);
     menu_bar.widget.set_visible(enabled);
+    margin_ruler.set_visible(enabled);
     if enabled {
         editor.grab_focus();
+    }
+}
+
+fn margin_scale(label: &str, css_class: &str, inverted: bool) -> gtk::Scale {
+    let scale = gtk::Scale::with_range(gtk::Orientation::Horizontal, 0.0, 320.0, 8.0);
+    scale.add_css_class("nn-editor-ruler-scale");
+    scale.add_css_class(css_class);
+    scale.set_hexpand(true);
+    scale.set_draw_value(true);
+    scale.set_digits(0);
+    scale.set_value_pos(gtk::PositionType::Top);
+    scale.set_inverted(inverted);
+    scale.set_tooltip_text(Some(label));
+    scale.update_property(&[gtk::accessible::Property::Label(label)]);
+    for value in [0.0, 80.0, 160.0, 240.0, 320.0] {
+        scale.add_mark(value, gtk::PositionType::Bottom, None);
+    }
+    scale
+}
+
+fn editor_horizontal_padding(editor: &sourceview5::View) -> i32 {
+    if editor.has_css_class("nn-source-canvas") {
+        16
+    } else {
+        8
     }
 }
 

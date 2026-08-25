@@ -112,7 +112,7 @@ text selection, textview text selection, entry selection { background: @nn_selec
 
 .nn-preview-surface, .nn-preview { background: @nn_editor_bg; }
 .nn-preview { padding: 32px 40px; }
-.nn-preview-heading { min-height: 44px; }
+.nn-preview-heading { min-height: 36px; }
 .nn-preview-heading-actions { border-spacing: 8px; }
 .nn-preview-heading .nn-preview-title { margin: 0; }
 .nn-preview-surface.compact .nn-preview { padding: 24px; }
@@ -127,12 +127,20 @@ text selection, textview text selection, entry selection { background: @nn_selec
 .nn-preview-edit.suggested-action { background: @nn_accent; color: @nn_text_inverse; }
 .nn-preview-edit.suggested-action:hover { background: @nn_accent_hover; }
 .nn-preview-read-only-button { min-width: 92px; min-height: 36px; padding: 0 12px; border-radius: 8px; }
-.nn-preview-title-entry { min-height: 40px; padding: 4px 10px; font-size: 20px; font-weight: 700; border-radius: 8px; }
+.nn-preview-title-entry { min-height: 36px; padding: 2px 10px; font-size: 18px; font-weight: 700; border-radius: 8px; }
 .nn-preview-format-toolbar { margin-top: 10px; margin-bottom: 10px; border: 1px solid @nn_border; border-radius: 8px; }
+.nn-editor-margin-ruler { min-height: 44px; padding: 4px 10px; background: @nn_surface; border: 1px solid @nn_border; border-radius: 8px; }
+.nn-editor-ruler-label { font-size: 12px; font-weight: 600; color: @nn_text_secondary; }
+.nn-editor-ruler-scale { min-width: 80px; color: @nn_text_secondary; }
+.nn-editor-ruler-scale trough { min-height: 2px; background: @nn_border_strong; }
+.nn-editor-ruler-scale highlight { background: @nn_accent; }
+.nn-editor-ruler-scale slider { background: @nn_accent; border-color: @nn_accent; }
+.nn-editor-ruler-scale value { font-size: 11px; color: @nn_text_muted; }
+.nn-preview-surface.narrow .nn-editor-margin-ruler { padding-left: 6px; padding-right: 6px; }
 .nn-preview-edit:hover { background: @nn_hover; color: @nn_text; }
 .nn-preview-editor { min-height: 280px; font-size: 16px; background: @nn_editor_bg; color: @nn_text; border: 1px solid @nn_border_subtle; border-radius: 8px; }
 .nn-preview-editor:focus { border-color: alpha(@nn_accent,.45); }
-.nn-preview-title { font-size: 20px; font-weight: 700; color: @nn_text; }
+.nn-preview-title { font-size: 18px; font-weight: 700; color: @nn_text; }
 .nn-preview-metadata { font-size: 13px; color: @nn_text_muted; }
 .nn-preview-body { font-size: 16px; color: @nn_text; }
 

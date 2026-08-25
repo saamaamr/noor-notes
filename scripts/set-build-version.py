@@ -29,6 +29,18 @@ def replace_once(path: Path, pattern: str, replacement: str, description: str) -
     path.write_text(updated, encoding="utf-8")
 
 
+def replace_count(
+    path: Path, pattern: str, replacement: str, expected_count: int, description: str
+) -> None:
+    source = path.read_text(encoding="utf-8")
+    updated, count = re.subn(pattern, replacement, source, flags=re.MULTILINE)
+    if count != expected_count:
+        raise ValueError(
+            f"Expected {expected_count} {description} entries in {path}, found {count}"
+        )
+    path.write_text(updated, encoding="utf-8")
+
+
 def synchronize(root: Path, version: str, release_date: str) -> None:
     if VERSION_PATTERN.fullmatch(version) is None:
         raise ValueError(f"Build version must be MAJOR.MINOR.PATCH, got {version!r}")
@@ -67,6 +79,20 @@ def synchronize(root: Path, version: str, release_date: str) -> None:
         r'<release version="[^"]+" date="[^"]+" type="stable">',
         f'<release version="{version}" date="{release_date}" type="stable">',
         "latest AppStream release",
+    )
+    cli_test = root / "apps/noor-notes/tests/cli.rs"
+    replace_once(
+        cli_test,
+        r'"Noor Notes [0-9]+\.[0-9]+\.[0-9]+"',
+        f'"Noor Notes {version}"',
+        "production CLI version assertion",
+    )
+    replace_count(
+        cli_test,
+        r'"Noor Notes Dev [0-9]+\.[0-9]+\.[0-9]+"',
+        f'"Noor Notes Dev {version}"',
+        2,
+        "development CLI version assertion",
     )
 
 

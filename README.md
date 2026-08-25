@@ -2,7 +2,7 @@
 
 Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
 
-**Current release:** v1.1.2 (Edge candidate) · **Stable:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
+**Current release:** v1.1.3 (Stable candidate) · **Stable:** v1.1.2 (revision 16) · **Edge:** v1.1.3 (revision 18, previous build) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
 
 ## Product overview
 
@@ -10,22 +10,21 @@ Noor Notes is both a usable desktop application and evidence of production-orien
 
 The refreshed library uses distinct sidebar, note-list, and editor surfaces; note colours remain visible as restrained identity rails and subtle tints instead of saturated cards. Compact controls, a readable preview column, and adaptive narrow-window navigation keep the workspace calm and usable across window sizes.
 
-Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximized and compact layouts, editor modes, View-Only presentation, themes, menus, search, Trash, formatting, and settings.
+The current release gallery below shows the real v1.1.3 Dev build with synthetic demonstration notes. It covers the expanded editor workspace, read-only preview, and the maintained Snow and Midnight appearances.
 
 | Library and preview | Focused rich editor |
 | --- | --- |
-| ![Noor Notes library with navigation, note cards, and selected-note preview](data/screenshots/noor-notes-library.png) | ![Noor Notes rich editor with compact toolbar, writing canvas, and status bar](data/screenshots/noor-notes-editor.png) |
+| ![Noor Notes library with navigation, note cards, and selected-note preview](docs/images/1.1.3/noor-notes-library.png) | ![Noor Notes integrated editor using the available workspace](docs/images/1.1.3/noor-notes-editor.png) |
 
-| Dark appearance | Rich formatting and colours |
-| --- | --- |
-| ![Noor Notes library using the Midnight dark appearance](data/screenshots/noor-notes-dark.png) | ![Noor Notes rich formatting popover with text and highlight colours](data/screenshots/noor-notes-formatting.png) |
-
-| Find and replace | Trash recovery | Narrow layout |
-| --- | --- | --- |
-| ![Noor Notes inline find and replace panel](data/screenshots/noor-notes-find-replace.png) | ![Noor Notes Trash view with recoverable notes](data/screenshots/noor-notes-trash.png) | ![Noor Notes adaptive narrow-window layout](data/screenshots/noor-notes-responsive.png) |
+| Midnight appearance |
+| --- |
+| ![Noor Notes editor using the Midnight appearance](docs/images/1.1.3/noor-notes-midnight.png) |
 
 ## Recent fixes
 
+- Expanded the integrated editor background, header, menu, toolbar, and writing surface across the available workspace with no automatic side gutters.
+- Added an accessible Google Docs-style margin ruler: editing starts at the native canvas padding, left and right controls add temporary margins, Reset returns both to zero, and selecting another note clears the session-only margin choice without changing stored note data.
+- Reapplied adaptive pane allocation from the native GDK surface layout signal, so restored and manually resized windows collapse navigation at the correct breakpoint without polling or blocking the UI thread.
 - Prevented the confined GTK focus use-after-free that closed the Live Snap after Archive, Restore, or Move to Trash: note-action popovers now settle before mutation, and focus moves to stable Library navigation before recyclable note cards refresh.
 - Removed the incompatible bundled GTK 4.14 runtime and use the GNOME content snap's matching GTK/libadwaita stack.
 - Added an artifact-level Snap runtime contract that blocks future releases containing duplicate GTK, libadwaita, or GtkSourceView runtimes while retaining the required libspelling library.
@@ -51,7 +50,7 @@ Explore the [complete interface gallery](data/screenshots/INDEX.md) for maximize
 - **Optional online assistance**: an OpenAI-compatible provider is opt-in and disabled until its connection is validated. Grammar sends only the current paragraph (maximum 2,000 Unicode characters), prediction sends only a nearby sentence (maximum 800), and the API key stays in GNOME Keyring. Titles, tags, other notes, account data, and encryption material are not sent.
 - **Native notes library**: a compact GNOME header, adaptive navigation sidebar, virtualized note cards, selected-note preview, responsive empty states, keyboard navigation, and views for All Notes, Pinned, Favorites, Recent, Archived, Trash, and Tags.
 - **Fast organization**: Unicode-aware debounced search, stable sorting, editable titles, searchable tags, pinned and favorite states, note colours, duplication, archive, restore, and confirmed permanent deletion.
-- **Focused editor**: a readable writing canvas with a compact toolbar and live status bar. Rich Text preserves the intentionally compact 5-pixel top/bottom and 8-pixel left/right canvas margins. Find and replace, undo and redo, word wrap, zoom, go to line, full screen, line and column position, word and character counts, and keyboard shortcuts work end to end.
+- **Focused editor**: a full-width writing canvas with a compact toolbar, session-only margin ruler, and live status bar. Rich Text starts with the intentionally compact 5-pixel top/bottom and 8-pixel left/right canvas padding; the ruler can add temporary left and right margins without changing note content or persistence. Find and replace, undo and redo, word wrap, zoom, go to line, full screen, line and column position, word and character counts, and keyboard shortcuts work end to end.
 - **Rich and source modes**: rich notes support persistent bold, italic, underline, strikethrough, lists, alignment, font sizes, text and highlight colours, and emoji. Markdown and code notes use GtkSourceView syntax languages, while Plain Text stays unhighlighted; all source modes include line numbers, current-line highlighting, regex search, bookmarks, and theme-matched editor palettes.
 - **Reliable saving**: debounced autosave exposes Unsaved, Saving, Saved, and retryable failure states; close-time flushing protects pending edits, and rich formatting survives save and reopen.
 - **Polished appearance**: Snow provides calm daytime surfaces, restrained note-colour accents, and subtle selection states; Midnight provides a purpose-built dark palette. System appearance resolves to one of those two maintained themes. The selection persists and updates library windows, editors, paper colours, controls, and symbolic icon colours together.
@@ -69,7 +68,7 @@ Prediction controls are keyboard accessible: **Tab** accepts visible ghost text,
 Choose one installation method:
 
 - **Snap Store** for the recommended stable packaged installation.
-- **Downloaded Snap or Flatpak release** for a locally verified v1.1.1 package.
+- **Downloaded Snap or Flatpak release** for the latest locally verified GitHub package.
 - **Ubuntu source installer** for the current repository version and host Xpad import.
 - **Local rebuild** when this repository and its dependencies are already installed.
 
@@ -77,9 +76,9 @@ Choose one installation method:
 
 Install the stable Snap Store release, then launch it from the application grid or terminal:
 
-The current stable release line is **Noor Notes 1.1.1** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
+The current stable release is **Noor Notes 1.1.2, revision 16** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
 
-The tested hotfix source is **1.1.2** and is published to `latest/edge` first. To help verify it before Stable promotion:
+The current source is the **1.1.3 Stable candidate**. The Store already contains the previous 1.1.3 build as Edge revision 18; the corrected artifact will receive a new revision only after validation and explicit release approval.
 
 ```bash
 sudo snap refresh noor-notes --channel=latest/edge

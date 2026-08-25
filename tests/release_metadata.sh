@@ -50,10 +50,15 @@ stable_match = re.search(r"\*\*Stable:\*\* v([0-9]+\.[0-9]+\.[0-9]+)", readme)
 if stable_match is None:
     raise SystemExit("README release documentation must identify the Stable version")
 stable = stable_match.group(1)
+github_match = re.search(r"\*\*GitHub release:\*\* v([0-9]+\.[0-9]+\.[0-9]+)", readme)
+if github_match is None:
+    raise SystemExit("README release documentation must identify the GitHub release version")
+github_release = github_match.group(1)
 for fragment in (
     f"**Current release:** v{expected}",
-    f"releases/download/v{stable}",
-    f"noor-notes_{stable}_amd64.snap",
+    f"**Stable:** v{stable}",
+    f"releases/download/v{github_release}",
+    f"noor-notes_{github_release}_amd64.snap",
     "Every Monday at 12:00 Bangladesh time",
     "first Monday of each month",
 ):

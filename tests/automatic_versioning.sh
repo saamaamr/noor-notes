@@ -36,9 +36,10 @@ fi
 
 fixture=$(mktemp -d)
 trap 'rm -rf "$fixture"' EXIT HUP INT TERM
-mkdir -p "$fixture/apps/noor-notes" "$fixture/crates" "$fixture/data"
+mkdir -p "$fixture/apps/noor-notes/tests" "$fixture/crates" "$fixture/data"
 cp "$repo_root/snapcraft.yaml" "$repo_root/Cargo.lock" "$fixture/"
 cp "$repo_root/apps/noor-notes/Cargo.toml" "$fixture/apps/noor-notes/"
+cp "$repo_root/apps/noor-notes/tests/cli.rs" "$fixture/apps/noor-notes/tests/"
 for crate in crypto domain storage sync windowing xpad-import; do
     mkdir -p "$fixture/crates/$crate"
     cp "$repo_root/crates/$crate/Cargo.toml" "$fixture/crates/$crate/"
@@ -86,4 +87,10 @@ if f'version: "{expected}"' not in snapcraft:
 release = ET.parse(root / "data/io.github.saamaamr.NoorNotes.metainfo.xml").getroot().find("./releases/release")
 if release is None or release.get("version") != expected or release.get("date") != "2026-08-19":
     raise SystemExit("AppStream release version/date were not updated")
+
+cli_test = (root / "apps/noor-notes/tests/cli.rs").read_text(encoding="utf-8")
+if cli_test.count(f'"Noor Notes {expected}"') != 1:
+    raise SystemExit("Production CLI version assertion was not updated")
+if cli_test.count(f'"Noor Notes Dev {expected}"') != 2:
+    raise SystemExit("Development CLI version assertions were not updated")
 PY

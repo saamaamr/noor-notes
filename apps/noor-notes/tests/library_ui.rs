@@ -216,15 +216,15 @@ fn redesigned_library_uses_sidebar_virtualized_list_and_cards() {
         .compute_bounds(&preview.widget)
         .expect("preview document bounds");
     assert!(
-        bounds.width() >= 640.0,
+        bounds.width() >= 1_360.0,
         "wide preview document collapsed to {}px at x={}",
         bounds.width(),
         bounds.x()
     );
     assert!(
-        bounds.width() <= 860.0,
-        "wide preview document exceeded its readable 860px limit: {}px",
-        bounds.width()
+        preview.content_maximum_width() <= 860,
+        "wide preview chrome exceeded its readable limit: {}px",
+        preview.content_maximum_width()
     );
     preview_window.close();
 

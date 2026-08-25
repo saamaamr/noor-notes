@@ -19,39 +19,24 @@
   <content_rating type="oars-1.1"/>
   <screenshots>
     <screenshot type="default">
-      <caption>Create and format a private sticky note.</caption>
-      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-editor.png</image>
+      <caption>Write in an integrated editor that uses the available workspace.</caption>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/docs/images/1.1.3/noor-notes-editor.png</image>
     </screenshot>
     <screenshot>
       <caption>Browse and preview private notes.</caption>
-      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-library.png</image>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/docs/images/1.1.3/noor-notes-library.png</image>
     </screenshot>
     <screenshot>
-      <caption>Control private local and optional online writing assistance.</caption>
-      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-writing-assistance.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Use a focused dark appearance.</caption>
-      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-dark.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Apply persistent rich text and colours.</caption>
-      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-formatting.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Find and replace text inside a note.</caption>
-      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-find-replace.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Restore notes safely from Trash.</caption>
-      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-trash.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Work comfortably in a narrow window.</caption>
-      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/data/screenshots/noor-notes-responsive.png</image>
+      <caption>Use a focused Midnight writing appearance.</caption>
+      <image type="source" width="1248" height="702">https://raw.githubusercontent.com/saamaamr/noor-notes/main/docs/images/1.1.3/noor-notes-midnight.png</image>
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.1.3" date="2026-08-25" type="stable">
+      <description>
+        <p>Expands the integrated editor workspace, aligns full-width editor chrome, removes automatic side gutters, adds a session-only margin ruler, and updates responsive layout immediately as the window is resized.</p>
+      </description>
+    </release>
     <release version="1.1.2" date="2026-08-25" type="stable">
       <description>
         <p>Prevents confined GTK focus use-after-free crashes during Archive, Restore, and Move to Trash by settling the note-action popover and moving focus to stable navigation before refreshing recyclable note cards.</p>

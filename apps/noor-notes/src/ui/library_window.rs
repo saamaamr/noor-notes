@@ -393,15 +393,30 @@ impl MainWindow {
         }
         {
             let this = this.clone();
-            this.window
-                .clone()
-                .connect_notify_local(Some("width"), move |_, _| this.apply_layout());
-        }
-        {
-            let this = this.clone();
-            this.window
-                .clone()
-                .connect_map(move |_| this.apply_layout());
+            let resize_connected = Rc::new(Cell::new(false));
+            this.window.clone().connect_map(move |window| {
+                this.apply_layout();
+                if resize_connected.replace(true) {
+                    return;
+                }
+                let Some(surface) = window.surface() else {
+                    resize_connected.set(false);
+                    return;
+                };
+                let layout_pending = Rc::new(Cell::new(false));
+                let this = this.clone();
+                surface.connect_layout(move |_, _, _| {
+                    if layout_pending.replace(true) {
+                        return;
+                    }
+                    let layout_pending = layout_pending.clone();
+                    let this = this.clone();
+                    gtk::glib::idle_add_local_once(move || {
+                        layout_pending.set(false);
+                        this.apply_layout();
+                    });
+                });
+            });
         }
         {
             let this = this.clone();
@@ -422,6 +437,10 @@ impl MainWindow {
         } else {
             allocated_width
         };
+        self.apply_layout_for_width(window_width);
+    }
+
+    fn apply_layout_for_width(&self, window_width: i32) {
         let mode = LibraryLayoutMode::for_width(window_width);
         let visibility = mode.visibility(self.showing_content.get());
         let allocation = allocation_for_width(mode, window_width, self.showing_content.get());

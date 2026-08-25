@@ -31,14 +31,11 @@ Noor Notes contains no advertising, analytics, or tracking.
 
 ## Screenshot order
 
-Upload no more than these five 1248 × 702 PNG files, in this order:
+Upload these three 1248 × 702 PNG files, in this order:
 
-1. `data/screenshots/noor-notes-library.png`
-2. `data/screenshots/noor-notes-editor.png`
-3. `data/screenshots/noor-notes-writing-assistance.png`
-4. `data/screenshots/noor-notes-dark.png`
-5. `data/screenshots/noor-notes-responsive.png`
-
+1. `docs/images/1.1.3/noor-notes-editor.png`
+2. `docs/images/1.1.3/noor-notes-library.png`
+3. `docs/images/1.1.3/noor-notes-midnight.png`
 All screenshots show real Noor Notes widgets with synthetic data. They do not contain personal notes or credentials.
 
 ## Release cadence
