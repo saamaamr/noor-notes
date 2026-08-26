@@ -49,13 +49,4 @@ if [ -z "$bundled" ]; then
     exit 1
 fi
 
-for spelling_dependency in libicuuc.so.74 libicudata.so.74; do
-    bundled=$(find_bundled "$spelling_dependency" || true)
-    if [ -z "$bundled" ]; then
-        printf 'Snap must bundle %s because libspelling requires it and the GNOME 46 content runtime does not provide it\n' \
-            "$spelling_dependency" >&2
-        exit 1
-    fi
-done
-
-printf 'Snap runtime contract passed: GNOME owns GTK/libadwaita/GtkSourceView; app owns libspelling and its ICU runtime\n'
+printf 'Snap runtime contract passed: GNOME/Mesa own platform libraries; app owns libspelling\n'

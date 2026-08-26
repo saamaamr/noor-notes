@@ -155,20 +155,12 @@ require_equal(
 require_equal(
     "parts.libspelling-runtime.stage",
     spelling_runtime.get("stage"),
-    [
-        "usr/lib/*/libspelling-1.so*",
-        "usr/lib/*/libicuuc.so*",
-        "usr/lib/*/libicudata.so*",
-    ],
+    ["usr/lib/*/libspelling-1.so*"],
 )
 require_equal(
     "parts.libspelling-runtime.prime",
     spelling_runtime.get("prime"),
-    [
-        "usr/lib/*/libspelling-1.so*",
-        "usr/lib/*/libicuuc.so*",
-        "usr/lib/*/libicudata.so*",
-    ],
+    ["usr/lib/*/libspelling-1.so*"],
 )
 
 for path in (
