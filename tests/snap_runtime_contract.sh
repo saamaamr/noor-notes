@@ -43,9 +43,19 @@ if find "$root/usr/lib" -type d -path '*/gtk-4.0' -print -quit 2>/dev/null | gre
     exit 1
 fi
 
-if ! find_bundled libspelling-1.so >/dev/null; then
+bundled=$(find_bundled libspelling-1.so || true)
+if [ -z "$bundled" ]; then
     printf 'Snap must bundle libspelling because the GNOME 46 content runtime does not provide it\n' >&2
     exit 1
 fi
 
-printf 'Snap runtime contract passed: GNOME owns GTK/libadwaita/GtkSourceView; app owns libspelling\n'
+for spelling_dependency in libicuuc.so.74 libicudata.so.74; do
+    bundled=$(find_bundled "$spelling_dependency" || true)
+    if [ -z "$bundled" ]; then
+        printf 'Snap must bundle %s because libspelling requires it and the GNOME 46 content runtime does not provide it\n' \
+            "$spelling_dependency" >&2
+        exit 1
+    fi
+done
+
+printf 'Snap runtime contract passed: GNOME owns GTK/libadwaita/GtkSourceView; app owns libspelling and its ICU runtime\n'

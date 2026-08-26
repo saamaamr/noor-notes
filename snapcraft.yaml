@@ -68,13 +68,18 @@ parts:
     stage-packages:
       - libspelling-1-1
     # The GNOME 46 content snap owns GTK, libadwaita, GtkSourceView,
-    # Enchant, and Hunspell. Only stage libspelling, which that runtime does
-    # not provide. Keeping this in a dedicated part prevents the allowlist
-    # from filtering Noor Notes' own binary and desktop integration files.
+    # Enchant, and Hunspell. Stage libspelling plus its ICU runtime, which
+    # that content snap does not provide. Keeping this in a dedicated part
+    # prevents the allowlist from filtering Noor Notes' own binary and
+    # desktop integration files.
     stage:
       - usr/lib/*/libspelling-1.so*
+      - usr/lib/*/libicuuc.so*
+      - usr/lib/*/libicudata.so*
     prime:
       - usr/lib/*/libspelling-1.so*
+      - usr/lib/*/libicuuc.so*
+      - usr/lib/*/libicudata.so*
 
   noor-notes:
     after:
