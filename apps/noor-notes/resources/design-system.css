@@ -144,12 +144,16 @@ text selection, textview text selection, entry selection { background: @nn_selec
 .nn-preview-metadata { font-size: 13px; color: @nn_text_muted; }
 .nn-preview-body { font-size: 16px; color: @nn_text; }
 
-.nn-sticky-note-window { background: @nn_editor_bg; }
-.nn-sticky-header { min-height: 40px; background: @nn_surface; border-bottom: 1px solid @nn_border_subtle; }
-.nn-sticky-header windowtitle > label:first-child { color: @nn_text; font-weight: 600; }
+.nn-sticky-note-window,
+.nn-sticky-shell,
+.nn-sticky-body,
+.nn-sticky-body .nn-preview { background: @nn_editor_bg; }
+.nn-sticky-header { min-height: 40px; padding: 0 4px; background: @nn_editor_bg; border-bottom: 1px solid @nn_border_subtle; }
+.nn-sticky-header windowtitle > label:first-child { font-size: 14px; color: @nn_text; font-weight: 600; }
 .nn-sticky-pin { min-width: 34px; min-height: 34px; padding: 0; border-radius: 7px; color: @nn_text_secondary; }
 .nn-sticky-pin:checked { background: @nn_accent_soft; color: @nn_accent; }
-.nn-sticky-body .nn-preview { padding: 20px 24px; }
+.nn-sticky-body .nn-preview { padding: 10px 12px; }
+.nn-sticky-body.narrow .nn-preview { padding: 4px 6px; }
 .nn-sticky-body .nn-preview-body { font-size: 16px; }
 .nn-empty-state { padding: 48px 32px; color: @nn_text_secondary; }
 .nn-empty-state-icon { color: @nn_text_muted; -gtk-icon-size: 40px; }

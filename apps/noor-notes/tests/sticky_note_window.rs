@@ -60,7 +60,18 @@ fn sticky_window_has_one_title_and_a_body_only_document_surface() {
     assert!(!sticky.always_on_top.is_sensitive());
     sticky.window.close();
 
+    assert_sticky_body_uses_window_width_for_responsive_spacing(&gtk_app);
     assert_rapid_always_on_top_uses_only_the_latest_intent(&gtk_app);
+}
+
+fn assert_sticky_body_uses_window_width_for_responsive_spacing(app: &gtk::Application) {
+    let compact = sticky_body_at_width(app, 540);
+    assert!(compact.has_css_class("compact"));
+    assert!(!compact.has_css_class("narrow"));
+
+    let narrow = sticky_body_at_width(app, 320);
+    assert!(narrow.has_css_class("compact"));
+    assert!(narrow.has_css_class("narrow"));
 }
 
 struct DelayedWindowController {
@@ -153,4 +164,16 @@ fn descendants(root: gtk::Widget) -> Vec<gtk::Widget> {
         child = current.next_sibling();
     }
     widgets
+}
+
+fn sticky_body_at_width(app: &gtk::Application, width: i32) -> gtk::Widget {
+    let mut note = Note::new(Utc::now());
+    note.geometry.width = width;
+    let sticky = StickyNoteWindow::new(app, note, Arc::new(FallbackWindowController));
+    let body = descendants(sticky.window.clone().upcast())
+        .into_iter()
+        .find(|widget| widget.has_css_class("nn-sticky-body"))
+        .expect("sticky body");
+    sticky.window.close();
+    body
 }

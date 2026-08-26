@@ -23,9 +23,11 @@ pub struct StickyNoteWindow {
 
 impl StickyNoteWindow {
     pub fn new(app: &gtk::Application, note: Note, controller: Arc<dyn WindowController>) -> Self {
+        let default_width = note.geometry.width.clamp(260, 560);
         let surface = NoteEditorSurface::new();
         surface.show_note(&note);
         surface.set_sticky_read_only();
+        surface.set_available_width(default_width);
         surface.widget.add_css_class("nn-sticky-body");
 
         let window_title =
@@ -33,15 +35,17 @@ impl StickyNoteWindow {
         let window = adw::ApplicationWindow::builder()
             .application(app)
             .title(&window_title)
-            .default_width(note.geometry.width.clamp(260, 560))
+            .default_width(default_width)
             .default_height(note.geometry.height.clamp(220, 720))
             .build();
         window.add_css_class("nn-sticky-note-window");
 
         let toolbar = adw::ToolbarView::new();
+        toolbar.add_css_class("nn-sticky-shell");
         let header = adw::HeaderBar::new();
         header.add_css_class("nn-sticky-header");
         let title = adw::WindowTitle::new(note.display_title(), "");
+        title.add_css_class("nn-sticky-title");
         header.set_title_widget(Some(&title));
 
         let always_on_top = gtk::ToggleButton::builder()
@@ -61,6 +65,16 @@ impl StickyNoteWindow {
         toolbar.add_top_bar(&header);
         toolbar.set_content(Some(&surface.widget));
         window.set_content(Some(&toolbar));
+
+        {
+            let surface = surface.clone();
+            window.connect_notify_local(Some("width"), move |window, _| {
+                let width = window.width();
+                if width > 0 {
+                    surface.set_available_width(width);
+                }
+            });
+        }
 
         let capabilities = controller.capabilities();
         always_on_top.set_active(note.always_on_top);
