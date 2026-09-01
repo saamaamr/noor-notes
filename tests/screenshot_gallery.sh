@@ -2,45 +2,32 @@
 set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-gallery="$repo_root/data/screenshots"
-index="$gallery/INDEX.md"
+gallery="$repo_root/docs/images/1.1.3"
+screenshots='noor-notes-editor.png
+noor-notes-library.png
+noor-notes-midnight.png
+noor-notes-sticky-read-only.png'
 
-test -s "$index" || {
-    printf 'Missing screenshot index: %s\n' "$index" >&2
-    exit 1
-}
-
-indexed=$(sed -n 's/.*](\([^)]*\.png\)).*/\1/p' "$index" | sort -u)
-test -n "$indexed" || {
-    printf 'Screenshot index contains no PNG links\n' >&2
-    exit 1
-}
-
-printf '%s\n' "$indexed" | while IFS= read -r relative; do
-    image="$gallery/$relative"
+for name in $screenshots; do
+    image="$gallery/$name"
     test -s "$image" || {
-        printf 'Missing indexed screenshot: %s\n' "$relative" >&2
+        printf 'Missing release screenshot: %s\n' "$image" >&2
         exit 1
     }
-    case "$relative" in
-        contact-sheets/*) ;;
-        *)
-            file "$image" | grep -Fq 'PNG image data, 1248 x 702' || {
-                printf 'Individual screenshot is not 1248 x 702: %s\n' "$relative" >&2
-                exit 1
-            }
-            ;;
-    esac
+    file "$image" | grep -Fq 'PNG image data, 1248 x 702' || {
+        printf 'Release screenshot is not 1248 x 702: %s\n' "$image" >&2
+        exit 1
+    }
+    test "$(stat -c %s "$image")" -lt 2097152 || {
+        printf 'Release screenshot must stay below 2 MiB: %s\n' "$image" >&2
+        exit 1
+    }
 done
 
-actual=$(find "$gallery" -type f -name '*.png' -printf '%P\n' | sort)
-if test "$indexed" != "$actual"; then
-    expected_file=$(mktemp)
-    actual_file=$(mktemp)
-    trap 'rm -f "$expected_file" "$actual_file"' EXIT HUP INT TERM
-    printf '%s\n' "$indexed" > "$expected_file"
-    printf '%s\n' "$actual" > "$actual_file"
-    printf 'Screenshot index and PNG inventory differ\n' >&2
-    diff -u "$expected_file" "$actual_file" >&2 || true
+actual=$(find "$gallery" -maxdepth 1 -type f -name '*.png' -printf '%f\n' | sort)
+expected=$(printf '%s\n' "$screenshots" | sort)
+if test "$actual" != "$expected"; then
+    printf 'Release screenshot inventory differs from the documented gallery\n' >&2
+    printf 'Expected:\n%s\nActual:\n%s\n' "$expected" "$actual" >&2
     exit 1
 fi

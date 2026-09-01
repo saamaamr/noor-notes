@@ -9,7 +9,8 @@ listing="$repo_root/data/store/LISTING.md"
 banner="$repo_root/data/store/noor-notes-featured-banner.png"
 screenshots='noor-notes-editor.png
 noor-notes-library.png
-noor-notes-midnight.png'
+noor-notes-midnight.png
+noor-notes-sticky-read-only.png'
 screenshot_root='docs/images/1.1.3'
 
 require() {
@@ -39,6 +40,7 @@ require '<release version="0.2.0" date="2026-08-17" type="stable">' "$metadata"
 require '<release version="0.1.1" date="2026-08-05" type="stable">' "$metadata"
 require '<caption>Browse and preview private notes.</caption>' "$metadata"
 require '<caption>Write in an integrated editor that uses the available workspace.</caption>' "$metadata"
+require '<caption>Read a note in a compact sticky window.</caption>' "$metadata"
 
 require 'Exec=noor-notes' "$desktop"
 require 'Icon=io.github.saamaamr.NoorNotes' "$desktop"

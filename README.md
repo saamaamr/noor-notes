@@ -2,7 +2,7 @@
 
 Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
 
-**Current release:** v1.1.3 (Stable candidate) · **Stable:** v1.1.2 (revision 16) · **Edge:** v1.1.3 (revision 18, previous build) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
+**Current source:** v1.1.3 · **Stable:** v1.1.3 (revision 19) · **Edge:** v1.1.4 (revision 21) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
 
 ## Product overview
 
@@ -16,13 +16,14 @@ The current release gallery below shows the real v1.1.3 Dev build with synthetic
 | --- | --- |
 | ![Noor Notes library with navigation, note cards, and selected-note preview](docs/images/1.1.3/noor-notes-library.png) | ![Noor Notes integrated editor using the available workspace](docs/images/1.1.3/noor-notes-editor.png) |
 
-| Midnight appearance |
-| --- |
-| ![Noor Notes editor using the Midnight appearance](docs/images/1.1.3/noor-notes-midnight.png) |
+| Sticky read-only window | Midnight appearance |
+| --- | --- |
+| ![Noor Notes compact sticky read-only window](docs/images/1.1.3/noor-notes-sticky-read-only.png) | ![Noor Notes editor using the Midnight appearance](docs/images/1.1.3/noor-notes-midnight.png) |
 
 ## Recent fixes
 
 - Expanded the integrated editor background, header, menu, toolbar, and writing surface across the available workspace with no automatic side gutters.
+- Refined the sticky read-only window with compact header spacing, balanced 10–12-pixel normal padding, 4–6-pixel compact padding, and a larger distraction-free reading area.
 - Added an accessible Google Docs-style margin ruler: editing starts at the native canvas padding, left and right controls add temporary margins, Reset returns both to zero, and selecting another note clears the session-only margin choice without changing stored note data.
 - Reapplied adaptive pane allocation from the native GDK surface layout signal, so restored and manually resized windows collapse navigation at the correct breakpoint without polling or blocking the UI thread.
 - Prevented the confined GTK focus use-after-free that closed the Live Snap after Archive, Restore, or Move to Trash: note-action popovers now settle before mutation, and focus moves to stable Library navigation before recyclable note cards refresh.
@@ -32,7 +33,7 @@ The current release gallery below shows the real v1.1.3 Dev build with synthetic
 - Fixed the library preview allocation so wide windows keep a readable document column instead of collapsing text into a narrow vertical strip.
 - Preserved the responsive list-to-preview transition at narrow widths without clipping the selected note or forcing horizontal scrolling.
 - Fixed inline preview edits so finishing an edit and switching notes uses the existing autosave pipeline and retains the saved content.
-- Refined Light Mode hierarchy, selected-note contrast, compact sidebar and note-list widths, editor spacing, and dark-theme fallbacks.
+- Refined Snow hierarchy, selected-note contrast, compact sidebar and note-list widths, editor spacing, and Midnight fallbacks.
 - Added automatic Snap versions: changed weekly/manual edge builds increment patch, manual hotfix builds increment the current stable patch, and monthly/manual stable builds increment minor and reset patch before Store smoke testing and promotion.
 - Kept Rich Text canvas spacing at 5 pixels vertically and 8 pixels horizontally.
 
@@ -76,15 +77,9 @@ Choose one installation method:
 
 Install the stable Snap Store release, then launch it from the application grid or terminal:
 
-The current stable release is **Noor Notes 1.1.2, revision 16** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
+The current stable release is **Noor Notes 1.1.3, revision 19** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
 
-The current source is the **1.1.3 Stable candidate**. The Store already contains the previous 1.1.3 build as Edge revision 18; the corrected artifact will receive a new revision only after validation and explicit release approval.
-
-```bash
-sudo snap refresh noor-notes --channel=latest/edge
-snap run noor-notes --version
-```
-
+The repository source is **1.1.3**. The more frequently updated Store preview channel currently contains **1.1.4, revision 21**; source and Store versions are verified independently before any future publication.
 ```bash
 sudo snap install noor-notes
 noor-notes
@@ -244,7 +239,7 @@ gnome-extensions disable noor-lockscreen-motion@saamaamr.github.io
 
 ## Encrypted sync
 
-Encrypted synchronization is not available to v1.1.1 users: the released app has no account, vault, or Supabase-project configuration flow, and its Sync action reports that cloud sync is not configured. Notes remain encrypted locally until a future release integrates that workflow.
+Encrypted synchronization is not available in the current app: there is no account, vault, or Supabase-project configuration flow, and its Sync action reports that cloud sync is not configured. Notes remain encrypted locally until a future release integrates that workflow.
 
 ## Data and recovery
 
@@ -262,7 +257,7 @@ Back up the encrypted database together with a working GNOME Keyring backup. If 
 - If Always on Top is disabled on GNOME Wayland, use a source installation with the separately installed GNOME Shell extension, or use a supported window environment.
 - If lock-screen motion is missing after a source update, run `./scripts/install-gnome-extension.sh`, log out and back in, and confirm `gnome-extensions info noor-lockscreen-motion@saamaamr.github.io` reports the extension. The motion safely becomes a no-op if the compatible WACK/GNOME clock actors are unavailable.
 - If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v1.1.1.
-- If Sync says it is not configured, that is the current v1.1.1 limitation; there is no supported account or Supabase setup path yet.
+- If Sync says it is not configured, that is the current limitation; there is no supported account or Supabase setup path yet.
 - If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
 - After pulling source changes, run `./scripts/install-local.sh` to rebuild and replace the user-installed **Noor Notes Dev** binary and desktop resources. Before the first migration, fully quit any legacy source-installed Noor Notes process; on later updates, fully quit the older Dev process before reopening it.
 - If Noor Notes Dev does not open from the application grid, run `~/.local/bin/noor-notes-dev` in a terminal and include the displayed error in a bug report. Reinstall first if that path is missing or older than the checkout. Do not delete the notes database or GNOME Keyring entry while diagnosing launch problems.
@@ -301,7 +296,7 @@ Version tags build Snap and Flatpak artifacts in GitHub Actions. The `v1.1.1` ta
 
 Every Monday at 12:00 Bangladesh time, the Snap cadence workflow publishes a new `main` revision to `latest/edge` only when the source commit changed. Each scheduled or manual edge publication reads the current Store edge version and increments its patch component, for example `1.0.0` to `1.0.1` and then `1.0.2`.
 
-On the first Monday of each month, the workflow reads the current stable version, increments its minor component, and resets patch to zero, for example `1.0.0` to `1.1.0`. A manual hotfix instead increments only the current stable patch, for example `1.1.0` to `1.1.1`. The new version is built once, published to edge, installed back from the Store for a smoke test, and then promoted without rebuilding to `latest/stable`. Manual stable runs use the same minor-version policy; Stable `1.1.1` therefore produces Edge hotfix `1.1.2`. The generated version is synchronized across the Snap manifest, application binary, Cargo workspace packages, lockfile, and AppStream metadata inside the isolated CI build workspace. A maintainer can start an explicit edge, hotfix, or stable run from GitHub Actions. Publication requires a repository secret named `SNAPCRAFT_STORE_CREDENTIALS`, scoped to Noor Notes package push, update, and release access.
+On the first Monday of each month, the workflow reads the current stable version, increments its minor component, and resets patch to zero, for example `1.0.0` to `1.1.0`. A manual hotfix instead increments only the current stable patch, for example `1.1.3` to `1.1.4`. The new version is built once, published to edge, installed back from the Store for a smoke test, and then promoted without rebuilding to `latest/stable`. Manual stable runs use the same minor-version policy. The generated version is synchronized across the Snap manifest, application binary, Cargo workspace packages, lockfile, and AppStream metadata inside the isolated CI build workspace. A maintainer can start an explicit edge, hotfix, or stable run from GitHub Actions. Publication requires a repository secret named `SNAPCRAFT_STORE_CREDENTIALS`, scoped to Noor Notes package push, update, and release access.
 
 The stable channel is the recommended installation path. Edge receives more frequent previews and can be less tested; stable only receives a revision after the build, local package smoke test, and Store-installed edge smoke test succeed. A Flathub submission is not created by this project's workflow.
 

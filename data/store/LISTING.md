@@ -16,7 +16,7 @@ Noor Notes is a calm, native GTK4/libadwaita notebook for private, offline-first
 
 Keep encrypted notes on your device and organize them with fast search, tags, pinning, favorites, Archive, and recoverable Trash. Choose a focused Rich Text, Markdown, Plain Text, or Code editor, with reliable autosave and recovery-aware saving.
 
-Work comfortably with responsive layouts, accessible controls, and refined Light, Graphite, Midnight, and OLED appearances. Offline spelling, English grammar, and learned local predictions are enabled by default and can be controlled globally or per note. Optional online assistance stays disabled until you configure and test a provider.
+Work comfortably with responsive layouts, accessible controls, and refined Snow and Midnight appearances. Offline spelling, English grammar, and learned local predictions are enabled by default and can be controlled globally or per note. Optional online assistance stays disabled until you configure and test a provider.
 
 Noor Notes contains no advertising, analytics, or tracking.
 
@@ -31,11 +31,13 @@ Noor Notes contains no advertising, analytics, or tracking.
 
 ## Screenshot order
 
-Upload these three 1248 × 702 PNG files, in this order:
+Upload these four 1248 × 702 PNG files, in this order:
 
 1. `docs/images/1.1.3/noor-notes-editor.png`
 2. `docs/images/1.1.3/noor-notes-library.png`
 3. `docs/images/1.1.3/noor-notes-midnight.png`
+4. `docs/images/1.1.3/noor-notes-sticky-read-only.png`
+
 All screenshots show real Noor Notes widgets with synthetic data. They do not contain personal notes or credentials.
 
 ## Release cadence
