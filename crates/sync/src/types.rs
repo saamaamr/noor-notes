@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use zeroize::Zeroizing;
 
 const MAX_CIPHERTEXT_BASE64_BYTES: usize = 5_592_408;
 
@@ -14,11 +16,31 @@ pub enum RevisionValidationError {
     InvalidTimestamp,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AuthSession {
     pub access_token: String,
     pub refresh_token: String,
     pub expires_in: u64,
+    pub user: AuthUser,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AuthUser {
+    pub id: String,
+    pub email: String,
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct SignUpOutcome {
+    pub user: AuthUser,
+    pub session: Option<AuthSession>,
+    pub confirmation_required: bool,
+}
+
+pub struct OAuthPkce {
+    pub authorization_url: Url,
+    pub verifier: Zeroizing<String>,
+    pub state: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

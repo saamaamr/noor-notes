@@ -1,9 +1,14 @@
 use std::time::Duration;
 
+use base64::Engine;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use chrono::{DateTime, Utc};
+use rand::{RngCore, rngs::OsRng};
 use reqwest::{StatusCode, Url};
-use serde::Serialize;
 use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use zeroize::Zeroizing;
 
 const MAX_RESPONSE_BYTES: u64 = 1024 * 1024;
 const MAX_REVISIONS: usize = 500;
@@ -14,7 +19,14 @@ pub enum EndpointPolicy {
     AllowLoopbackHttpForTests,
 }
 
-use crate::{AuthSession, RemoteRevision};
+use crate::{AuthSession, AuthUser, OAuthPkce, RemoteRevision, SignUpOutcome};
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum SignUpResponse {
+    Session(AuthSession),
+    User(AuthUser),
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum SyncClientError {
@@ -93,9 +105,23 @@ impl SupabaseClient {
             email: &'a str,
             password: &'a str,
         }
+        self.post_token("password", &Credentials { email, password })
+            .await
+    }
+
+    pub async fn sign_up(
+        &self,
+        email: &str,
+        password: &str,
+    ) -> Result<SignUpOutcome, SyncClientError> {
+        #[derive(Serialize)]
+        struct Credentials<'a> {
+            email: &'a str,
+            password: &'a str,
+        }
         let url = self
             .base_url
-            .join("auth/v1/token?grant_type=password")
+            .join("auth/v1/signup")
             .map_err(|_| SyncClientError::InvalidUrl)?;
         let response = self
             .http
@@ -105,13 +131,134 @@ impl SupabaseClient {
             .send()
             .await
             .map_err(redacted_transport)?;
-        if response.status() == StatusCode::UNAUTHORIZED {
-            return Err(SyncClientError::AuthRequired);
+        match bounded_json(checked_response(response)?).await? {
+            SignUpResponse::Session(session) => Ok(SignUpOutcome {
+                user: session.user.clone(),
+                session: Some(session),
+                confirmation_required: false,
+            }),
+            SignUpResponse::User(user) => Ok(SignUpOutcome {
+                user,
+                session: None,
+                confirmation_required: true,
+            }),
         }
-        if !response.status().is_success() {
-            return Err(SyncClientError::Http(response.status()));
+    }
+
+    pub fn google_oauth_pkce(&self, redirect_to: &str) -> Result<OAuthPkce, SyncClientError> {
+        let mut redirect = Url::parse(redirect_to).map_err(|_| SyncClientError::InvalidUrl)?;
+        if redirect.scheme() != "http" || redirect.host_str() != Some("127.0.0.1") {
+            return Err(SyncClientError::InvalidUrl);
         }
-        bounded_json(response).await
+        let mut verifier_bytes = [0_u8; 32];
+        let mut state_bytes = [0_u8; 24];
+        OsRng.fill_bytes(&mut verifier_bytes);
+        OsRng.fill_bytes(&mut state_bytes);
+        let verifier = Zeroizing::new(URL_SAFE_NO_PAD.encode(verifier_bytes));
+        let challenge = URL_SAFE_NO_PAD.encode(Sha256::digest(verifier.as_bytes()));
+        let state = URL_SAFE_NO_PAD.encode(state_bytes);
+        redirect.query_pairs_mut().append_pair("nn_state", &state);
+        let mut authorization_url = self
+            .base_url
+            .join("auth/v1/authorize")
+            .map_err(|_| SyncClientError::InvalidUrl)?;
+        authorization_url
+            .query_pairs_mut()
+            .append_pair("provider", "google")
+            .append_pair("redirect_to", redirect.as_str())
+            .append_pair("code_challenge", &challenge)
+            .append_pair("code_challenge_method", "s256");
+        Ok(OAuthPkce {
+            authorization_url,
+            verifier,
+            state,
+        })
+    }
+
+    pub async fn exchange_oauth_code(
+        &self,
+        auth_code: &str,
+        code_verifier: &str,
+    ) -> Result<AuthSession, SyncClientError> {
+        #[derive(Serialize)]
+        struct Exchange<'a> {
+            auth_code: &'a str,
+            code_verifier: &'a str,
+        }
+        self.post_token(
+            "pkce",
+            &Exchange {
+                auth_code,
+                code_verifier,
+            },
+        )
+        .await
+    }
+
+    pub async fn refresh_session(
+        &self,
+        refresh_token: &str,
+    ) -> Result<AuthSession, SyncClientError> {
+        #[derive(Serialize)]
+        struct Refresh<'a> {
+            refresh_token: &'a str,
+        }
+        self.post_token("refresh_token", &Refresh { refresh_token })
+            .await
+    }
+
+    pub async fn user(&self, access_token: &str) -> Result<AuthUser, SyncClientError> {
+        let url = self
+            .base_url
+            .join("auth/v1/user")
+            .map_err(|_| SyncClientError::InvalidUrl)?;
+        let response = self
+            .http
+            .get(url)
+            .header("apikey", &self.anon_key)
+            .bearer_auth(access_token)
+            .send()
+            .await
+            .map_err(redacted_transport)?;
+        bounded_json(checked_response(response)?).await
+    }
+
+    pub async fn sign_out(&self, access_token: &str) -> Result<(), SyncClientError> {
+        let url = self
+            .base_url
+            .join("auth/v1/logout")
+            .map_err(|_| SyncClientError::InvalidUrl)?;
+        let response = self
+            .http
+            .post(url)
+            .header("apikey", &self.anon_key)
+            .bearer_auth(access_token)
+            .send()
+            .await
+            .map_err(redacted_transport)?;
+        checked_response(response)?;
+        Ok(())
+    }
+
+    async fn post_token(
+        &self,
+        grant_type: &str,
+        body: &impl Serialize,
+    ) -> Result<AuthSession, SyncClientError> {
+        let mut url = self
+            .base_url
+            .join("auth/v1/token")
+            .map_err(|_| SyncClientError::InvalidUrl)?;
+        url.query_pairs_mut().append_pair("grant_type", grant_type);
+        let response = self
+            .http
+            .post(url)
+            .header("apikey", &self.anon_key)
+            .json(body)
+            .send()
+            .await
+            .map_err(redacted_transport)?;
+        bounded_json(checked_response(response)?).await
     }
 
     pub async fn upload_revision(
@@ -188,6 +335,17 @@ impl SupabaseClient {
             return Err(SyncClientError::ResponseTooLarge);
         }
         Ok(revisions)
+    }
+}
+
+fn checked_response(response: reqwest::Response) -> Result<reqwest::Response, SyncClientError> {
+    match response.status() {
+        status if status.is_success() => Ok(response),
+        StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => Err(SyncClientError::AuthRequired),
+        StatusCode::TOO_MANY_REQUESTS => Err(SyncClientError::RateLimited(retry_after(
+            response.headers(),
+        ))),
+        status => Err(SyncClientError::Http(status)),
     }
 }
 

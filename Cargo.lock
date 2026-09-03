@@ -2174,14 +2174,17 @@ dependencies = [
  "noor-crypto",
  "noor-domain",
  "noor-storage",
+ "rand 0.8.7",
  "reqwest",
  "serde",
  "serde_json",
+ "sha2",
  "tempfile",
  "thiserror 2.0.20",
  "tokio",
  "uuid",
  "wiremock",
+ "zeroize",
 ]
 
 [[package]]
