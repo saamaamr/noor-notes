@@ -10,6 +10,7 @@ const APP_ID: &str = "io.github.saamaamr.NoorNotes";
 pub enum SecretKind {
     DatabaseKey,
     RefreshToken,
+    CloudSession,
     WrappedVault,
     WritingAssistanceApiKey,
 }
@@ -19,6 +20,7 @@ impl SecretKind {
         match self {
             Self::DatabaseKey => "database-key",
             Self::RefreshToken => "refresh-token",
+            Self::CloudSession => "cloud-session",
             Self::WrappedVault => "wrapped-vault",
             Self::WritingAssistanceApiKey => "writing-assistance-api-key",
         }
