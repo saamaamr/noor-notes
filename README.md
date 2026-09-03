@@ -2,7 +2,7 @@
 
 Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
 
-**Current source:** v1.1.3 · **Stable:** v1.1.3 (revision 19) · **Edge:** v1.1.4 (revision 21) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
+**Current source:** v1.1.3 · **Stable:** v1.1.3 (revision 19) · **Edge:** v1.1.3 (revision 22) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
 
 ## Product overview
 
@@ -56,6 +56,7 @@ The current release gallery below shows the real v1.1.3 Dev build with synthetic
 - **Reliable saving**: debounced autosave exposes Unsaved, Saving, Saved, and retryable failure states; close-time flushing protects pending edits, and rich formatting survives save and reopen.
 - **Polished appearance**: Snow provides calm daytime surfaces, restrained note-colour accents, and subtle selection states; Midnight provides a purpose-built dark palette. System appearance resolves to one of those two maintained themes. The selection persists and updates library windows, editors, paper colours, controls, and symbolic icon colours together.
 - **Private local storage**: SQLCipher encrypts note text, titles, tags, and history with a random key held by GNOME Keyring. Existing databases migrate safely, and Noor Notes adds no analytics, advertising, or tracking.
+- **Account foundation**: configured development builds expose email sign-up, email sign-in, and Google sign-in from **Account & Sync…**. Refresh sessions stay in GNOME Keyring, password fields are never persisted, and notes remain fully local because encrypted cloud synchronization and provider backups are not enabled yet.
 - **Linux desktop integration**: source installs can preview and import Xpad notes without modifying the originals. Always on Top, all-workspaces, opacity, and other window controls are available where the active desktop backend supports them.
 
 ### Writing assistance and privacy
@@ -239,7 +240,16 @@ gnome-extensions disable noor-lockscreen-motion@saamaamr.github.io
 
 ## Encrypted sync
 
-Encrypted synchronization is not available in the current app: there is no account, vault, or Supabase-project configuration flow, and its Sync action reports that cloud sync is not configured. Notes remain encrypted locally until a future release integrates that workflow.
+The source tree now contains the first account phase: email sign-up/sign-in and Google OAuth PKCE are available from **Account & Sync…** when a build has valid public Supabase configuration. This phase does not upload notes or enable synchronization. SQLite remains the local source of truth, the existing Sync action still reports that cloud sync is not configured, and Google Drive/OneDrive encrypted backup remains a later phase.
+
+Development builds read these public application values at runtime or compile time:
+
+    NOOR_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+    NOOR_SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_PUBLIC_KEY
+
+Only an HTTPS project URL and a Supabase publishable/anon client key are accepted; never provide a `service_role` or `sb_secret_` key. Enable email and Google providers in the Supabase dashboard and allow the exact redirect URL `http://127.0.0.1:43817/auth/callback`. Google sign-in requests authentication only, not Google Drive access. The app opens a loopback-only listener for one callback with a five-minute timeout and then closes it.
+
+No production Supabase URL or key is committed to this repository. Builds without them show a truthful local-only state and disable account actions. Account refresh tokens are stored in GNOME Keyring; passwords and OAuth authorization codes are not persisted.
 
 ## Data and recovery
 
@@ -257,7 +267,7 @@ Back up the encrypted database together with a working GNOME Keyring backup. If 
 - If Always on Top is disabled on GNOME Wayland, use a source installation with the separately installed GNOME Shell extension, or use a supported window environment.
 - If lock-screen motion is missing after a source update, run `./scripts/install-gnome-extension.sh`, log out and back in, and confirm `gnome-extensions info noor-lockscreen-motion@saamaamr.github.io` reports the extension. The motion safely becomes a no-op if the compatible WACK/GNOME clock actors are unavailable.
 - If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v1.1.1.
-- If Sync says it is not configured, that is the current limitation; there is no supported account or Supabase setup path yet.
+- If **Account & Sync…** says cloud account support is unavailable, rebuild with the two public Supabase values above. If Sync says it is not configured, that remains expected in this account-only phase; notes are not uploaded.
 - If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
 - After pulling source changes, run `./scripts/install-local.sh` to rebuild and replace the user-installed **Noor Notes Dev** binary and desktop resources. Before the first migration, fully quit any legacy source-installed Noor Notes process; on later updates, fully quit the older Dev process before reopening it.
 - If Noor Notes Dev does not open from the application grid, run `~/.local/bin/noor-notes-dev` in a terminal and include the displayed error in a bug report. Reinstall first if that path is missing or older than the checkout. Do not delete the notes database or GNOME Keyring entry while diagnosing launch problems.

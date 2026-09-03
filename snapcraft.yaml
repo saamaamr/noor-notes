@@ -48,6 +48,7 @@ apps:
       - wayland
       - x11
       - network
+      - network-bind
       - password-manager-service
     slots:
       - noor-notes-dbus

@@ -78,7 +78,14 @@ require_equal("apps.noor-notes.extensions", app.get("extensions"), ["gnome"])
 require_equal(
     "apps.noor-notes.plugs",
     app.get("plugs"),
-    ["desktop", "wayland", "x11", "network", "password-manager-service"],
+    [
+        "desktop",
+        "wayland",
+        "x11",
+        "network",
+        "network-bind",
+        "password-manager-service",
+    ],
 )
 require_equal("apps.noor-notes.slots", app.get("slots"), ["noor-notes-dbus"])
 
