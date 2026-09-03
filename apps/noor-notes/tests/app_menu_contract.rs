@@ -18,9 +18,20 @@ fn application_menu_exposes_only_canonical_theme_actions() {
     let mut actions = Vec::new();
     collect_actions(&model, &mut actions);
 
-    for canonical in ["app.appearance::snow", "app.appearance::midnight"] {
+    for canonical in [
+        "app.appearance::snow",
+        "app.appearance::midnight",
+        "app.account-settings",
+    ] {
         assert!(actions.iter().any(|action| action == canonical));
     }
+    assert_eq!(
+        actions
+            .iter()
+            .filter(|action| action.as_str() == "app.account-settings")
+            .count(),
+        1
+    );
     for historical in [
         "app.appearance::system",
         "app.appearance::light",

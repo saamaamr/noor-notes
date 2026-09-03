@@ -1,3 +1,4 @@
+pub mod account_settings;
 pub mod adaptive_layout;
 pub mod app_header;
 pub mod appearance_button;

@@ -1,4 +1,9 @@
 /* Noor Notes GTK design system: active semantic palette supplied at runtime. */
+.nn-account-settings .nn-account-action { min-width: 82px; }
+.nn-account-settings .nn-account-google { min-width: 156px; }
+.nn-account-settings entry,
+.nn-account-settings passwordentry { min-width: 160px; }
+
 
 /* Curated Atomic CSS: small, static, GTK-safe utilities only. */
 .nn-p-4 { padding: 4px; }

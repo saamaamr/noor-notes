@@ -12,11 +12,13 @@ use noor_windowing::{
 use crate::actions::add_action;
 use crate::appearance::{AppearanceManager, AppearanceStore, global, install_global};
 use crate::autosave::AutosaveQueue;
+use crate::cloud_config::CloudConfig;
 use crate::import_dialog::ImportFlow;
 use crate::key_store::Oo7KeyStore;
 use crate::main_window::MainWindow;
 use crate::security_bootstrap::open_repository;
 use crate::shortcuts::shortcuts_window;
+use crate::ui::account_settings::AccountSettings;
 use crate::ui::appearance_settings::AppearanceSettings;
 use crate::ui::dialog_primitives;
 use crate::ui::writing_assistance_settings::WritingAssistanceSettings;
@@ -150,6 +152,24 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
                     }
                 }
             });
+        });
+    }
+    {
+        let app = app.clone();
+        let settings: Rc<RefCell<Option<AccountSettings>>> = Rc::new(RefCell::new(None));
+        let keys: Arc<dyn crate::key_store::KeyStore> = keys.clone();
+        let configuration = CloudConfig::load();
+        add_action(&app.clone(), "account-settings", move |_, _| {
+            if settings.borrow().is_none() {
+                settings.replace(Some(AccountSettings::new(
+                    &app,
+                    configuration.clone(),
+                    keys.clone(),
+                )));
+            }
+            if let Some(settings) = settings.borrow().as_ref() {
+                settings.present();
+            }
         });
     }
     {
