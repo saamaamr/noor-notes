@@ -2116,6 +2116,7 @@ version = "1.1.3"
 dependencies = [
  "anyhow",
  "async-trait",
+ "base64",
  "cairo-rs",
  "chrono",
  "docx-rs",
@@ -2133,6 +2134,7 @@ dependencies = [
  "noor-xpad-import",
  "oo7",
  "pangocairo",
+ "rand 0.8.7",
  "reqwest",
  "serde",
  "serde_json",

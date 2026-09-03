@@ -3,6 +3,7 @@ pub mod actions;
 pub mod app;
 pub mod appearance;
 pub mod autosave;
+pub mod cloud_backup;
 pub mod cloud_config;
 pub mod cloud_sync;
 pub mod edit_save_gate;

@@ -91,6 +91,11 @@ impl CloudSyncController {
         self.runtime.lock().await.state
     }
 
+    pub async fn unlocked_vault(&self) -> Result<Arc<Vault>, CloudSyncError> {
+        let runtime = self.runtime.lock().await;
+        runtime.vault.clone().ok_or(CloudSyncError::InvalidState)
+    }
+
     pub async fn attach_session(
         &self,
         session: AuthSession,

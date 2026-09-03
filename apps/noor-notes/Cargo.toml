@@ -16,6 +16,8 @@ gdk4-x11.workspace = true
 adw.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
+base64.workspace = true
+rand.workspace = true
 cairo.workspace = true
 docx-rs.workspace = true
 noor-crypto = { path = "../../crates/crypto" }

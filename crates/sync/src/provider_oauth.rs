@@ -14,7 +14,7 @@ const MAX_TOKEN_BYTES: u64 = 64 * 1024;
 const GOOGLE_SCOPE: &str = "https://www.googleapis.com/auth/drive.appdata";
 const ONEDRIVE_SCOPE: &str = "offline_access Files.ReadWrite.AppFolder";
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum BackupProviderKind {
     GoogleDrive,
     OneDrive,

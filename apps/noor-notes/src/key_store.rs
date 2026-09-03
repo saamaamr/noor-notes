@@ -14,6 +14,8 @@ pub enum SecretKind {
     WrappedVault,
     SyncVault,
     SyncCursor,
+    GoogleDriveSession,
+    OneDriveSession,
     WritingAssistanceApiKey,
 }
 
@@ -26,6 +28,8 @@ impl SecretKind {
             Self::WrappedVault => "wrapped-vault",
             Self::SyncVault => "sync-vault",
             Self::SyncCursor => "sync-cursor",
+            Self::GoogleDriveSession => "google-drive-session",
+            Self::OneDriveSession => "onedrive-session",
             Self::WritingAssistanceApiKey => "writing-assistance-api-key",
         }
     }
