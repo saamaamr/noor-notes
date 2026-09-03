@@ -3,6 +3,12 @@
 mod client;
 mod types;
 
+mod backup_archive;
+pub use backup_archive::{
+    BACKUP_VERSION, BackupArchive, BackupArchiveError, BackupPreview, EncryptedBackup,
+    MAX_BACKUP_BYTES,
+};
+
 pub use client::{EndpointPolicy, SupabaseClient, SyncClientError};
 pub use types::{
     AuthSession, AuthUser, OAuthPkce, RemoteRevision, RemoteVault, RevisionValidationError,
