@@ -55,6 +55,7 @@ pub trait BackupProvider {
 
 pub(crate) const MAX_BACKUP_OBJECT_BYTES: usize = 128 * 1024 * 1024;
 pub(crate) const MAX_LIST_OBJECTS: usize = 500;
+const MAX_METADATA_BYTES: u64 = 1024 * 1024;
 
 pub(crate) fn validate_name(name: &str) -> Result<(), BackupProviderError> {
     if name.is_empty()
@@ -124,4 +125,24 @@ pub(crate) async fn bounded_bytes(
         return Err(BackupProviderError::TooLarge);
     }
     Ok(bytes.to_vec())
+}
+
+pub(crate) async fn bounded_json<T: serde::de::DeserializeOwned>(
+    response: reqwest::Response,
+) -> Result<T, BackupProviderError> {
+    checked(response.status())?;
+    if response
+        .content_length()
+        .is_some_and(|length| length > MAX_METADATA_BYTES)
+    {
+        return Err(BackupProviderError::ResponseTooLarge);
+    }
+    let bytes = response
+        .bytes()
+        .await
+        .map_err(|_| BackupProviderError::Transport)?;
+    if bytes.len() as u64 > MAX_METADATA_BYTES {
+        return Err(BackupProviderError::ResponseTooLarge);
+    }
+    serde_json::from_slice(&bytes).map_err(|_| BackupProviderError::MalformedResponse)
 }

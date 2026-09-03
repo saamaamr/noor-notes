@@ -21,6 +21,8 @@ use crate::key_store::{KeyStore, KeyStoreError, SecretKind};
 
 const CURRENT_BACKUP: &str = "current.nnbackup";
 const SESSION_ACCOUNT: &str = "active";
+const BUILT_GOOGLE_CLIENT_ID: Option<&str> = option_env!("NOOR_GOOGLE_DRIVE_CLIENT_ID");
+const BUILT_ONEDRIVE_CLIENT_ID: Option<&str> = option_env!("NOOR_ONEDRIVE_CLIENT_ID");
 
 #[derive(Clone, Default)]
 pub struct BackupConfiguration {
@@ -32,9 +34,11 @@ impl BackupConfiguration {
     pub fn load() -> Self {
         let google = std::env::var("NOOR_GOOGLE_DRIVE_CLIENT_ID")
             .ok()
+            .or_else(|| BUILT_GOOGLE_CLIENT_ID.map(str::to_owned))
             .and_then(|id| ProviderOAuth::google(id).ok());
         let onedrive = std::env::var("NOOR_ONEDRIVE_CLIENT_ID")
             .ok()
+            .or_else(|| BUILT_ONEDRIVE_CLIENT_ID.map(str::to_owned))
             .and_then(|id| ProviderOAuth::onedrive(id).ok());
         Self { google, onedrive }
     }
@@ -399,6 +403,10 @@ impl CloudBackupController {
         self.runtime.lock().await.sessions.remove(&kind);
         self.keys.delete(secret_kind(kind), SESSION_ACCOUNT).await?;
         Ok(())
+    }
+
+    pub async fn lock(&self) {
+        *self.runtime.lock().await = BackupRuntime::default();
     }
 
     async fn session(&self, kind: BackupProviderKind) -> Result<ProviderSession, CloudBackupError> {

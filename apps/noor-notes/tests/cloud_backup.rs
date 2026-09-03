@@ -209,6 +209,12 @@ async fn provider_failure_is_isolated_and_http_receives_no_plaintext() {
         .expect(2)
         .mount(&providers)
         .await;
+    Mock::given(method("POST"))
+        .and(path("/me/drive/special/approot/children"))
+        .respond_with(ResponseTemplate::new(201))
+        .expect(2)
+        .mount(&providers)
+        .await;
 
     let results = fixture.controller.backup_now("desktop-a").await;
     assert_eq!(results.len(), 2);

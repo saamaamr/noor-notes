@@ -97,6 +97,13 @@ async fn google_uses_app_data_and_stages_before_updating_current() {
 #[tokio::test]
 async fn onedrive_uses_only_approot_paths_for_upload_list_download_and_delete() {
     let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/me/drive/special/approot/children"))
+        .and(body_string_contains("Noor Notes"))
+        .respond_with(ResponseTemplate::new(201))
+        .expect(1)
+        .mount(&server)
+        .await;
     Mock::given(method("PUT"))
         .and(path(
             "/me/drive/special/approot:/Noor%20Notes/current.nnbackup:/content",

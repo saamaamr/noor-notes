@@ -12,6 +12,7 @@ use noor_windowing::{
 use crate::actions::add_action;
 use crate::appearance::{AppearanceManager, AppearanceStore, global, install_global};
 use crate::autosave::AutosaveQueue;
+use crate::cloud_backup::{BackupConfiguration, CloudBackupController};
 use crate::cloud_config::CloudConfig;
 use crate::cloud_sync::{CloudSyncController, CloudSyncState};
 use crate::import_dialog::ImportFlow;
@@ -61,6 +62,15 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
         .ok()
         .and_then(|configuration| configuration.client().ok())
         .map(|client| CloudSyncController::new(repository.clone(), client, keys.clone()));
+    let cloud_backup = cloud_sync.clone().and_then(|sync| {
+        CloudBackupController::new(
+            repository.clone(),
+            sync,
+            keys.clone(),
+            BackupConfiguration::load(),
+        )
+        .ok()
+    });
 
     {
         let main_window = main_window.clone();
@@ -167,13 +177,15 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
         let keys: Arc<dyn crate::key_store::KeyStore> = keys.clone();
         let configuration = cloud_configuration.clone();
         let cloud_sync = cloud_sync.clone();
+        let cloud_backup = cloud_backup.clone();
         add_action(&app.clone(), "account-settings", move |_, _| {
             if settings.borrow().is_none() {
-                settings.replace(Some(AccountSettings::new_with_sync(
+                settings.replace(Some(AccountSettings::new_with_services(
                     &app,
                     configuration.clone(),
                     keys.clone(),
                     cloud_sync.clone(),
+                    cloud_backup.clone(),
                 )));
             }
             if let Some(settings) = settings.borrow().as_ref() {

@@ -4,10 +4,11 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use adw::prelude::*;
-use noor_sync::{AuthSession, SyncStatus};
+use noor_sync::{AuthSession, BackupProviderKind, SyncStatus};
 use zeroize::Zeroizing;
 
 use crate::account::AccountController;
+use crate::cloud_backup::CloudBackupController;
 use crate::cloud_config::{CloudConfig, CloudConfigError};
 use crate::cloud_sync::{CloudSyncController, CloudSyncState};
 use crate::key_store::KeyStore;
@@ -30,10 +31,19 @@ pub struct AccountSettings {
     pub confirm_recovery: gtk::Button,
     pub sync_now: gtk::Button,
     pub sync_status: gtk::Label,
+    pub google_drive_connect: gtk::Button,
+    pub google_drive_restore: gtk::Button,
+    pub google_drive_status: gtk::Label,
+    pub onedrive_connect: gtk::Button,
+    pub onedrive_restore: gtk::Button,
+    pub onedrive_status: gtk::Label,
+    pub backup_now: gtk::Button,
+    pub backup_status: gtk::Label,
 }
 
 #[derive(Clone)]
 struct AccountControls {
+    window: adw::PreferencesWindow,
     email: gtk::Entry,
     password: gtk::PasswordEntry,
     sign_up: gtk::Button,
@@ -56,6 +66,18 @@ struct AccountControls {
     confirm_recovery: gtk::Button,
     sync_now: gtk::Button,
     sync_status: gtk::Label,
+    backup: Option<CloudBackupController>,
+    backup_group: adw::PreferencesGroup,
+    google_drive_connect: gtk::Button,
+    google_drive_disconnect: gtk::Button,
+    google_drive_restore: gtk::Button,
+    google_drive_status: gtk::Label,
+    onedrive_connect: gtk::Button,
+    onedrive_disconnect: gtk::Button,
+    onedrive_restore: gtk::Button,
+    onedrive_status: gtk::Label,
+    backup_now: gtk::Button,
+    backup_status: gtk::Label,
 }
 
 impl AccountSettings {
@@ -64,7 +86,7 @@ impl AccountSettings {
         configuration: Result<CloudConfig, CloudConfigError>,
         keys: Arc<dyn KeyStore>,
     ) -> Self {
-        Self::new_with_sync(app, configuration, keys, None)
+        Self::new_with_services(app, configuration, keys, None, None)
     }
 
     pub fn new_with_sync(
@@ -72,6 +94,16 @@ impl AccountSettings {
         configuration: Result<CloudConfig, CloudConfigError>,
         keys: Arc<dyn KeyStore>,
         sync: Option<CloudSyncController>,
+    ) -> Self {
+        Self::new_with_services(app, configuration, keys, sync, None)
+    }
+
+    pub fn new_with_services(
+        app: &adw::Application,
+        configuration: Result<CloudConfig, CloudConfigError>,
+        keys: Arc<dyn KeyStore>,
+        sync: Option<CloudSyncController>,
+        backup: Option<CloudBackupController>,
     ) -> Self {
         let window = adw::PreferencesWindow::builder()
             .application(app)
@@ -249,6 +281,109 @@ impl AccountSettings {
         sync_group.add(&sync_status_row);
         page.add(&sync_group);
 
+        let backup_group = adw::PreferencesGroup::new();
+        backup_group.add_css_class("nn-settings-group");
+        backup_group.set_title("Encrypted Drive backups");
+        backup_group.set_description(Some(
+            "Optional recovery copies use only each provider's private app folder. Provider access is separate from Noor account sign-in.",
+        ));
+        backup_group.set_visible(false);
+
+        let google_drive_connect = gtk::Button::with_label("Connect");
+        let google_drive_restore = gtk::Button::with_label("Restore Latest");
+        let google_drive_disconnect = gtk::Button::with_label("Disconnect");
+        google_drive_disconnect.add_css_class("destructive-action");
+        let google_drive_status = gtk::Label::new(Some("Not connected"));
+        google_drive_status.set_wrap(true);
+        google_drive_status.set_xalign(1.0);
+        let google_actions = gtk::FlowBox::builder()
+            .selection_mode(gtk::SelectionMode::None)
+            .column_spacing(6)
+            .row_spacing(6)
+            .min_children_per_line(1)
+            .max_children_per_line(4)
+            .build();
+        google_actions.append(&google_drive_status);
+        google_actions.append(&google_drive_connect);
+        google_actions.append(&google_drive_restore);
+        google_actions.append(&google_drive_disconnect);
+        let google_backup_row = adw::ActionRow::builder()
+            .title("Google Drive App Data")
+            .subtitle("Hidden app-only storage · drive.appdata scope")
+            .build();
+        google_backup_row.add_css_class("nn-settings-row");
+        google_backup_row.add_suffix(&google_actions);
+        backup_group.add(&google_backup_row);
+
+        let onedrive_connect = gtk::Button::with_label("Connect");
+        let onedrive_restore = gtk::Button::with_label("Restore Latest");
+        let onedrive_disconnect = gtk::Button::with_label("Disconnect");
+        onedrive_disconnect.add_css_class("destructive-action");
+        let onedrive_status = gtk::Label::new(Some("Not connected"));
+        onedrive_status.set_wrap(true);
+        onedrive_status.set_xalign(1.0);
+        let onedrive_actions = gtk::FlowBox::builder()
+            .selection_mode(gtk::SelectionMode::None)
+            .column_spacing(6)
+            .row_spacing(6)
+            .min_children_per_line(1)
+            .max_children_per_line(4)
+            .build();
+        onedrive_actions.append(&onedrive_status);
+        onedrive_actions.append(&onedrive_connect);
+        onedrive_actions.append(&onedrive_restore);
+        onedrive_actions.append(&onedrive_disconnect);
+        let onedrive_backup_row = adw::ActionRow::builder()
+            .title("OneDrive App Folder")
+            .subtitle("App-owned storage · Files.ReadWrite.AppFolder scope")
+            .build();
+        onedrive_backup_row.add_css_class("nn-settings-row");
+        onedrive_backup_row.add_suffix(&onedrive_actions);
+        backup_group.add(&onedrive_backup_row);
+
+        let backup_now = gtk::Button::with_label("Backup Now");
+        backup_now.add_css_class("suggested-action");
+        let backup_status = gtk::Label::new(Some("Unlock encrypted sync to use backups"));
+        backup_status.set_wrap(true);
+        backup_status.set_xalign(1.0);
+        let backup_action_row = adw::ActionRow::builder()
+            .title("Encrypted recovery copy")
+            .subtitle("Creates current and timestamped archives for each connected provider")
+            .build();
+        backup_action_row.add_css_class("nn-settings-row");
+        backup_action_row.add_suffix(&backup_status);
+        backup_action_row.add_suffix(&backup_now);
+        backup_group.add(&backup_action_row);
+        for button in [
+            &google_drive_connect,
+            &google_drive_restore,
+            &google_drive_disconnect,
+            &onedrive_connect,
+            &onedrive_restore,
+            &onedrive_disconnect,
+            &backup_now,
+        ] {
+            button.add_css_class("nn-account-action");
+            button.set_sensitive(false);
+        }
+        for button in [
+            &google_drive_restore,
+            &google_drive_disconnect,
+            &onedrive_restore,
+            &onedrive_disconnect,
+        ] {
+            button.set_visible(false);
+        }
+        if let Some(controller) = backup.as_ref() {
+            if !controller.available(BackupProviderKind::GoogleDrive) {
+                google_drive_status.set_text("Not configured in this build");
+            }
+            if !controller.available(BackupProviderKind::OneDrive) {
+                onedrive_status.set_text("Not configured in this build");
+            }
+        }
+        page.add(&backup_group);
+
         let state = adw::PreferencesGroup::new();
         state.add_css_class("nn-settings-group");
         state.set_title("Status");
@@ -285,6 +420,7 @@ impl AccountSettings {
         }
 
         let controls = AccountControls {
+            window: window.clone(),
             email: email.clone(),
             password: password.clone(),
             sign_up: sign_up.clone(),
@@ -307,6 +443,18 @@ impl AccountSettings {
             confirm_recovery: confirm_recovery.clone(),
             sync_now: sync_now.clone(),
             sync_status: sync_status.clone(),
+            backup: backup.clone(),
+            backup_group: backup_group.clone(),
+            google_drive_connect: google_drive_connect.clone(),
+            google_drive_disconnect: google_drive_disconnect.clone(),
+            google_drive_restore: google_drive_restore.clone(),
+            google_drive_status: google_drive_status.clone(),
+            onedrive_connect: onedrive_connect.clone(),
+            onedrive_disconnect: onedrive_disconnect.clone(),
+            onedrive_restore: onedrive_restore.clone(),
+            onedrive_status: onedrive_status.clone(),
+            backup_now: backup_now.clone(),
+            backup_status: backup_status.clone(),
         };
 
         if let Some(controller) = controller {
@@ -318,6 +466,9 @@ impl AccountSettings {
         }
         if controls.sync.is_some() {
             connect_sync_actions(&controls);
+        }
+        if controls.backup.is_some() {
+            connect_backup_actions(&controls);
         }
 
         Self {
@@ -336,6 +487,14 @@ impl AccountSettings {
             confirm_recovery,
             sync_now,
             sync_status,
+            google_drive_connect,
+            google_drive_restore,
+            google_drive_status,
+            onedrive_connect,
+            onedrive_restore,
+            onedrive_status,
+            backup_now,
+            backup_status,
         }
     }
 
@@ -413,7 +572,12 @@ fn show_signed_in(controls: &AccountControls, session: AuthSession) {
     let controls = controls.clone();
     gtk::glib::MainContext::default().spawn_local(async move {
         match sync.attach_session(session).await {
-            Ok(state) => update_sync_state(&controls, state),
+            Ok(state) => {
+                update_sync_state(&controls, state);
+                if state == CloudSyncState::Ready {
+                    restore_backup_connections(&controls);
+                }
+            }
             Err(error) => {
                 controls
                     .sync_status
@@ -436,6 +600,7 @@ fn show_signed_out(controls: &AccountControls, message: &str) {
     controls.sign_out.set_visible(false);
     controls.session.replace(None);
     controls.sync_group.set_visible(false);
+    controls.backup_group.set_visible(false);
     controls.sync_passphrase.set_text("");
     controls.recovery_display.set_text("");
     controls.recovery_entry.set_text("");
@@ -448,6 +613,22 @@ fn update_sync_state(controls: &AccountControls, state: CloudSyncState) {
     controls.passphrase_row.set_visible(false);
     controls.recovery_display_row.set_visible(false);
     controls.recovery_entry_row.set_visible(false);
+    let backup_unlocked = matches!(
+        state,
+        CloudSyncState::Ready | CloudSyncState::Offline | CloudSyncState::Error
+    );
+    controls
+        .backup_group
+        .set_visible(state != CloudSyncState::SignedOut && controls.backup.is_some());
+    if let Some(backup) = controls.backup.as_ref() {
+        controls
+            .google_drive_connect
+            .set_sensitive(backup_unlocked && backup.available(BackupProviderKind::GoogleDrive));
+        controls
+            .onedrive_connect
+            .set_sensitive(backup_unlocked && backup.available(BackupProviderKind::OneDrive));
+        controls.backup_now.set_sensitive(backup_unlocked);
+    }
     for button in [
         &controls.create_vault,
         &controls.unlock_vault,
@@ -519,6 +700,259 @@ fn update_sync_state(controls: &AccountControls, state: CloudSyncState) {
     }
 }
 
+fn refresh_backup_controls(controls: &AccountControls) {
+    let Some(backup) = controls.backup.clone() else {
+        return;
+    };
+    let controls = controls.clone();
+    gtk::glib::MainContext::default().spawn_local(async move {
+        let google = backup.connected(BackupProviderKind::GoogleDrive).await;
+        let onedrive = backup.connected(BackupProviderKind::OneDrive).await;
+        controls.google_drive_connect.set_visible(!google);
+        controls.google_drive_disconnect.set_visible(google);
+        controls.google_drive_restore.set_visible(google);
+        controls.google_drive_disconnect.set_sensitive(google);
+        controls.google_drive_restore.set_sensitive(google);
+        if google {
+            controls.google_drive_status.set_text("Connected");
+        }
+        controls.onedrive_connect.set_visible(!onedrive);
+        controls.onedrive_disconnect.set_visible(onedrive);
+        controls.onedrive_restore.set_visible(onedrive);
+        controls.onedrive_disconnect.set_sensitive(onedrive);
+        controls.onedrive_restore.set_sensitive(onedrive);
+        if onedrive {
+            controls.onedrive_status.set_text("Connected");
+        }
+        controls.backup_now.set_sensitive(google || onedrive);
+    });
+}
+
+fn restore_backup_connections(controls: &AccountControls) {
+    let Some(backup) = controls.backup.clone() else {
+        return;
+    };
+    let controls = controls.clone();
+    gtk::glib::MainContext::default().spawn_local(async move {
+        for result in backup.restore_connections().await {
+            provider_status(&controls, result.provider).set_text(&result.message);
+        }
+        refresh_backup_controls(&controls);
+    });
+}
+
+fn connect_backup_actions(controls: &AccountControls) {
+    connect_provider(controls, BackupProviderKind::GoogleDrive);
+    connect_provider(controls, BackupProviderKind::OneDrive);
+    connect_provider_disconnect(controls, BackupProviderKind::GoogleDrive);
+    connect_provider_disconnect(controls, BackupProviderKind::OneDrive);
+    connect_provider_restore(controls, BackupProviderKind::GoogleDrive);
+    connect_provider_restore(controls, BackupProviderKind::OneDrive);
+
+    let controls = controls.clone();
+    let button = controls.backup_now.clone();
+    button.connect_clicked(move |_| {
+        controls.backup_now.set_sensitive(false);
+        controls
+            .backup_status
+            .set_text("Encrypting and uploading backup…");
+        let controls = controls.clone();
+        let backup = controls
+            .backup
+            .clone()
+            .expect("backup controller is available");
+        gtk::glib::MainContext::default().spawn_local(async move {
+            let results = backup.backup_now("desktop").await;
+            if results.is_empty() {
+                controls
+                    .backup_status
+                    .set_text("Connect a backup provider first");
+            } else {
+                controls.backup_status.set_text(
+                    &results
+                        .iter()
+                        .map(|result| {
+                            format!("{}: {}", provider_title(result.provider), result.message)
+                        })
+                        .collect::<Vec<_>>()
+                        .join(" · "),
+                );
+            }
+            refresh_backup_controls(&controls);
+        });
+    });
+}
+
+fn connect_provider(controls: &AccountControls, kind: BackupProviderKind) {
+    let controls = controls.clone();
+    let button = provider_connect(&controls, kind);
+    button.connect_clicked(move |_| {
+        provider_status(&controls, kind).set_text("Opening provider authorization…");
+        provider_connect(&controls, kind).set_sensitive(false);
+        let controls = controls.clone();
+        let backup = controls
+            .backup
+            .clone()
+            .expect("backup controller is available");
+        gtk::glib::MainContext::default().spawn_local(async move {
+            let result: Result<(), String> = async {
+                let callback = match kind {
+                    BackupProviderKind::GoogleDrive => OAuthCallback::bind_google_backup().await,
+                    BackupProviderKind::OneDrive => OAuthCallback::bind_onedrive_backup().await,
+                }
+                .map_err(|error| error.to_string())?;
+                let authorization = backup
+                    .authorization(kind)
+                    .map_err(|error| error.to_string())?;
+                let launcher = gtk::UriLauncher::new(authorization.authorization_url.as_str());
+                launcher
+                    .launch_future(Some(&controls.window))
+                    .await
+                    .map_err(|_| "Could not open the browser".to_owned())?;
+                provider_status(&controls, kind).set_text("Finish authorization in your browser…");
+                let code = callback
+                    .wait(&authorization.state, Duration::from_secs(300))
+                    .await
+                    .map_err(|error| error.to_string())?;
+                backup
+                    .connect(kind, &code, &authorization.verifier)
+                    .await
+                    .map_err(|error| error.to_string())
+            }
+            .await;
+            match result {
+                Ok(()) => provider_status(&controls, kind).set_text("Connected"),
+                Err(error) => provider_status(&controls, kind)
+                    .set_text(&format!("Connection failed: {error}")),
+            }
+            refresh_backup_controls(&controls);
+        });
+    });
+}
+
+fn connect_provider_disconnect(controls: &AccountControls, kind: BackupProviderKind) {
+    let controls = controls.clone();
+    let button = provider_disconnect(&controls, kind);
+    button.connect_clicked(move |_| {
+        let controls = controls.clone();
+        let backup = controls
+            .backup
+            .clone()
+            .expect("backup controller is available");
+        gtk::glib::MainContext::default().spawn_local(async move {
+            match backup.disconnect(kind).await {
+                Ok(()) => provider_status(&controls, kind).set_text("Disconnected on this device"),
+                Err(error) => provider_status(&controls, kind)
+                    .set_text(&format!("Disconnect failed: {error}")),
+            }
+            refresh_backup_controls(&controls);
+        });
+    });
+}
+
+fn connect_provider_restore(controls: &AccountControls, kind: BackupProviderKind) {
+    let controls = controls.clone();
+    let button = provider_restore(&controls, kind);
+    button.connect_clicked(move |_| {
+        let controls = controls.clone();
+        let backup = controls.backup.clone().expect("backup controller is available");
+        provider_status(&controls, kind).set_text("Checking encrypted archives…");
+        gtk::glib::MainContext::default().spawn_local(async move {
+            let result: Result<Option<_>, String> = async {
+                let objects = backup
+                    .list_backups(kind)
+                    .await
+                    .map_err(|error| error.to_string())?;
+                let count = objects
+                    .iter()
+                    .filter(|object| !object.name.ends_with(".upload"))
+                    .count();
+                let Some(latest) = objects
+                    .into_iter()
+                    .filter(|object| !object.name.ends_with(".upload"))
+                    .max_by_key(|object| object.modified_at)
+                else {
+                    return Ok(None);
+                };
+                let preview = backup
+                    .preview_restore(kind, latest)
+                    .await
+                    .map_err(|error| error.to_string())?;
+                provider_status(&controls, kind).set_text(&format!(
+                    "{count} archives · Latest has {} notes",
+                    preview.archive.note_count
+                ));
+                let confirmed = crate::ui::dialog_primitives::confirm_action(
+                    &controls.window,
+                    "Restore encrypted backup?",
+                    &format!(
+                        "{} contains {} notes from {}. Newer local notes are preserved; conflicts become copies.",
+                        provider_title(kind),
+                        preview.archive.note_count,
+                        preview.archive.created_at.format("%Y-%m-%d %H:%M UTC")
+                    ),
+                    "Restore",
+                )
+                .await;
+                if !confirmed {
+                    return Ok(Some(None));
+                }
+                let report = backup
+                    .restore(&preview.token)
+                    .await
+                    .map_err(|error| error.to_string())?;
+                Ok(Some(Some(report)))
+            }
+            .await;
+            match result {
+                Ok(Some(Some(report))) => provider_status(&controls, kind).set_text(&format!(
+                    "Restore complete · {} applied · {} conflicts · {} unchanged",
+                    report.applied, report.conflicts, report.ignored
+                )),
+                Ok(Some(None)) => provider_status(&controls, kind).set_text("Restore cancelled"),
+                Ok(None) => provider_status(&controls, kind).set_text("No encrypted backups found"),
+                Err(error) => provider_status(&controls, kind)
+                    .set_text(&format!("Restore failed: {error}")),
+            }
+        });
+    });
+}
+
+fn provider_connect(controls: &AccountControls, kind: BackupProviderKind) -> gtk::Button {
+    match kind {
+        BackupProviderKind::GoogleDrive => controls.google_drive_connect.clone(),
+        BackupProviderKind::OneDrive => controls.onedrive_connect.clone(),
+    }
+}
+
+fn provider_disconnect(controls: &AccountControls, kind: BackupProviderKind) -> gtk::Button {
+    match kind {
+        BackupProviderKind::GoogleDrive => controls.google_drive_disconnect.clone(),
+        BackupProviderKind::OneDrive => controls.onedrive_disconnect.clone(),
+    }
+}
+
+fn provider_restore(controls: &AccountControls, kind: BackupProviderKind) -> gtk::Button {
+    match kind {
+        BackupProviderKind::GoogleDrive => controls.google_drive_restore.clone(),
+        BackupProviderKind::OneDrive => controls.onedrive_restore.clone(),
+    }
+}
+
+fn provider_status(controls: &AccountControls, kind: BackupProviderKind) -> gtk::Label {
+    match kind {
+        BackupProviderKind::GoogleDrive => controls.google_drive_status.clone(),
+        BackupProviderKind::OneDrive => controls.onedrive_status.clone(),
+    }
+}
+
+fn provider_title(kind: BackupProviderKind) -> &'static str {
+    match kind {
+        BackupProviderKind::GoogleDrive => "Google Drive",
+        BackupProviderKind::OneDrive => "OneDrive",
+    }
+}
+
 fn connect_sync_actions(controls: &AccountControls) {
     let sync = controls.sync.clone().expect("sync controller is available");
     let controls_for_create = controls.clone();
@@ -553,6 +987,7 @@ fn connect_sync_actions(controls: &AccountControls) {
                 Ok(()) => {
                     controls.recovery_display.set_text("");
                     update_sync_state(&controls, CloudSyncState::Ready);
+                    restore_backup_connections(&controls);
                 }
                 Err(error) => controls
                     .sync_status
@@ -570,7 +1005,10 @@ fn connect_sync_actions(controls: &AccountControls) {
         let sync = sync_for_unlock.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
             match sync.unlock_with_passphrase(passphrase.as_bytes()).await {
-                Ok(()) => update_sync_state(&controls, CloudSyncState::Ready),
+                Ok(()) => {
+                    update_sync_state(&controls, CloudSyncState::Ready);
+                    restore_backup_connections(&controls);
+                }
                 Err(error) => controls
                     .sync_status
                     .set_text(&format!("Could not unlock encrypted sync: {error}")),
@@ -587,7 +1025,10 @@ fn connect_sync_actions(controls: &AccountControls) {
         let sync = sync_for_recovery.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
             match sync.unlock_with_recovery(&recovery).await {
-                Ok(()) => update_sync_state(&controls, CloudSyncState::Ready),
+                Ok(()) => {
+                    update_sync_state(&controls, CloudSyncState::Ready);
+                    restore_backup_connections(&controls);
+                }
                 Err(error) => controls
                     .sync_status
                     .set_text(&format!("Could not use recovery key: {error}")),
@@ -753,6 +1194,9 @@ fn connect_sign_out(controls: &AccountControls, controller: AccountController) {
             let result = controller.sign_out(access_token.as_deref()).await;
             if let Some(sync) = controls.sync.as_ref() {
                 sync.disable().await;
+            }
+            if let Some(backup) = controls.backup.as_ref() {
+                backup.lock().await;
             }
             let message = if result.is_ok() {
                 "Signed out · Local notes remain available"

@@ -4,7 +4,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::backup_provider::{
-    MAX_BACKUP_OBJECT_BYTES, MAX_LIST_OBJECTS, bounded_bytes, checked, secure_base, validate_name,
+    MAX_BACKUP_OBJECT_BYTES, MAX_LIST_OBJECTS, bounded_bytes, bounded_json, checked, secure_base,
+    validate_name,
 };
 use crate::{BackupObject, BackupProvider, BackupProviderError, EndpointPolicy};
 
@@ -180,11 +181,7 @@ impl BackupProvider for GoogleDriveProvider {
             .send()
             .await
             .map_err(|_| BackupProviderError::Transport)?;
-        checked(response.status())?;
-        let list: GoogleList = response
-            .json()
-            .await
-            .map_err(|_| BackupProviderError::MalformedResponse)?;
+        let list: GoogleList = bounded_json(response).await?;
         if list.next_page_token.is_some() || list.files.len() > MAX_LIST_OBJECTS {
             return Err(BackupProviderError::ResponseTooLarge);
         }
@@ -246,11 +243,7 @@ impl From<GoogleFile> for BackupObject {
 }
 
 async fn parse_file(response: reqwest::Response) -> Result<GoogleFile, BackupProviderError> {
-    checked(response.status())?;
-    response
-        .json()
-        .await
-        .map_err(|_| BackupProviderError::MalformedResponse)
+    bounded_json(response).await
 }
 
 fn string_u64<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<u64, D::Error> {

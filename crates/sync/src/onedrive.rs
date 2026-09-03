@@ -4,7 +4,8 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
 use crate::backup_provider::{
-    MAX_BACKUP_OBJECT_BYTES, MAX_LIST_OBJECTS, bounded_bytes, checked, secure_base, validate_name,
+    MAX_BACKUP_OBJECT_BYTES, MAX_LIST_OBJECTS, bounded_bytes, bounded_json, checked, secure_base,
+    validate_name,
 };
 use crate::{BackupObject, BackupProvider, BackupProviderError, EndpointPolicy};
 
@@ -56,6 +57,26 @@ impl OneDriveProvider {
             graph_base: secure_base(base, policy)?,
         })
     }
+
+    async fn ensure_folder(&self, access_token: &str) -> Result<(), BackupProviderError> {
+        let url = self
+            .graph_base
+            .join("me/drive/special/approot/children")
+            .map_err(|_| BackupProviderError::InvalidConfiguration)?;
+        let response = self
+            .http
+            .post(url)
+            .bearer_auth(access_token)
+            .json(&serde_json::json!({
+                "name": "Noor Notes",
+                "folder": {},
+                "@microsoft.graph.conflictBehavior": "replace"
+            }))
+            .send()
+            .await
+            .map_err(|_| BackupProviderError::Transport)?;
+        checked(response.status())
+    }
 }
 
 impl BackupProvider for OneDriveProvider {
@@ -69,6 +90,7 @@ impl BackupProvider for OneDriveProvider {
         if encrypted.len() > MAX_BACKUP_OBJECT_BYTES {
             return Err(BackupProviderError::TooLarge);
         }
+        self.ensure_folder(access_token).await?;
         let path = format!("me/drive/special/approot:/Noor Notes/{name}:/content");
         let url = self
             .graph_base
@@ -83,12 +105,7 @@ impl BackupProvider for OneDriveProvider {
             .send()
             .await
             .map_err(|_| BackupProviderError::Transport)?;
-        checked(response.status())?;
-        response
-            .json::<DriveItem>()
-            .await
-            .map(Into::into)
-            .map_err(|_| BackupProviderError::MalformedResponse)
+        bounded_json::<DriveItem>(response).await.map(Into::into)
     }
 
     async fn list(&self, access_token: &str) -> Result<Vec<BackupObject>, BackupProviderError> {
@@ -103,11 +120,7 @@ impl BackupProvider for OneDriveProvider {
             .send()
             .await
             .map_err(|_| BackupProviderError::Transport)?;
-        checked(response.status())?;
-        let list: DriveList = response
-            .json()
-            .await
-            .map_err(|_| BackupProviderError::MalformedResponse)?;
+        let list: DriveList = bounded_json(response).await?;
         if list.next_link.is_some() || list.value.len() > MAX_LIST_OBJECTS {
             return Err(BackupProviderError::ResponseTooLarge);
         }
