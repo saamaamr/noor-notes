@@ -5,7 +5,8 @@ mod types;
 
 pub use client::{EndpointPolicy, SupabaseClient, SyncClientError};
 pub use types::{
-    AuthSession, AuthUser, OAuthPkce, RemoteRevision, RevisionValidationError, SignUpOutcome,
+    AuthSession, AuthUser, OAuthPkce, RemoteRevision, RemoteVault, RevisionValidationError,
+    SignUpOutcome,
 };
 mod backoff;
 mod merge;

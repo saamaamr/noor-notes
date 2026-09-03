@@ -52,3 +52,18 @@ fn recovery_key_is_grouped_and_can_unlock_the_same_vault() {
         .unwrap();
     assert_eq!(recovered.decrypt_note(&envelope).unwrap(), b"recoverable");
 }
+#[test]
+fn recovery_key_text_round_trips_and_rejects_checksum_tampering() {
+    let encoded = RecoveryKey::generate().encode();
+    let decoded = RecoveryKey::decode(&encoded).unwrap();
+    assert_eq!(decoded.encode(), encoded);
+
+    let mut tampered = encoded.into_bytes();
+    let index = tampered.iter().position(|byte| *byte != b'-').unwrap();
+    tampered[index] = if tampered[index] == b'A' { b'B' } else { b'A' };
+    let tampered = String::from_utf8(tampered).unwrap();
+    assert!(matches!(
+        RecoveryKey::decode(&tampered),
+        Err(CryptoError::InvalidRecoveryKey)
+    ));
+}

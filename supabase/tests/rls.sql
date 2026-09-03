@@ -1,5 +1,5 @@
 begin;
-select plan(4);
+select plan(7);
 
 select policies_are(
     'public',
@@ -14,6 +14,19 @@ select policies_are(
 select row_security_active('public.encrypted_note_revisions');
 select has_index('public', 'encrypted_note_revisions', 'encrypted_note_revisions_owner_updated_idx');
 select col_is_pk('public', 'encrypted_note_revisions', array['owner_id', 'note_id', 'revision']);
+
+select policies_are(
+    'public',
+    'encrypted_vaults',
+    array[
+        'owners can select encrypted vault',
+        'owners can insert encrypted vault',
+        'owners can update encrypted vault',
+        'owners can delete encrypted vault'
+    ]
+);
+select row_security_active('public.encrypted_vaults');
+select col_is_pk('public', 'encrypted_vaults', array['owner_id']);
 
 select * from finish();
 rollback;

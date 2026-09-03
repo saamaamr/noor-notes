@@ -19,7 +19,7 @@ pub enum EndpointPolicy {
     AllowLoopbackHttpForTests,
 }
 
-use crate::{AuthSession, AuthUser, OAuthPkce, RemoteRevision, SignUpOutcome};
+use crate::{AuthSession, AuthUser, OAuthPkce, RemoteRevision, RemoteVault, SignUpOutcome};
 
 #[derive(Deserialize)]
 #[serde(untagged)]
@@ -259,6 +259,55 @@ impl SupabaseClient {
             .await
             .map_err(redacted_transport)?;
         bounded_json(checked_response(response)?).await
+    }
+
+    pub async fn put_vault(
+        &self,
+        access_token: &str,
+        vault: &RemoteVault,
+    ) -> Result<(), SyncClientError> {
+        let url = self
+            .base_url
+            .join("rest/v1/encrypted_vaults")
+            .map_err(|_| SyncClientError::InvalidUrl)?;
+        let response = self
+            .http
+            .post(url)
+            .header("apikey", &self.anon_key)
+            .bearer_auth(access_token)
+            .header("Prefer", "resolution=merge-duplicates,return=minimal")
+            .json(vault)
+            .send()
+            .await
+            .map_err(redacted_transport)?;
+        checked_response(response)?;
+        Ok(())
+    }
+
+    pub async fn get_vault(
+        &self,
+        access_token: &str,
+    ) -> Result<Option<RemoteVault>, SyncClientError> {
+        let mut url = self
+            .base_url
+            .join("rest/v1/encrypted_vaults")
+            .map_err(|_| SyncClientError::InvalidUrl)?;
+        url.query_pairs_mut()
+            .append_pair("select", "wrapped_vault,recovery_wrapped_vault,updated_at")
+            .append_pair("limit", "1");
+        let response = self
+            .http
+            .get(url)
+            .header("apikey", &self.anon_key)
+            .bearer_auth(access_token)
+            .send()
+            .await
+            .map_err(redacted_transport)?;
+        let mut vaults: Vec<RemoteVault> = bounded_json(checked_response(response)?).await?;
+        if vaults.len() > 1 {
+            return Err(SyncClientError::MalformedResponse);
+        }
+        Ok(vaults.pop())
     }
 
     pub async fn upload_revision(

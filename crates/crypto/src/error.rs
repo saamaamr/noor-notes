@@ -4,6 +4,8 @@ pub enum CryptoError {
     AuthenticationFailed,
     #[error("key derivation failed")]
     KeyDerivationFailed,
+    #[error("the recovery key is invalid")]
+    InvalidRecoveryKey,
     #[error("unsupported encryption envelope version: {0}")]
     UnsupportedVersion(u8),
 }

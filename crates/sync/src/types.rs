@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use noor_crypto::{RecoveryWrappedVault, WrappedVault};
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -41,6 +42,13 @@ pub struct OAuthPkce {
     pub authorization_url: Url,
     pub verifier: Zeroizing<String>,
     pub state: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RemoteVault {
+    pub wrapped_vault: WrappedVault,
+    pub recovery_wrapped_vault: RecoveryWrappedVault,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
