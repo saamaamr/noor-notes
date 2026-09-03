@@ -7,6 +7,7 @@ sdk-extensions:
 command: noor-notes
 finish-args:
   - --share=ipc
+  # Optional sync/provider OAuth uses HTTPS plus bounded localhost callbacks.
   - --share=network
   - --socket=fallback-x11
   - --socket=wayland

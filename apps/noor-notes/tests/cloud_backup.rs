@@ -10,7 +10,7 @@ use noor_sync::{
     BackupArchive, BackupProviderKind, EndpointPolicy, GoogleDriveProvider, OneDriveProvider,
     ProviderOAuth, SupabaseClient,
 };
-use wiremock::matchers::{body_string_contains, method, path, path_regex};
+use wiremock::matchers::{body_string_contains, header, method, path, path_regex};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 struct Fixture {
@@ -293,4 +293,63 @@ async fn restore_requires_authenticated_preview_token_and_uses_repository_merge(
         Some(note)
     );
     assert!(fixture.controller.restore(&preview.token).await.is_err());
+}
+
+#[tokio::test]
+async fn expired_provider_access_is_refreshed_before_storage_request() {
+    let cloud = MockServer::start().await;
+    let providers = MockServer::start().await;
+    let oauth = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/onedrive/token"))
+        .and(body_string_contains("code=short-code"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "access_token": "expiring-access",
+            "refresh_token": "rotating-refresh",
+            "expires_in": 1
+        })))
+        .expect(1)
+        .mount(&oauth)
+        .await;
+    let fixture = fixture(&cloud, &providers, &oauth).await;
+    fixture
+        .controller
+        .connect(BackupProviderKind::OneDrive, "short-code", "verifier")
+        .await
+        .unwrap();
+    tokio::time::sleep(std::time::Duration::from_millis(1_100)).await;
+    Mock::given(method("POST"))
+        .and(path("/onedrive/token"))
+        .and(body_string_contains("refresh_token=rotating-refresh"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "access_token": "fresh-access",
+            "refresh_token": "rotated-refresh",
+            "expires_in": 3600
+        })))
+        .expect(1)
+        .mount(&oauth)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/me/drive/special/approot:/Noor%20Notes:/children"))
+        .and(header("authorization", "Bearer fresh-access"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"value": []})))
+        .expect(1)
+        .mount(&providers)
+        .await;
+
+    assert!(
+        fixture
+            .controller
+            .list_backups(BackupProviderKind::OneDrive)
+            .await
+            .unwrap()
+            .is_empty()
+    );
+    let stored = fixture
+        .keys
+        .get(SecretKind::OneDriveSession, "active")
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(String::from_utf8_lossy(&stored).contains("rotated-refresh"));
 }

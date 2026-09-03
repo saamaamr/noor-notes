@@ -18,6 +18,9 @@ description: |
   until you configure and test a provider.
 
   Noor Notes contains no advertising, analytics, or tracking.
+  When a maintainer builds with reviewed public Supabase, Google Drive, or
+  OneDrive client configuration, users may opt into end-to-end encrypted sync
+  and encrypted app-folder backups. No provider client secret is embedded.
 base: core24
 grade: stable
 confinement: strict
@@ -48,6 +51,7 @@ apps:
       - wayland
       - x11
       - network
+      # Loopback OAuth callbacks use fixed localhost ports and need network-bind.
       - network-bind
       - password-manager-service
     slots:

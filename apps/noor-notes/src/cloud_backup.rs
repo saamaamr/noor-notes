@@ -116,9 +116,25 @@ struct PendingRestore {
     backup: EncryptedBackup,
 }
 
+#[derive(Clone)]
+struct ActiveProviderSession {
+    session: ProviderSession,
+    refresh_at: DateTime<Utc>,
+}
+
+impl ActiveProviderSession {
+    fn new(session: ProviderSession) -> Self {
+        let refresh_in = session.expires_in.saturating_sub(60).max(1) as i64;
+        Self {
+            session,
+            refresh_at: Utc::now() + chrono::Duration::seconds(refresh_in),
+        }
+    }
+}
+
 #[derive(Default)]
 struct BackupRuntime {
-    sessions: HashMap<BackupProviderKind, ProviderSession>,
+    sessions: HashMap<BackupProviderKind, ActiveProviderSession>,
     previews: HashMap<String, PendingRestore>,
 }
 
@@ -195,7 +211,11 @@ impl CloudBackupController {
             .ok_or(CloudBackupError::NotConfigured)?;
         let session = oauth.exchange(code, verifier).await?;
         self.store_session(kind, &session).await?;
-        self.runtime.lock().await.sessions.insert(kind, session);
+        self.runtime
+            .lock()
+            .await
+            .sessions
+            .insert(kind, ActiveProviderSession::new(session));
         Ok(())
     }
 
@@ -236,7 +256,11 @@ impl CloudBackupController {
             .refresh(&refresh)
             .await?;
         self.store_session(kind, &session).await?;
-        self.runtime.lock().await.sessions.insert(kind, session);
+        self.runtime
+            .lock()
+            .await
+            .sessions
+            .insert(kind, ActiveProviderSession::new(session));
         Ok(true)
     }
 
@@ -293,12 +317,16 @@ impl CloudBackupController {
             Ok(bytes) => bytes,
             Err(_) => return Vec::new(),
         };
-        let sessions = self.runtime.lock().await.sessions.clone();
+        let kinds = connected_kinds(&*self.runtime.lock().await);
         let mut results = Vec::new();
-        for (kind, session) in sessions {
-            let outcome = self
-                .upload_pair(kind, &session.access_token, now, &encrypted)
-                .await;
+        for kind in kinds {
+            let outcome = match self.session(kind).await {
+                Ok(session) => {
+                    self.upload_pair(kind, &session.access_token, now, &encrypted)
+                        .await
+                }
+                Err(error) => Err(error),
+            };
             results.push(ProviderBackupResult {
                 provider: kind,
                 uploaded: outcome.is_ok(),
@@ -410,13 +438,29 @@ impl CloudBackupController {
     }
 
     async fn session(&self, kind: BackupProviderKind) -> Result<ProviderSession, CloudBackupError> {
-        self.runtime
+        let active = self
+            .runtime
             .lock()
             .await
             .sessions
             .get(&kind)
             .cloned()
-            .ok_or(CloudBackupError::NotConnected)
+            .ok_or(CloudBackupError::NotConnected)?;
+        if Utc::now() < active.refresh_at {
+            return Ok(active.session);
+        }
+        let oauth = self
+            .configuration
+            .oauth(kind)
+            .ok_or(CloudBackupError::NotConfigured)?;
+        let refreshed = oauth.refresh(&active.session.refresh_token).await?;
+        self.store_session(kind, &refreshed).await?;
+        self.runtime
+            .lock()
+            .await
+            .sessions
+            .insert(kind, ActiveProviderSession::new(refreshed.clone()));
+        Ok(refreshed)
     }
 
     async fn store_session(
