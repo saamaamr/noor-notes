@@ -176,3 +176,44 @@ async fn auth_required_cycle_refreshes_session_and_retries_once() {
         .unwrap();
     assert!(String::from_utf8_lossy(&stored).contains("rotated"));
 }
+
+#[tokio::test]
+async fn failed_cycle_can_be_retried_without_reunlocking_the_vault() {
+    let server = MockServer::start().await;
+    let vault = remote_vault(b"correct passphrase");
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/encrypted_vaults"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(vec![vault]))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/encrypted_note_revisions"))
+        .respond_with(ResponseTemplate::new(500))
+        .mount(&server)
+        .await;
+    let keys = Arc::new(InMemoryKeyStore::default());
+    let controller = controller(&server, keys).await;
+    controller
+        .attach_session(session("access", "refresh"))
+        .await
+        .unwrap();
+    controller
+        .unlock_with_passphrase(b"correct passphrase")
+        .await
+        .unwrap();
+
+    let first = controller.run_once("desktop").await.unwrap();
+    assert_eq!(first.status, SyncStatus::Error);
+    assert_eq!(controller.state().await, CloudSyncState::Error);
+
+    server.reset().await;
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/encrypted_note_revisions"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(Vec::<serde_json::Value>::new()))
+        .mount(&server)
+        .await;
+
+    let retry = controller.run_once("desktop").await.unwrap();
+    assert_eq!(retry.status, SyncStatus::Idle);
+    assert_eq!(controller.state().await, CloudSyncState::Ready);
+}

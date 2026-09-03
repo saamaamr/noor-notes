@@ -13,6 +13,7 @@ use crate::actions::add_action;
 use crate::appearance::{AppearanceManager, AppearanceStore, global, install_global};
 use crate::autosave::AutosaveQueue;
 use crate::cloud_config::CloudConfig;
+use crate::cloud_sync::{CloudSyncController, CloudSyncState};
 use crate::import_dialog::ImportFlow;
 use crate::key_store::Oo7KeyStore;
 use crate::main_window::MainWindow;
@@ -54,6 +55,12 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
         }
     });
     let main_window: Rc<RefCell<Option<MainWindow>>> = Rc::new(RefCell::new(None));
+    let cloud_configuration = CloudConfig::load();
+    let cloud_sync = cloud_configuration
+        .as_ref()
+        .ok()
+        .and_then(|configuration| configuration.client().ok())
+        .map(|client| CloudSyncController::new(repository.clone(), client, keys.clone()));
 
     {
         let main_window = main_window.clone();
@@ -158,13 +165,15 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
         let app = app.clone();
         let settings: Rc<RefCell<Option<AccountSettings>>> = Rc::new(RefCell::new(None));
         let keys: Arc<dyn crate::key_store::KeyStore> = keys.clone();
-        let configuration = CloudConfig::load();
+        let configuration = cloud_configuration.clone();
+        let cloud_sync = cloud_sync.clone();
         add_action(&app.clone(), "account-settings", move |_, _| {
             if settings.borrow().is_none() {
-                settings.replace(Some(AccountSettings::new(
+                settings.replace(Some(AccountSettings::new_with_sync(
                     &app,
                     configuration.clone(),
                     keys.clone(),
+                    cloud_sync.clone(),
                 )));
             }
             if let Some(settings) = settings.borrow().as_ref() {
@@ -174,10 +183,39 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     }
     {
         let main_window = main_window.clone();
+        let cloud_sync = cloud_sync.clone();
         add_action(&app, "sync-now", move |_, _| {
-            if let Some(window) = main_window.borrow().as_ref() {
-                window.set_status("Cloud sync is not configured yet · Local notes are safe");
-            }
+            let Some(window) = main_window.borrow().as_ref().cloned() else {
+                return;
+            };
+            let Some(sync) = cloud_sync.clone() else {
+                window.set_status("Cloud is not configured · Local notes remain available");
+                return;
+            };
+            window.set_status("Syncing encrypted notes…");
+            gtk::glib::MainContext::default().spawn_local(async move {
+                if !matches!(
+                    sync.state().await,
+                    CloudSyncState::Ready | CloudSyncState::Offline | CloudSyncState::Error
+                ) {
+                    window.set_status("Open Account & Sync to sign in and unlock encrypted sync");
+                    return;
+                }
+                match sync.run_once("desktop").await {
+                    Ok(cycle) => {
+                        window.set_status(&format!(
+                            "Sync complete · {} uploaded · {} downloaded",
+                            cycle.uploaded, cycle.downloaded
+                        ));
+                        if cycle.downloaded > 0 {
+                            window.refresh();
+                        }
+                    }
+                    Err(error) => window.set_status(&format!(
+                        "Sync could not finish: {error} · Local notes are safe"
+                    )),
+                }
+            });
         });
     }
     {

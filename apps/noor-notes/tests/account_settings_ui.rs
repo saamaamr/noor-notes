@@ -32,6 +32,20 @@ fn account_window_exposes_real_actions_and_an_explicit_local_only_state() {
     assert!(settings.google.is_sensitive());
     assert!(!settings.sign_out.is_visible());
     assert!(settings.status.text().contains("encrypted sync"));
+    assert_eq!(
+        settings.create_vault.label().as_deref(),
+        Some("Create Encrypted Vault")
+    );
+    assert_eq!(settings.unlock_vault.label().as_deref(), Some("Unlock"));
+    assert_eq!(
+        settings.confirm_recovery.label().as_deref(),
+        Some("Confirm Recovery Key")
+    );
+    assert_eq!(settings.sync_now.label().as_deref(), Some("Sync Now"));
+    assert!(settings.sync_passphrase.shows_peek_icon());
+    assert!(settings.recovery_display.is_selectable());
+    assert!(!settings.create_vault.is_visible());
+    assert!(!settings.sync_now.is_visible());
 
     let local_only = AccountSettings::new(
         &app,
@@ -47,4 +61,7 @@ fn account_window_exposes_real_actions_and_an_explicit_local_only_state() {
             .text()
             .contains("Local notes remain available")
     );
+    assert!(!local_only.create_vault.is_sensitive());
+    assert!(!local_only.unlock_vault.is_sensitive());
+    assert!(!local_only.sync_now.is_sensitive());
 }

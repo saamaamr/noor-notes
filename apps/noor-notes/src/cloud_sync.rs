@@ -243,7 +243,10 @@ impl CloudSyncController {
     pub async fn run_once(&self, device_id: &str) -> Result<SyncCycle, CloudSyncError> {
         let (session, vault, cursor) = {
             let mut runtime = self.runtime.lock().await;
-            if runtime.state != CloudSyncState::Ready {
+            if !matches!(
+                runtime.state,
+                CloudSyncState::Ready | CloudSyncState::Offline | CloudSyncState::Error
+            ) {
                 return Err(CloudSyncError::InvalidState);
             }
             let session = runtime
