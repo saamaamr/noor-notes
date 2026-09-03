@@ -51,6 +51,38 @@ pub struct RemoteVault {
     pub updated_at: DateTime<Utc>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SyncCursor {
+    pub updated_at: DateTime<Utc>,
+    pub note_id: Uuid,
+    pub revision: u64,
+}
+
+impl SyncCursor {
+    pub fn from_revision(revision: &RemoteRevision) -> Self {
+        Self {
+            updated_at: revision.updated_at,
+            note_id: revision.note_id,
+            revision: revision.revision,
+        }
+    }
+
+    pub fn is_before(&self, revision: &RemoteRevision) -> bool {
+        (self.updated_at, self.note_id, self.revision)
+            < (revision.updated_at, revision.note_id, revision.revision)
+    }
+}
+
+impl Default for SyncCursor {
+    fn default() -> Self {
+        Self {
+            updated_at: DateTime::from_timestamp(0, 0).expect("Unix epoch is valid"),
+            note_id: Uuid::nil(),
+            revision: 0,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RemoteRevision {
     pub note_id: Uuid,

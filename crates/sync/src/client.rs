@@ -19,7 +19,9 @@ pub enum EndpointPolicy {
     AllowLoopbackHttpForTests,
 }
 
-use crate::{AuthSession, AuthUser, OAuthPkce, RemoteRevision, RemoteVault, SignUpOutcome};
+use crate::{
+    AuthSession, AuthUser, OAuthPkce, RemoteRevision, RemoteVault, SignUpOutcome, SyncCursor,
+};
 
 #[derive(Deserialize)]
 #[serde(untagged)]
@@ -383,6 +385,48 @@ impl SupabaseClient {
         if revisions.len() > MAX_REVISIONS {
             return Err(SyncClientError::ResponseTooLarge);
         }
+        Ok(revisions)
+    }
+    pub async fn list_changes_after(
+        &self,
+        access_token: &str,
+        cursor: SyncCursor,
+    ) -> Result<Vec<RemoteRevision>, SyncClientError> {
+        let mut url = self
+            .base_url
+            .join("rest/v1/encrypted_note_revisions")
+            .map_err(|_| SyncClientError::InvalidUrl)?;
+        url.query_pairs_mut()
+            .append_pair(
+                "select",
+                "note_id,revision,ciphertext,nonce,updated_at,deleted_at",
+            )
+            .append_pair(
+                "updated_at",
+                &format!("gte.{}", cursor.updated_at.to_rfc3339()),
+            )
+            .append_pair("order", "updated_at.asc,note_id.asc,revision.asc")
+            .append_pair("limit", &MAX_REVISIONS.to_string());
+        let response = self
+            .http
+            .get(url)
+            .header("apikey", &self.anon_key)
+            .bearer_auth(access_token)
+            .send()
+            .await
+            .map_err(redacted_transport)?;
+        let mut revisions: Vec<RemoteRevision> = bounded_json(checked_response(response)?).await?;
+        if revisions.len() > MAX_REVISIONS {
+            return Err(SyncClientError::ResponseTooLarge);
+        }
+        revisions.sort_by(|left, right| {
+            (left.updated_at, left.note_id, left.revision).cmp(&(
+                right.updated_at,
+                right.note_id,
+                right.revision,
+            ))
+        });
+        revisions.retain(|revision| cursor.is_before(revision));
         Ok(revisions)
     }
 }
