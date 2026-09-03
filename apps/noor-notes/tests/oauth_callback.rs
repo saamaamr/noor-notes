@@ -95,3 +95,20 @@ async fn callback_rejects_non_get_and_oversized_requests() {
     };
     assert!(matches!(error, OAuthCallbackError::RequestTooLarge));
 }
+
+#[tokio::test]
+async fn callback_supports_provider_specific_path_and_standard_state() {
+    let callback = OAuthCallback::bind_at("127.0.0.1:0", "/backup/google")
+        .await
+        .unwrap();
+    let address = callback.local_addr();
+    let waiter = tokio::spawn(callback.wait("provider-state", Duration::from_secs(2)));
+    let response = request(
+        address,
+        b"GET /backup/google?code=provider-code&state=provider-state HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n",
+    )
+    .await;
+
+    assert_eq!(waiter.await.unwrap().unwrap().as_str(), "provider-code");
+    assert!(response.contains("200 OK"));
+}

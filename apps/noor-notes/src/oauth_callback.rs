@@ -15,6 +15,7 @@ pub struct OAuthCallback {
     listener: TcpListener,
     local_addr: SocketAddr,
     redirect_url: Url,
+    callback_path: String,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -39,26 +40,43 @@ pub enum OAuthCallbackError {
 
 impl OAuthCallback {
     pub async fn bind() -> Result<Self, OAuthCallbackError> {
-        Self::bind_to(CALLBACK_ADDRESS).await
+        Self::bind_at(CALLBACK_ADDRESS, CALLBACK_PATH).await
     }
 
     pub async fn bind_to(address: &str) -> Result<Self, OAuthCallbackError> {
+        Self::bind_at(address, CALLBACK_PATH).await
+    }
+
+    pub async fn bind_google_backup() -> Result<Self, OAuthCallbackError> {
+        Self::bind_at("127.0.0.1:43818", "/backup/google").await
+    }
+
+    pub async fn bind_onedrive_backup() -> Result<Self, OAuthCallbackError> {
+        Self::bind_at("127.0.0.1:43819", "/backup/onedrive").await
+    }
+
+    pub async fn bind_at(address: &str, callback_path: &str) -> Result<Self, OAuthCallbackError> {
         let requested: SocketAddr = address
             .parse()
             .map_err(|_| OAuthCallbackError::NotLoopback)?;
-        if !requested.ip().is_loopback() {
+        if !requested.ip().is_loopback()
+            || !callback_path.starts_with('/')
+            || callback_path.contains('?')
+            || callback_path.contains('#')
+        {
             return Err(OAuthCallbackError::NotLoopback);
         }
         let listener = TcpListener::bind(requested)
             .await
             .map_err(|_| OAuthCallbackError::Bind)?;
         let local_addr = listener.local_addr().map_err(|_| OAuthCallbackError::Io)?;
-        let redirect_url = Url::parse(&format!("http://{}{}", local_addr, CALLBACK_PATH))
+        let redirect_url = Url::parse(&format!("http://{local_addr}{callback_path}"))
             .map_err(|_| OAuthCallbackError::Io)?;
         Ok(Self {
             listener,
             local_addr,
             redirect_url,
+            callback_path: callback_path.to_owned(),
         })
     }
 
@@ -91,7 +109,7 @@ impl OAuthCallback {
             write_error(&mut stream).await;
             return Err(OAuthCallbackError::NotLoopback);
         }
-        let result = read_callback(&mut stream, expected_state).await;
+        let result = read_callback(&mut stream, expected_state, &self.callback_path).await;
         if result.is_ok() {
             write_success(&mut stream).await;
         } else {
@@ -104,6 +122,7 @@ impl OAuthCallback {
 async fn read_callback(
     stream: &mut TcpStream,
     expected_state: &str,
+    callback_path: &str,
 ) -> Result<Zeroizing<String>, OAuthCallbackError> {
     let mut request = Zeroizing::new(Vec::with_capacity(1024));
     loop {
@@ -141,7 +160,7 @@ async fn read_callback(
 
     let parsed = Url::parse(&format!("http://127.0.0.1{target}"))
         .map_err(|_| OAuthCallbackError::InvalidRequest)?;
-    if parsed.path() != CALLBACK_PATH {
+    if parsed.path() != callback_path {
         return Err(OAuthCallbackError::InvalidRequest);
     }
     let mut code = None;
@@ -150,9 +169,11 @@ async fn read_callback(
     for (key, value) in parsed.query_pairs() {
         match key.as_ref() {
             "code" if code.is_none() && !value.is_empty() => code = Some(value.into_owned()),
-            "nn_state" if state.is_none() && !value.is_empty() => state = Some(value.into_owned()),
+            "state" | "nn_state" if state.is_none() && !value.is_empty() => {
+                state = Some(value.into_owned())
+            }
             "error" => provider_error = true,
-            "code" | "nn_state" => return Err(OAuthCallbackError::InvalidRequest),
+            "code" | "state" | "nn_state" => return Err(OAuthCallbackError::InvalidRequest),
             _ => {}
         }
     }

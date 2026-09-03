@@ -16,10 +16,12 @@ pub use types::{
 };
 mod backoff;
 mod merge;
+mod provider_oauth;
 mod remote_worker;
 mod worker;
 
 pub use backoff::retry_delay;
 pub use merge::{MergeOutcome, merge_remote_revision};
+pub use provider_oauth::{BackupProviderKind, ProviderOAuth, ProviderOAuthError, ProviderSession};
 pub use remote_worker::RemoteApplyError;
 pub use worker::{SyncCycle, SyncStatus, SyncWorker};
