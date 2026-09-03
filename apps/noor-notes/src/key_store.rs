@@ -12,6 +12,8 @@ pub enum SecretKind {
     RefreshToken,
     CloudSession,
     WrappedVault,
+    SyncVault,
+    SyncCursor,
     WritingAssistanceApiKey,
 }
 
@@ -22,6 +24,8 @@ impl SecretKind {
             Self::RefreshToken => "refresh-token",
             Self::CloudSession => "cloud-session",
             Self::WrappedVault => "wrapped-vault",
+            Self::SyncVault => "sync-vault",
+            Self::SyncCursor => "sync-cursor",
             Self::WritingAssistanceApiKey => "writing-assistance-api-key",
         }
     }

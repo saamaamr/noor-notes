@@ -100,6 +100,15 @@ impl AccountController {
         self.persist_session(&session).await?;
         Ok(Some(session))
     }
+    pub async fn remember_session(&self, session: &AuthSession) -> Result<(), AccountError> {
+        self.persist_session(session).await
+    }
+
+    pub async fn refresh_session(&self, refresh_token: &str) -> Result<AuthSession, AccountError> {
+        let session = self.client.refresh_session(refresh_token).await?;
+        self.persist_session(&session).await?;
+        Ok(session)
+    }
 
     async fn persist_session(&self, session: &AuthSession) -> Result<(), AccountError> {
         let stored = StoredCloudSession {
