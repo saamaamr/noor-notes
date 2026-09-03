@@ -4,10 +4,16 @@ mod client;
 mod types;
 
 mod backup_archive;
+mod backup_provider;
+mod google_drive;
+mod onedrive;
 pub use backup_archive::{
     BACKUP_VERSION, BackupArchive, BackupArchiveError, BackupPreview, EncryptedBackup,
     MAX_BACKUP_BYTES,
 };
+pub use backup_provider::{BackupObject, BackupProvider, BackupProviderError};
+pub use google_drive::GoogleDriveProvider;
+pub use onedrive::OneDriveProvider;
 
 pub use client::{EndpointPolicy, SupabaseClient, SyncClientError};
 pub use types::{
