@@ -2,7 +2,7 @@
 
 Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
 
-**Current source:** v1.1.5 · **Current release:** v1.1.5 (publication pending) · **Stable:** v1.1.4 (revision 23) · **Edge:** v1.1.4 (revision 23) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
+**Current source:** v1.1.5 · **Current release:** v1.1.5 · **Stable:** v1.1.5 (revision 24) · **Edge:** v1.1.5 (revision 24) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
 
 ## Product overview
 
@@ -10,7 +10,7 @@ Noor Notes is both a usable desktop application and evidence of production-orien
 
 The refreshed library uses distinct sidebar, note-list, and editor surfaces; note colours remain visible as restrained identity rails and subtle tints instead of saturated cards. Compact controls, a readable preview column, and adaptive narrow-window navigation keep the workspace calm and usable across window sizes.
 
-The retained reference gallery below shows the real v1.1.3 Dev build with synthetic demonstration notes, not new v1.1.4 screenshots. It covers the expanded editor workspace, read-only preview, and the maintained Snow and Midnight appearances.
+The retained reference gallery below shows the real v1.1.3 Dev build with synthetic demonstration notes, not current v1.1.5 screenshots. It covers the expanded editor workspace, read-only preview, and the maintained Snow and Midnight appearances.
 
 | Library and preview | Focused rich editor |
 | --- | --- |
@@ -86,9 +86,9 @@ Choose one installation method:
 
 Install the stable Snap Store release, then launch it from the application grid or terminal:
 
-The current stable release is **Noor Notes 1.1.4, revision 23** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
+The current stable release is **Noor Notes 1.1.5, revision 24** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
 
-The repository source is **1.1.5**; that hotfix is pending publication. On 2026-09-06, the [1.1.4 release workflow](https://github.com/saamaamr/noor-notes/actions/runs/34038250987) passed build, runtime, lint and Store-installed smoke-test gates, then promoted the same revision **23** from edge to stable without rebuilding. Both channels were verified independently with `snap info noor-notes`.
+The repository source is **1.1.5**. On 2026-09-06, the [1.1.5 release workflow](https://github.com/saamaamr/noor-notes/actions/runs/34040163529) passed build, runtime, lint and Store-installed smoke/configuration gates. After maintainer live-flow confirmation, the same revision **24** was manually promoted from edge to stable without rebuilding. Both channels were verified with `snap info noor-notes`.
 ```bash
 sudo snap install noor-notes
 noor-notes
@@ -295,7 +295,7 @@ Back up the encrypted database together with a working GNOME Keyring backup. If 
 - If Always on Top is disabled on GNOME Wayland, use a source installation with the separately installed GNOME Shell extension, or use a supported window environment.
 - If lock-screen motion is missing after a source update, run `./scripts/install-gnome-extension.sh`, log out and back in, and confirm `gnome-extensions info noor-lockscreen-motion@saamaamr.github.io` reports the extension. The motion safely becomes a no-op if the compatible WACK/GNOME clock actors are unavailable.
 - If Xpad import cannot find your existing notes from a Snap or Flatpak install, use a native/source installation: those sandboxes cannot read the host `~/.config/xpad` in v1.1.1.
-- If **Account & Sync…** says cloud account support is unavailable, rebuild with the two public Supabase values above and apply the RLS migrations. If a Drive provider says it is not configured, register its exact redirect and rebuild with that provider's public client ID; never add a client secret.
+- If **Account & Sync…** says cloud account support is unavailable in an official Snap older than 1.1.5, update with `sudo snap refresh noor-notes --stable`. For custom builds, supply the two public Supabase values above and apply the RLS migrations. If a Drive provider says it is not configured, register its exact redirect and rebuild with that provider's public client ID; never add a client secret.
 - If source installation fails, run `./scripts/install-ubuntu.sh` on an APT-based system so the GTK4, Libadwaita, SQLite, OpenSSL, X11, and Secret Service dependencies are installed.
 - After pulling source changes, run `./scripts/install-local.sh` to rebuild and replace the user-installed **Noor Notes Dev** binary and desktop resources. Before the first migration, fully quit any legacy source-installed Noor Notes process; on later updates, fully quit the older Dev process before reopening it.
 - If Noor Notes Dev does not open from the application grid, run `~/.local/bin/noor-notes-dev` in a terminal and include the displayed error in a bug report. Reinstall first if that path is missing or older than the checkout. Do not delete the notes database or GNOME Keyring entry while diagnosing launch problems.

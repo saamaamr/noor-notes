@@ -24,13 +24,16 @@
 - `cargo clippy -p noor-notes --all-targets -- -D warnings`: passed.
 - `cargo fmt --all -- --check` and `git diff --check`: passed before this documentation update.
 
-## Still required before claiming live end-to-end readiness
+## Maintainer-reported live acceptance — 2026-09-06
 
-- Sign in through the installed Dev application's **Account & Sync** window using a real Google account; confirm callback and session restoration.
-- Create/unlock the encrypted vault, sync a disposable note, then verify a second device can download/decrypt it and return edits.
+After being asked whether real Google/email login and note sync between two devices worked in Dev, the maintainer confirmed “yes, 1.1.5 stable” and authorized promotion. This is user-reported acceptance, not an independently captured automated OAuth/two-device run. The 1.1.5 Snap adds the same public account configuration as Dev and separately checks the installed package's configuration before promotion.
+
+## Remaining detailed acceptance and limitations
+
+- Independently capture real OAuth callback/session restoration and a disposable-note two-device round trip; the maintainer's confirmation above covers the basic flow, not every subcase.
 - Verify offline retry and account sign-out with the real provider.
 - Email confirmation's production landing URL is not configured; the dashboard Site URL remains the default localhost value.
 - Automatic background scheduling is not claimed: current account sync is manual.
 - Concurrent revision collisions, timestamp-based incremental cursor ordering, and concurrent vault enrollment need dedicated multi-device validation.
 
-Mock HTTP tests and database isolation tests do not prove successful live OAuth token exchange or two-device synchronization. Do not label this deployment fully verified or publish a stable sync release on that basis alone.
+Mock HTTP tests and database isolation tests do not prove successful live OAuth token exchange or two-device synchronization. The 1.1.5 promotion relies on the maintainer's live-flow confirmation plus package gates; it is not a claim that every acceptance scenario above has been independently verified.
