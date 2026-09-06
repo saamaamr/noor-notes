@@ -2,7 +2,7 @@
 
 Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
 
-**Current source:** v1.1.4 · **Current release:** v1.1.4 (publication pending) · **Stable:** v1.1.3 (revision 19) · **Edge:** v1.1.3 (revision 22) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
+**Current source:** v1.1.4 · **Current release:** v1.1.4 · **Stable:** v1.1.4 (revision 23) · **Edge:** v1.1.4 (revision 23) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
 
 ## Product overview
 
@@ -10,7 +10,7 @@ Noor Notes is both a usable desktop application and evidence of production-orien
 
 The refreshed library uses distinct sidebar, note-list, and editor surfaces; note colours remain visible as restrained identity rails and subtle tints instead of saturated cards. Compact controls, a readable preview column, and adaptive narrow-window navigation keep the workspace calm and usable across window sizes.
 
-The current release gallery below shows the real v1.1.3 Dev build with synthetic demonstration notes. It covers the expanded editor workspace, read-only preview, and the maintained Snow and Midnight appearances.
+The retained reference gallery below shows the real v1.1.3 Dev build with synthetic demonstration notes, not new v1.1.4 screenshots. It covers the expanded editor workspace, read-only preview, and the maintained Snow and Midnight appearances.
 
 | Library and preview | Focused rich editor |
 | --- | --- |
@@ -84,9 +84,9 @@ Choose one installation method:
 
 Install the stable Snap Store release, then launch it from the application grid or terminal:
 
-The current stable release is **Noor Notes 1.1.3, revision 19** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
+The current stable release is **Noor Notes 1.1.4, revision 23** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
 
-The repository source is **1.1.4**, the next patch after stable 1.1.3. Publication is pending build, lint and Store smoke-test gates. The last verified Store preview is **1.1.3, revision 22**; source and Store versions are verified independently.
+The repository source is **1.1.4**, the patch after stable 1.1.3. On 2026-09-06, the [release workflow](https://github.com/saamaamr/noor-notes/actions/runs/34038250987) passed build, runtime, lint and Store-installed smoke-test gates, then promoted the same revision **23** from edge to stable without rebuilding. Both channels were verified independently with `snap info noor-notes`.
 ```bash
 sudo snap install noor-notes
 noor-notes
