@@ -22,5 +22,6 @@ pub mod note_preview;
 pub mod note_writing_assistance;
 pub mod popover_primitives;
 pub mod rich_color_palette;
+pub mod settings_primitives;
 pub mod toolbar_primitives;
 pub mod writing_assistance_settings;

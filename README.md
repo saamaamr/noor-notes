@@ -2,7 +2,7 @@
 
 Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
 
-**Current source:** v1.1.3 · **Current release:** v1.1.3 · **Stable:** v1.1.3 (revision 19) · **Edge:** v1.1.3 (revision 22) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
+**Current source:** v1.1.4 · **Current release:** v1.1.4 (publication pending) · **Stable:** v1.1.3 (revision 19) · **Edge:** v1.1.3 (revision 22) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
 
 ## Product overview
 
@@ -22,9 +22,14 @@ The current release gallery below shows the real v1.1.3 Dev build with synthetic
 
 ## Recent fixes
 
+See the [1.1.4 changes and release scope](docs/releases/1.1.4.md).
+
 - Expanded the integrated editor background, header, menu, toolbar, and writing surface across the available workspace with no automatic side gutters.
-- Refined the sticky read-only window with compact header spacing, balanced 10–12-pixel normal padding, 4–6-pixel compact padding, and a larger distraction-free reading area.
-- Added an accessible Google Docs-style margin ruler: editing starts at the native canvas padding, left and right controls add temporary margins, Reset returns both to zero, and selecting another note clears the session-only margin choice without changing stored note data.
+- Refined the separate sticky Read-only window: title only in the header, top-aligned body without hidden editor gaps, and width-responsive reading insets independent of editor margins.
+- Moved session-only editor margins into a compact **Margins** toolbar popover opening below its button. Left, Right and Reset preserve the native canvas padding; selecting another note clears temporary margins without changing stored content.
+- Polished shared Snow/Midnight controls, content-sized toolbars, mode-aware menus, and compact Account & Sync / Writing Assistance settings.
+- Fixed failed sync attempts that left controls stuck or incorrectly reported success. Live provider and multi-device acceptance remain separate from local fixture tests.
+- Recreated closed library/settings windows safely. A surviving sticky remains controllable after reopening the library, without duplicate windows or stale Read-only state.
 - Reapplied adaptive pane allocation from the native GDK surface layout signal, so restored and manually resized windows collapse navigation at the correct breakpoint without polling or blocking the UI thread.
 - Prevented the confined GTK focus use-after-free that closed the Live Snap after Archive, Restore, or Move to Trash: note-action popovers now settle before mutation, and focus moves to stable Library navigation before recyclable note cards refresh.
 - Removed the incompatible bundled GTK 4.14 runtime and use the GNOME content snap's matching GTK/libadwaita stack.
@@ -51,7 +56,7 @@ The current release gallery below shows the real v1.1.3 Dev build with synthetic
 - **Optional online assistance**: an OpenAI-compatible provider is opt-in and disabled until its connection is validated. Grammar sends only the current paragraph (maximum 2,000 Unicode characters), prediction sends only a nearby sentence (maximum 800), and the API key stays in GNOME Keyring. Titles, tags, other notes, account data, and encryption material are not sent.
 - **Native notes library**: a compact GNOME header, adaptive navigation sidebar, virtualized note cards, selected-note preview, responsive empty states, keyboard navigation, and views for All Notes, Pinned, Favorites, Recent, Archived, Trash, and Tags.
 - **Fast organization**: Unicode-aware debounced search, stable sorting, editable titles, searchable tags, pinned and favorite states, note colours, duplication, archive, restore, and confirmed permanent deletion.
-- **Focused editor**: a full-width writing canvas with a compact toolbar, session-only margin ruler, and live status bar. Rich Text starts with the intentionally compact 5-pixel top/bottom and 8-pixel left/right canvas padding; the ruler can add temporary left and right margins without changing note content or persistence. Find and replace, undo and redo, word wrap, zoom, go to line, full screen, line and column position, word and character counts, and keyboard shortcuts work end to end.
+- **Focused integrated editor**: editable title/body, autosave, Save As, editor-mode selection, real formatting commands and compact session-only **Margins** controls. Rich Text retains its 5-pixel vertical and 8-pixel horizontal native canvas padding. Legacy standalone Find/More/View/Tools controls are not presented as integrated-editor functionality; global library search remains available.
 - **Rich and source modes**: rich notes support persistent bold, italic, underline, strikethrough, lists, alignment, font sizes, text and highlight colours, and emoji. Markdown and code notes use GtkSourceView syntax languages, while Plain Text stays unhighlighted; all source modes include line numbers, current-line highlighting, regex search, bookmarks, and theme-matched editor palettes.
 - **Reliable saving**: debounced autosave exposes Unsaved, Saving, Saved, and retryable failure states; close-time flushing protects pending edits, and rich formatting survives save and reopen.
 - **Polished appearance**: Snow provides calm daytime surfaces, restrained note-colour accents, and subtle selection states; Midnight provides a purpose-built dark palette. System appearance resolves to one of those two maintained themes. The selection persists and updates library windows, editors, paper colours, controls, and symbolic icon colours together.
@@ -81,7 +86,7 @@ Install the stable Snap Store release, then launch it from the application grid 
 
 The current stable release is **Noor Notes 1.1.3, revision 19** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
 
-The repository source is **1.1.3**. The last verified Store preview is **1.1.3, revision 22**; source and Store versions are verified independently before any future publication.
+The repository source is **1.1.4**, the next patch after stable 1.1.3. Publication is pending build, lint and Store smoke-test gates. The last verified Store preview is **1.1.3, revision 22**; source and Store versions are verified independently.
 ```bash
 sudo snap install noor-notes
 noor-notes
@@ -248,7 +253,7 @@ Development builds read these public application values at runtime or compile ti
     NOOR_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
     NOOR_SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_PUBLIC_KEY
 
-Only an HTTPS project URL and a Supabase publishable/anon client key are accepted; never provide a `service_role` or `sb_secret_` key. Enable email and Google providers in the Supabase dashboard and allow the exact redirect URL `http://127.0.0.1:43817/auth/callback`. Google sign-in requests authentication only, not Google Drive access. The app opens a loopback-only listener for one callback with a five-minute timeout and then closes it.
+Only an HTTPS project URL and a Supabase publishable/anon client key are accepted; never provide a `service_role` or `sb_secret_` key. Enable email and Google providers in the Supabase dashboard and allow `http://127.0.0.1:43817/auth/callback` plus `http://127.0.0.1:43817/auth/callback?nn_state=*` for the per-attempt callback state. Configure the Google web client's authorized redirect as `https://YOUR_PROJECT.supabase.co/auth/v1/callback`; its client secret belongs only in Supabase's provider settings, never in the desktop app. Google sign-in requests authentication only, not Google Drive access. The app opens a loopback-only listener for one callback with a five-minute timeout and then closes it.
 
 Apply the repository-owned migrations in `supabase/migrations/` before enabling a project. Their row-level-security policies bind encrypted vaults and note revisions to the authenticated user. No production Supabase URL or key is committed to this repository. Builds without them show a truthful local-only state and disable account actions. Account refresh tokens, wrapped vault material, and sync cursors are stored through GNOME Keyring; passwords, plaintext vault keys, and OAuth authorization codes are not persisted.
 
@@ -293,6 +298,8 @@ Back up the encrypted database together with a working GNOME Keyring backup. If 
 - If an Xpad note is skipped, inspect the import preview; it identifies entries that cannot be parsed before any import is committed.
 
 ## Development and build verification
+
+The current UI polish work reuses the integrated editor, semantic Snow/Midnight palette and existing persistence. It adds compact content-sized toolbars, responsive desktop navigation, shared settings fields and safer main/settings window reopening. See [implementation and verification scope](docs/ui-polish-verification.md); the release gallery above remains the published v1.1.3 reference, not new redesign proof.
 
 Build a release binary with:
 

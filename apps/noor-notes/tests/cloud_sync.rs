@@ -217,3 +217,58 @@ async fn failed_cycle_can_be_retried_without_reunlocking_the_vault() {
     assert_eq!(retry.status, SyncStatus::Idle);
     assert_eq!(controller.state().await, CloudSyncState::Ready);
 }
+
+#[tokio::test]
+async fn rejected_refresh_does_not_leave_sync_running() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/encrypted_vaults"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(vec![remote_vault(b"correct passphrase")]),
+        )
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/rest/v1/encrypted_note_revisions"))
+        .respond_with(ResponseTemplate::new(401))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/auth/v1/token"))
+        .respond_with(ResponseTemplate::new(401))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let controller = controller(&server, Arc::new(InMemoryKeyStore::default())).await;
+    controller
+        .attach_session(session("expired", "invalid-refresh"))
+        .await
+        .unwrap();
+    controller
+        .unlock_with_passphrase(b"correct passphrase")
+        .await
+        .unwrap();
+
+    assert!(controller.run_once("desktop").await.is_err());
+    assert_eq!(controller.state().await, CloudSyncState::AuthRequired);
+    assert!(controller.unlocked_vault().await.is_ok());
+}
+
+#[test]
+fn unsuccessful_cycles_never_report_sync_complete() {
+    use noor_notes::sync_status::cycle_message;
+    use noor_sync::{SyncCursor, SyncCycle};
+    for status in [
+        SyncStatus::Offline,
+        SyncStatus::AuthRequired,
+        SyncStatus::Error,
+    ] {
+        let cycle = SyncCycle {
+            status,
+            cursor: SyncCursor::default(),
+            uploaded: 1,
+            downloaded: 0,
+        };
+        assert!(!cycle_message(&cycle).contains("Sync complete"));
+    }
+}

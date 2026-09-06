@@ -126,7 +126,12 @@ fn every_modal_more_action_releases_the_parent_popover() {
 
 fn settle() {
     let context = gtk::glib::MainContext::default();
-    while context.pending() {
-        context.iteration(false);
+    // Popover map/unmap and frame-clock events can arrive after pending() is
+    // empty, especially while the linker is busy on CI.
+    for _ in 0..20 {
+        while context.pending() {
+            context.iteration(false);
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
     }
 }

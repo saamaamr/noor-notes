@@ -36,6 +36,11 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.1.4" date="2026-09-06" type="stable">
+      <description>
+        <p>Refines Snow and Midnight controls, compact settings and editor margins. Read-only windows gain responsive body spacing and retain correct controls when the library is reopened. Preserves encrypted local notes, formatting and autosave.</p>
+      </description>
+    </release>
     <release version="1.1.3" date="2026-08-25" type="stable">
       <description>
         <p>Expands the integrated editor workspace, aligns full-width editor chrome, removes automatic side gutters, adds a session-only margin ruler, and updates responsive layout immediately as the window is resized.</p>

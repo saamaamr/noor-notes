@@ -31,6 +31,8 @@ pub struct NotePreview {
     title_entry: gtk::Entry,
     title_stack: gtk::Stack,
     heading: gtk::Box,
+    document: gtk::Box,
+    document_chrome: gtk::Box,
     metadata: gtk::Label,
     divider: gtk::Separator,
     body: gtk::Label,
@@ -235,37 +237,56 @@ impl NotePreview {
         // Preview exposes only controls that are wired to this editor surface.
         // Search, note settings, and multi-action menus remain available in the
         // full editor window and are intentionally not shown as dead buttons here.
-        toolbar.find.set_visible(false);
-        toolbar.more.set_visible(false);
-        toolbar.new_note.set_visible(false);
+        toolbar.use_integrated_commands();
         toolbar.format.set_tooltip_text(Some("Formatting"));
         toolbar.widget.add_css_class("nn-preview-format-toolbar");
-        toolbar.widget.set_hexpand(true);
-        toolbar.widget.set_halign(gtk::Align::Fill);
+        toolbar.widget.set_hexpand(false);
+        toolbar.widget.set_halign(gtk::Align::Start);
         crate::editor_actions::connect(&toolbar, &buffer, editor.upcast_ref());
         toolbar.set_rich_formatting_enabled(false);
         let menu_bar = EditorMenuBar::new_preview(&toolbar);
         menu_bar.widget.set_visible(false);
         menu_bar.widget.set_hexpand(true);
         menu_bar.widget.set_halign(gtk::Align::Fill);
-        let margin_ruler = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        let margin_ruler = gtk::Box::new(gtk::Orientation::Vertical, 8);
         margin_ruler.add_css_class("nn-editor-margin-ruler");
         margin_ruler.set_hexpand(true);
         margin_ruler.set_visible(false);
         let ruler_label = gtk::Label::new(Some("Margins"));
         ruler_label.add_css_class("nn-editor-ruler-label");
+        ruler_label.set_halign(gtk::Align::Start);
         let left_margin = margin_scale("Left margin", "nn-editor-left-margin", false);
         let right_margin = margin_scale("Right margin", "nn-editor-right-margin", true);
         let reset_margins = gtk::Button::builder()
-            .icon_name("edit-clear-symbolic")
+            .label("Reset")
             .tooltip_text("Reset margins")
             .build();
         reset_margins.add_css_class("flat");
+        reset_margins.add_css_class("nn-control-compact");
+        reset_margins.set_halign(gtk::Align::End);
         reset_margins.update_property(&[gtk::accessible::Property::Label("Reset margins")]);
         margin_ruler.append(&ruler_label);
-        margin_ruler.append(&left_margin);
+        for (label, scale) in [
+            ("Left margin", &left_margin),
+            ("Right margin", &right_margin),
+        ] {
+            let label = gtk::Label::new(Some(label));
+            label.set_halign(gtk::Align::Start);
+            label.add_css_class("nn-text-muted");
+            margin_ruler.append(&label);
+            margin_ruler.append(scale);
+        }
         margin_ruler.append(&reset_margins);
-        margin_ruler.append(&right_margin);
+        let margin_popover = super::popover_primitives::themed_popover(&margin_ruler);
+        margin_popover.set_position(gtk::PositionType::Bottom);
+        let margins = gtk::MenuButton::builder()
+            .label("Margins")
+            .tooltip_text("Margins")
+            .popover(&margin_popover)
+            .build();
+        super::toolbar_primitives::style_menu_button(&margins, "Margins");
+        super::toolbar_primitives::bind_menu_popover(&margins, &margin_popover);
+        toolbar.widget.append(&margins);
         {
             let editor = editor.clone();
             left_margin.connect_value_changed(move |scale| {
@@ -290,7 +311,6 @@ impl NotePreview {
         }
         document_chrome.append(&menu_bar.widget);
         document_chrome.append(&toolbar.widget);
-        document_chrome.append(&margin_ruler);
 
         document.append(&document_chrome);
         document.append(&body_stack);
@@ -497,6 +517,8 @@ impl NotePreview {
             title_entry,
             title_stack,
             heading,
+            document,
+            document_chrome,
             metadata,
             divider,
             body,
@@ -631,6 +653,14 @@ impl NotePreview {
 
     pub fn set_available_width(&self, available_width: i32) {
         self.available_width.set(available_width);
+        if self.widget.has_css_class("nn-sticky-body") {
+            // Sticky reading insets are independent of the editor's session margins.
+            let inset = (available_width / 30).clamp(12, 24);
+            self.document.set_margin_start(inset);
+            self.document.set_margin_end(inset);
+            self.document.set_margin_top(inset);
+            self.document.set_margin_bottom(inset);
+        }
         let content_width = editor_content_width(available_width).max(1);
         self.document_clamp.set_maximum_size(content_width);
         self.document_clamp
@@ -763,6 +793,10 @@ impl NotePreview {
 
     pub fn set_sticky_read_only(&self) {
         self.finish_pending_edit();
+        self.widget.add_css_class("nn-sticky-body");
+        // Hiding individual controls leaves the heading height and box spacing.
+        // Remove all document chrome from layout in the body-only sticky host.
+        self.document_chrome.set_visible(false);
         self.edit.set_visible(false);
         self.read_only.set_visible(false);
         self.title.remove_css_class("nn-display-title");
@@ -785,6 +819,7 @@ impl NotePreview {
             &mode,
             false,
         );
+        self.set_available_width(self.available_width.get());
     }
 
     fn finish_pending_edit(&self) {

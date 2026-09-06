@@ -21,6 +21,19 @@ fn settings_and_note_controls_are_safe_accessible_and_explicit() {
 
     assert!(settings.window.has_css_class("nn-settings-window"));
     assert!(settings.window.has_css_class("nn-writing-settings"));
+    for control in [
+        settings.endpoint.upcast_ref::<gtk::Widget>(),
+        settings.model.upcast_ref(),
+        settings.api_key.upcast_ref(),
+        settings.language.upcast_ref(),
+        settings.test_connection.upcast_ref(),
+    ] {
+        assert_eq!(
+            control.valign(),
+            gtk::Align::Center,
+            "Settings controls must not stretch"
+        );
+    }
     assert!(settings.spelling.is_active());
     assert!(settings.grammar.is_active());
     assert!(settings.offline_prediction.is_active());

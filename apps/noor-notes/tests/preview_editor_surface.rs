@@ -141,6 +141,14 @@ fn editor_ruler_controls_session_only_margins_without_default_gutters() {
     preview.begin_editing();
     preview.set_available_width(1_600);
 
+    let window = gtk::Window::builder()
+        .default_width(900)
+        .default_height(700)
+        .child(&preview.widget)
+        .build();
+    window.present();
+    while gtk::glib::MainContext::default().iteration(false) {}
+
     assert_eq!(preview.editor().left_margin(), 8);
     assert_eq!(preview.editor().right_margin(), 8);
 
@@ -149,7 +157,23 @@ fn editor_ruler_controls_session_only_margins_without_default_gutters() {
         .iter()
         .find(|widget| widget.has_css_class("nn-editor-margin-ruler"))
         .expect("editor margin ruler");
-    assert!(ruler.is_visible());
+    let button = widgets
+        .iter()
+        .filter_map(|widget| widget.clone().downcast::<gtk::MenuButton>().ok())
+        .find(|button| button.tooltip_text().as_deref() == Some("Margins"))
+        .expect("Margins must open from a compact button, not a permanent row");
+    let popover = button.popover().expect("margin controls popover");
+    assert_eq!(popover.position(), gtk::PositionType::Bottom);
+    assert!(
+        !ruler.is_mapped(),
+        "Closed margins must not consume writing space"
+    );
+    button.popup();
+    for _ in 0..20 {
+        while gtk::glib::MainContext::default().iteration(false) {}
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    assert!(ruler.is_mapped());
     let left = widgets
         .iter()
         .find(|widget| widget.has_css_class("nn-editor-left-margin"))
@@ -171,6 +195,17 @@ fn editor_ruler_controls_session_only_margins_without_default_gutters() {
     assert_eq!(preview.editor().left_margin(), 72);
     assert_eq!(preview.editor().right_margin(), 104);
 
+    let reset = widgets
+        .iter()
+        .filter_map(|widget| widget.clone().downcast::<gtk::Button>().ok())
+        .find(|button| button.tooltip_text().as_deref() == Some("Reset margins"))
+        .expect("Reset margins action");
+    reset.emit_clicked();
+    assert_eq!(preview.editor().left_margin(), 8);
+    assert_eq!(preview.editor().right_margin(), 8);
+    left.set_value(64.0);
+    right.set_value(96.0);
+    popover.popdown();
     preview.show_note(&first);
     assert_eq!(preview.editor().left_margin(), 72);
     assert_eq!(preview.editor().right_margin(), 104);
@@ -178,6 +213,7 @@ fn editor_ruler_controls_session_only_margins_without_default_gutters() {
     preview.show_note(&Note::new(Utc::now()));
     assert_eq!(preview.editor().left_margin(), 8);
     assert_eq!(preview.editor().right_margin(), 8);
+    window.close();
 }
 
 fn maximized_editor_text_uses_the_workspace_without_automatic_gutters() {
@@ -297,11 +333,7 @@ fn preview_chrome_rows_fill_workspace_while_controls_stay_compact() {
         .compute_bounds(&preview.widget)
         .expect("heading bounds");
 
-    for (name, bounds) in [
-        ("heading", heading_bounds),
-        ("menu", menu_bounds),
-        ("toolbar", toolbar_bounds),
-    ] {
+    for (name, bounds) in [("heading", heading_bounds), ("menu", menu_bounds)] {
         assert!(
             bounds.width() >= document_bounds.width() * 0.95,
             "{name} row must fill the workspace: row={bounds:?}, document={document_bounds:?}"
@@ -314,9 +346,14 @@ fn preview_chrome_rows_fill_workspace_while_controls_stay_compact() {
         "menu controls must remain compact: controls={menu_controls}, menu={menu_bounds:?}"
     );
     assert!(
-        toolbar_controls < toolbar_bounds.width() * 0.9,
-        "toolbar controls must remain compact: controls={toolbar_controls}, toolbar={toolbar_bounds:?}"
+        toolbar_bounds.width() <= toolbar_controls + 24.0,
+        "toolbar must fit its controls without a large empty tail: controls={toolbar_controls}, toolbar={toolbar_bounds:?}"
     );
+    assert!(
+        (toolbar_bounds.x() - heading_bounds.x()).abs() <= 1.0,
+        "toolbar must align with the heading"
+    );
+    assert!(toolbar_bounds.width() < document_bounds.width() * 0.75);
     window.close();
 }
 

@@ -83,19 +83,18 @@ impl WritingAssistanceSettings {
         }
         let language_refs = labels.iter().map(String::as_str).collect::<Vec<_>>();
         let language = gtk::DropDown::from_strings(&language_refs);
+        language.set_valign(gtk::Align::Center);
         language.update_property(&[gtk::accessible::Property::Label("Spelling language")]);
         let selected = codes
             .iter()
             .position(|code| code == &preferences.borrow().language)
             .unwrap_or(0);
         language.set_selected(selected as u32);
-        let language_row = adw::ActionRow::builder()
-            .title("Language")
-            .subtitle("Automatic follows the installed default dictionary")
-            .build();
-        language_row.add_css_class("nn-settings-row");
-        language_row.add_suffix(&language);
-        language_row.set_activatable_widget(Some(&language));
+        let language_row = super::settings_primitives::content_row(
+            "Language",
+            "Automatic follows the installed default dictionary",
+            &language,
+        );
         local.add(&language_row);
         page.add(&local);
 
@@ -126,6 +125,9 @@ impl WritingAssistanceSettings {
         api_key.update_property(&[gtk::accessible::Property::Label("Provider API key")]);
         online.add(&entry_row("API key", &api_key));
         let test_connection = gtk::Button::with_label("Test Connection");
+        test_connection.set_valign(gtk::Align::Center);
+        test_connection.set_halign(gtk::Align::Start);
+        test_connection.add_css_class("nn-control-compact");
         test_connection.add_css_class("suggested-action");
         test_connection.update_property(&[gtk::accessible::Property::Label(
             "Test writing assistance provider connection",
@@ -137,13 +139,13 @@ impl WritingAssistanceSettings {
                 "Provider not validated"
             }));
         validation_status.set_wrap(true);
-        let validation_row = adw::ActionRow::builder()
-            .title("Connection")
-            .subtitle_lines(2)
-            .build();
-        validation_row.add_css_class("nn-settings-row");
-        validation_row.add_suffix(&validation_status);
-        validation_row.add_suffix(&test_connection);
+        validation_status.set_wrap_mode(gtk::pango::WrapMode::WordChar);
+        validation_status.set_xalign(0.0);
+        validation_status.add_css_class("nn-text-muted");
+        let connection = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        connection.append(&validation_status);
+        connection.append(&test_connection);
+        let validation_row = super::settings_primitives::content_row("Connection", "", &connection);
         online.add(&validation_row);
         let cloud = switch_row(
             &online,
@@ -329,12 +331,8 @@ fn switch_row(
     switch
 }
 
-fn entry_row(title: &str, entry: &impl IsA<gtk::Widget>) -> adw::ActionRow {
-    let row = adw::ActionRow::builder().title(title).build();
-    row.add_css_class("nn-settings-row");
-    row.add_suffix(entry);
-    row.set_activatable_widget(Some(entry));
-    row
+fn entry_row(title: &str, entry: &impl IsA<gtk::Widget>) -> gtk::Box {
+    super::settings_primitives::content_row(title, "", entry)
 }
 
 fn connect_local_switch(

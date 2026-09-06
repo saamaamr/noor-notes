@@ -30,6 +30,13 @@ use noor_windowing::WindowController;
 type CardActionHandler = Rc<dyn Fn(NoteId, CardAction)>;
 type PreviewCacheHandler = Rc<dyn Fn(&Note)>;
 
+/// Application-lifetime sticky ownership survives recreation of the library.
+#[derive(Clone, Default)]
+pub struct StickySession {
+    window: Rc<RefCell<Option<StickyNoteWindow>>>,
+    persistence: Arc<tokio::sync::Mutex<()>>,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct LibraryLayoutSnapshot {
     pub window_width: i32,
@@ -100,10 +107,28 @@ impl MainWindow {
         controller: Arc<dyn WindowController>,
         writing_runtime: WritingAssistanceRuntime,
     ) -> Self {
+        Self::new_with_sticky_session(
+            app,
+            repository,
+            autosave,
+            controller,
+            writing_runtime,
+            StickySession::default(),
+        )
+    }
+
+    pub fn new_with_sticky_session(
+        app: &adw::Application,
+        repository: SqliteNoteRepository,
+        autosave: AutosaveQueue,
+        controller: Arc<dyn WindowController>,
+        writing_runtime: WritingAssistanceRuntime,
+        sticky_session: StickySession,
+    ) -> Self {
         let window = adw::ApplicationWindow::builder()
             .application(app)
             .title(crate::identity::display_name())
-            .default_width(1180)
+            .default_width(1280)
             .default_height(760)
             .width_request(620)
             .height_request(480)
@@ -165,7 +190,7 @@ impl MainWindow {
         collection_stack.add_named(&empty.widget, Some("empty"));
         collection_stack.set_visible_child_name("empty");
         let notes = Rc::new(RefCell::new(Vec::new()));
-        let sticky_window = Rc::new(RefCell::new(None));
+        let sticky_window = sticky_session.window;
         let collection_cache = collection.clone();
         let finish_holder = Rc::new(RefCell::new(None::<Rc<dyn Fn(NoteId)>>));
         let finish_proxy = {
@@ -235,7 +260,7 @@ impl MainWindow {
             writing_runtime,
             controller,
             sticky_window: sticky_window.clone(),
-            sticky_persistence: Arc::new(tokio::sync::Mutex::new(())),
+            sticky_persistence: sticky_session.persistence,
             notes,
             section: Rc::new(Cell::new(LibrarySection::AllNotes)),
             showing_content: Rc::new(Cell::new(false)),
@@ -284,33 +309,27 @@ impl MainWindow {
                 this.autosave.schedule(NoteDraft::from(note.clone()));
                 this.preview.show_note(&note);
                 if enabled {
-                    if let Some(previous) = this.sticky_window.borrow_mut().take() {
+                    let previous = this.sticky_window.borrow_mut().take();
+                    if let Some(previous) = previous {
                         previous.close();
                     }
                     let Some(app) = this.window.application() else {
                         return;
                     };
-                    let note_id = note.id;
                     let sticky = StickyNoteWindow::new(&app, note.clone(), this.controller.clone());
-                    {
-                        let this = this.clone();
-                        sticky.connect_closed(move || {
-                            this.take_sticky(note_id);
-                            this.persist_sticky_state(note_id, Some(false), None);
-                        });
-                    }
-                    {
-                        let this = this.clone();
-                        sticky.connect_always_on_top_changed(move |enabled| {
-                            this.persist_sticky_state(note_id, None, Some(enabled));
-                        });
-                    }
+                    this.observe_sticky(&sticky);
                     sticky.present();
                     this.sticky_window.replace(Some(sticky));
                 } else if let Some(sticky) = { this.sticky_window.borrow_mut().take() } {
                     sticky.close();
                 }
             });
+        }
+        // Replace surviving sticky callbacks so state updates reach this library,
+        // not the destroyed MainWindow that originally opened the sticky.
+        let surviving = this.sticky_window.borrow().clone();
+        if let Some(sticky) = surviving {
+            this.observe_sticky(&sticky);
         }
         {
             let this = this.clone();
@@ -504,6 +523,19 @@ impl MainWindow {
         } else {
             None
         }
+    }
+
+    fn observe_sticky(&self, sticky: &StickyNoteWindow) {
+        let note_id = sticky.note_id();
+        let this = self.clone();
+        sticky.connect_closed(move || {
+            this.take_sticky(note_id);
+            this.persist_sticky_state(note_id, Some(false), None);
+        });
+        let this = self.clone();
+        sticky.connect_always_on_top_changed(move |enabled| {
+            this.persist_sticky_state(note_id, None, Some(enabled));
+        });
     }
 
     fn synchronize_authoritative_note(&self, note: Note) {

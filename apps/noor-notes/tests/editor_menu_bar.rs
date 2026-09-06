@@ -16,6 +16,20 @@ fn menu_items_follow_source_state_and_preview_capabilities() {
 
     toolbar.set_editor_mode(EditorMode::Code);
     assert!(!menu.item("format.bold").property::<bool>("visible"));
+    let format = menu
+        .menu_buttons()
+        .iter()
+        .find(|button| button.label().as_deref() == Some("Format"))
+        .unwrap();
+    assert!(
+        !format.get_visible(),
+        "Code mode must not expose an empty Format menu"
+    );
+    toolbar.set_editor_mode(EditorMode::Rich);
+    assert!(
+        format.get_visible(),
+        "Rich formatting menu must return after mode switching"
+    );
 
     toolbar.word_wrap.set_active(false);
     menu.item("view.word-wrap").emit_clicked();

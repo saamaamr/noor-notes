@@ -65,13 +65,13 @@ impl ThemePalette {
                 border: "#e4e7ec",
                 border_subtle: "#eef0f2",
                 border_strong: "#d0d5dd",
-                accent: "#4f6fe8",
+                accent: "#4b69dc",
                 accent_hover: "#425fcc",
                 accent_soft: "#eef2ff",
                 accent_strong: "#344fc4",
-                focus: "#4f6fe8",
-                success: "#16a34a",
-                warning: "#d97706",
+                focus: "#4b69dc",
+                success: "#15803d",
+                warning: "#b45309",
                 danger: "#dc2626",
                 danger_soft: "#fef2f2",
                 error: "#dc2626",
@@ -219,6 +219,31 @@ impl ThemePalette {
             css.push_str(";\n");
         }
         css.push_str("@define-color nn_focus_ring alpha(@nn_focus,.24);\n");
+        // Native libadwaita controls must use the same semantic palette as our
+        // custom widgets, including their checked, focus and dialog states.
+        for (native, semantic) in [
+            ("accent_bg_color", "nn_accent"),
+            ("accent_fg_color", "nn_text_inverse"),
+            ("accent_color", "nn_accent"),
+            ("window_bg_color", "nn_app_bg"),
+            ("window_fg_color", "nn_text"),
+            ("view_bg_color", "nn_editor_bg"),
+            ("view_fg_color", "nn_text"),
+            ("headerbar_bg_color", "nn_surface"),
+            ("headerbar_fg_color", "nn_text"),
+            ("card_bg_color", "nn_surface"),
+            ("card_fg_color", "nn_text"),
+            ("popover_bg_color", "nn_popover_bg"),
+            ("popover_fg_color", "nn_text"),
+            ("dialog_bg_color", "nn_modal_bg"),
+            ("dialog_fg_color", "nn_text"),
+            ("destructive_color", "nn_danger"),
+            ("success_color", "nn_success"),
+            ("warning_color", "nn_warning"),
+            ("error_color", "nn_error"),
+        ] {
+            css.push_str(&format!("@define-color {native} @{semantic};\n"));
+        }
         css
     }
 }

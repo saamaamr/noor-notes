@@ -56,6 +56,7 @@ impl AppearanceSettings {
             row.add_css_class("nn-settings-row");
             let preview = gtk::Box::new(gtk::Orientation::Horizontal, 0);
             preview.set_size_request(42, 26);
+            preview.set_valign(gtk::Align::Center);
             preview.add_css_class("nn-theme-swatch");
             preview.add_css_class(swatch);
             row.add_prefix(&preview);

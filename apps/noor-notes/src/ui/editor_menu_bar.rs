@@ -291,11 +291,34 @@ fn build_menu(definition: MenuDefinition) -> BuiltMenu {
     menu.add_css_class("nn-editor-menu-button");
     menu.update_property(&[gtk::accessible::Property::Label(label)]);
     super::toolbar_primitives::bind_menu_popover(&menu, &popover);
+    for item in &items {
+        let menu = menu.downgrade();
+        let content = content.downgrade();
+        item.button.connect_visible_notify(move |_| {
+            if let (Some(menu), Some(content)) = (menu.upgrade(), content.upgrade()) {
+                update_menu_visibility(&menu, &content);
+            }
+        });
+    }
+    update_menu_visibility(&menu, &content);
     BuiltMenu {
         button: menu,
         popover,
         items,
     }
+}
+
+fn update_menu_visibility(menu: &gtk::MenuButton, content: &gtk::Box) {
+    let mut child = content.first_child();
+    let mut has_actions = false;
+    while let Some(action) = child {
+        has_actions |= action.get_visible();
+        child = action.next_sibling();
+    }
+    if !has_actions {
+        menu.popdown();
+    }
+    menu.set_visible(has_actions);
 }
 
 fn build_item(definition: MenuItemDefinition, parent: &gtk::Popover) -> BuiltItem {

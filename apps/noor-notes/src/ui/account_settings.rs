@@ -7,6 +7,7 @@ use adw::prelude::*;
 use noor_sync::{AuthSession, BackupProviderKind, SyncStatus};
 use zeroize::Zeroizing;
 
+use super::settings_primitives::content_row;
 use crate::account::AccountController;
 use crate::cloud_backup::CloudBackupController;
 use crate::cloud_config::{CloudConfig, CloudConfigError};
@@ -54,11 +55,11 @@ struct AccountControls {
     session: Rc<RefCell<Option<AuthSession>>>,
     sync: Option<CloudSyncController>,
     sync_group: adw::PreferencesGroup,
-    passphrase_row: adw::ActionRow,
+    passphrase_row: gtk::Box,
     sync_passphrase: gtk::PasswordEntry,
-    recovery_display_row: adw::ActionRow,
+    recovery_display_row: gtk::Box,
     recovery_display: gtk::Label,
-    recovery_entry_row: adw::ActionRow,
+    recovery_entry_row: gtk::Box,
     recovery_entry: gtk::Entry,
     create_vault: gtk::Button,
     unlock_vault: gtk::Button,
@@ -122,17 +123,12 @@ impl AccountSettings {
         page.set_title("Account & Sync");
         page.set_icon_name(Some("avatar-default-symbolic"));
 
-        let privacy = adw::PreferencesGroup::new();
-        privacy.add_css_class("nn-settings-group");
-        privacy.set_title("Private by design");
-        privacy.set_description(Some(
-            "Your local notes keep working without an account. Cloud note content is encrypted on this device before upload.",
-        ));
-        page.add(&privacy);
-
         let account = adw::PreferencesGroup::new();
         account.add_css_class("nn-settings-group");
         account.set_title("Noor account");
+        account.set_description(Some(
+            "Sign in to sync encrypted notes. Your local notes always work offline.",
+        ));
 
         let email = gtk::Entry::builder()
             .hexpand(true)
@@ -154,8 +150,7 @@ impl AccountSettings {
         password.update_property(&[gtk::accessible::Property::Label("Account password")]);
         account.add(&password_row(&password));
 
-        let password_actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
-        password_actions.set_halign(gtk::Align::End);
+        let password_actions = action_flow();
         let sign_up = gtk::Button::with_label("Sign Up");
         sign_up.add_css_class("nn-account-action");
         let sign_in = gtk::Button::with_label("Sign In");
@@ -163,13 +158,7 @@ impl AccountSettings {
         sign_in.add_css_class("nn-account-action");
         password_actions.append(&sign_up);
         password_actions.append(&sign_in);
-        let password_action_row = adw::ActionRow::builder()
-            .title("Email and password")
-            .subtitle("Create a new account or use an existing one")
-            .build();
-        password_action_row.add_css_class("nn-settings-row");
-        password_action_row.add_suffix(&password_actions);
-        account.add(&password_action_row);
+        account.add(&password_actions);
 
         let google = gtk::Button::builder()
             .label("Continue with Google")
@@ -177,14 +166,8 @@ impl AccountSettings {
             .build();
         google.add_css_class("nn-account-google");
         google.update_property(&[gtk::accessible::Property::Label("Continue with Google")]);
-        let google_row = adw::ActionRow::builder()
-            .title("Google")
-            .subtitle("Opens your browser; Drive permission is not requested")
-            .build();
-        google_row.add_css_class("nn-settings-row");
-        google_row.add_suffix(&google);
-        google_row.set_activatable_widget(Some(&google));
-        account.add(&google_row);
+        google.set_halign(gtk::Align::Start);
+        account.add(&google);
         page.add(&account);
         let sync_group = adw::PreferencesGroup::new();
         sync_group.add_css_class("nn-settings-group");
@@ -201,13 +184,11 @@ impl AccountSettings {
             .build();
         sync_passphrase
             .update_property(&[gtk::accessible::Property::Label("Sync vault passphrase")]);
-        let passphrase_row = adw::ActionRow::builder()
-            .title("Vault passphrase")
-            .subtitle("Used locally to unlock cloud ciphertext")
-            .build();
-        passphrase_row.add_css_class("nn-settings-row");
-        passphrase_row.add_suffix(&sync_passphrase);
-        passphrase_row.set_activatable_widget(Some(&sync_passphrase));
+        let passphrase_row = content_row(
+            "Vault passphrase",
+            "Used locally to unlock cloud ciphertext",
+            &sync_passphrase,
+        );
         sync_group.add(&passphrase_row);
 
         let recovery_display = gtk::Label::new(None);
@@ -216,12 +197,11 @@ impl AccountSettings {
         recovery_display.set_xalign(1.0);
         recovery_display
             .update_property(&[gtk::accessible::Property::Label("One-time recovery key")]);
-        let recovery_display_row = adw::ActionRow::builder()
-            .title("Save this recovery key")
-            .subtitle("It is shown once; store it somewhere private")
-            .build();
-        recovery_display_row.add_css_class("nn-settings-row");
-        recovery_display_row.add_suffix(&recovery_display);
+        let recovery_display_row = content_row(
+            "Save this recovery key",
+            "It is shown once; store it somewhere private",
+            &recovery_display,
+        );
         sync_group.add(&recovery_display_row);
 
         let recovery_entry = gtk::Entry::builder()
@@ -231,13 +211,11 @@ impl AccountSettings {
         recovery_entry.update_property(&[gtk::accessible::Property::Label(
             "Recovery key confirmation",
         )]);
-        let recovery_entry_row = adw::ActionRow::builder()
-            .title("Recovery key")
-            .subtitle("Retype the key to confirm, or use it to unlock this device")
-            .build();
-        recovery_entry_row.add_css_class("nn-settings-row");
-        recovery_entry_row.add_suffix(&recovery_entry);
-        recovery_entry_row.set_activatable_widget(Some(&recovery_entry));
+        let recovery_entry_row = content_row(
+            "Recovery key",
+            "Retype to confirm, or unlock this device",
+            &recovery_entry,
+        );
         sync_group.add(&recovery_entry_row);
 
         let create_vault = gtk::Button::with_label("Create Encrypted Vault");
@@ -246,8 +224,7 @@ impl AccountSettings {
         let confirm_recovery = gtk::Button::with_label("Confirm Recovery Key");
         let sync_now = gtk::Button::with_label("Sync Now");
         sync_now.add_css_class("suggested-action");
-        let sync_actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
-        sync_actions.set_halign(gtk::Align::End);
+        let sync_actions = action_flow();
         for button in [
             &create_vault,
             &unlock_vault,
@@ -260,24 +237,17 @@ impl AccountSettings {
             button.set_visible(false);
             sync_actions.append(button);
         }
-        let sync_action_row = adw::ActionRow::builder()
-            .title("Encrypted workspace")
-            .subtitle("Sync runs in the background and keeps local editing available")
-            .build();
-        sync_action_row.add_css_class("nn-settings-row");
-        sync_action_row.add_suffix(&sync_actions);
-        sync_group.add(&sync_action_row);
+        sync_group.add(&sync_actions);
 
         let sync_status = gtk::Label::new(Some("Sign in to configure encrypted sync"));
         sync_status.set_wrap(true);
         sync_status.set_xalign(1.0);
         sync_status.update_property(&[gtk::accessible::Property::Label("Encrypted sync status")]);
-        let sync_status_row = adw::ActionRow::builder()
-            .title("Sync status")
-            .subtitle("Local notes remain available during network errors")
-            .build();
-        sync_status_row.add_css_class("nn-settings-row");
-        sync_status_row.add_suffix(&sync_status);
+        let sync_status_row = content_row(
+            "Sync status",
+            "Local notes stay available offline",
+            &sync_status,
+        );
         sync_group.add(&sync_status_row);
         page.add(&sync_group);
 
@@ -307,12 +277,11 @@ impl AccountSettings {
         google_actions.append(&google_drive_connect);
         google_actions.append(&google_drive_restore);
         google_actions.append(&google_drive_disconnect);
-        let google_backup_row = adw::ActionRow::builder()
-            .title("Google Drive App Data")
-            .subtitle("Hidden app-only storage · drive.appdata scope")
-            .build();
-        google_backup_row.add_css_class("nn-settings-row");
-        google_backup_row.add_suffix(&google_actions);
+        let google_backup_row = content_row(
+            "Google Drive App Data",
+            "Hidden app-only storage · drive.appdata scope",
+            &google_actions,
+        );
         backup_group.add(&google_backup_row);
 
         let onedrive_connect = gtk::Button::with_label("Connect");
@@ -333,12 +302,11 @@ impl AccountSettings {
         onedrive_actions.append(&onedrive_connect);
         onedrive_actions.append(&onedrive_restore);
         onedrive_actions.append(&onedrive_disconnect);
-        let onedrive_backup_row = adw::ActionRow::builder()
-            .title("OneDrive App Folder")
-            .subtitle("App-owned storage · Files.ReadWrite.AppFolder scope")
-            .build();
-        onedrive_backup_row.add_css_class("nn-settings-row");
-        onedrive_backup_row.add_suffix(&onedrive_actions);
+        let onedrive_backup_row = content_row(
+            "OneDrive App Folder",
+            "App-owned storage · Files.ReadWrite.AppFolder scope",
+            &onedrive_actions,
+        );
         backup_group.add(&onedrive_backup_row);
 
         let backup_now = gtk::Button::with_label("Backup Now");
@@ -346,13 +314,14 @@ impl AccountSettings {
         let backup_status = gtk::Label::new(Some("Unlock encrypted sync to use backups"));
         backup_status.set_wrap(true);
         backup_status.set_xalign(1.0);
-        let backup_action_row = adw::ActionRow::builder()
-            .title("Encrypted recovery copy")
-            .subtitle("Creates current and timestamped archives for each connected provider")
-            .build();
-        backup_action_row.add_css_class("nn-settings-row");
-        backup_action_row.add_suffix(&backup_status);
-        backup_action_row.add_suffix(&backup_now);
+        let backup_content = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        backup_content.append(&backup_status);
+        backup_content.append(&backup_now);
+        let backup_action_row = content_row(
+            "Encrypted recovery copy",
+            "Current and timestamped archives for connected providers",
+            &backup_content,
+        );
         backup_group.add(&backup_action_row);
         for button in [
             &google_drive_connect,
@@ -394,16 +363,58 @@ impl AccountSettings {
         let sign_out = gtk::Button::with_label("Sign Out");
         sign_out.add_css_class("destructive-action");
         sign_out.set_visible(false);
-        let state_row = adw::ActionRow::builder()
-            .title("Cloud account")
-            .subtitle("Local notes are always available")
-            .build();
-        state_row.add_css_class("nn-settings-row");
-        state_row.add_suffix(&status);
-        state_row.add_suffix(&sign_out);
+        let state_content = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        state_content.append(&status);
+        state_content.append(&sign_out);
+        let state_row = content_row(
+            "Cloud account",
+            "Local notes are always available",
+            &state_content,
+        );
         state.add(&state_row);
         page.add(&state);
         window.add(&page);
+
+        for button in [
+            &sign_up,
+            &sign_in,
+            &google,
+            &sign_out,
+            &create_vault,
+            &unlock_vault,
+            &unlock_recovery,
+            &confirm_recovery,
+            &sync_now,
+            &google_drive_connect,
+            &google_drive_restore,
+            &google_drive_disconnect,
+            &onedrive_connect,
+            &onedrive_restore,
+            &onedrive_disconnect,
+            &backup_now,
+        ] {
+            button.set_valign(gtk::Align::Center);
+            button.set_halign(gtk::Align::Start);
+            button.add_css_class("nn-control-compact");
+            if let Some(cell) = button.parent().and_downcast::<gtk::FlowBoxChild>() {
+                button
+                    .bind_property("visible", &cell, "visible")
+                    .sync_create()
+                    .build();
+            }
+        }
+        for label in [
+            &status,
+            &sync_status,
+            &backup_status,
+            &recovery_display,
+            &google_drive_status,
+            &onedrive_status,
+        ] {
+            label.set_xalign(0.0);
+            label.set_wrap_mode(gtk::pango::WrapMode::WordChar);
+            label.add_css_class("nn-account-status");
+        }
 
         let controller = configuration
             .ok()
@@ -503,26 +514,30 @@ impl AccountSettings {
     }
 }
 
-fn entry_row(title: &str, subtitle: &str, entry: &gtk::Entry) -> adw::ActionRow {
-    let row = adw::ActionRow::builder()
-        .title(title)
-        .subtitle(subtitle)
-        .build();
-    row.add_css_class("nn-settings-row");
-    row.add_suffix(entry);
-    row.set_activatable_widget(Some(entry));
-    row
+fn entry_row(title: &str, subtitle: &str, entry: &gtk::Entry) -> gtk::Box {
+    content_row(title, subtitle, entry)
 }
 
-fn password_row(password: &gtk::PasswordEntry) -> adw::ActionRow {
-    let row = adw::ActionRow::builder()
-        .title("Password")
-        .subtitle("Stored only by Supabase Auth; never written to Noor Notes storage")
+fn password_row(password: &gtk::PasswordEntry) -> gtk::Box {
+    content_row(
+        "Password",
+        "At least 8 characters · Never stored on this device",
+        password,
+    )
+}
+
+fn action_flow() -> gtk::FlowBox {
+    let flow = gtk::FlowBox::builder()
+        .selection_mode(gtk::SelectionMode::None)
+        .column_spacing(8)
+        .row_spacing(6)
+        .min_children_per_line(1)
+        .max_children_per_line(3)
+        .halign(gtk::Align::Start)
+        .valign(gtk::Align::Center)
         .build();
-    row.add_css_class("nn-settings-row");
-    row.add_suffix(password);
-    row.set_activatable_widget(Some(password));
-    row
+    flow.add_css_class("nn-account-actions");
+    flow
 }
 
 fn validate_credentials(controls: &AccountControls) -> Option<(String, Zeroizing<String>)> {
@@ -1042,9 +1057,10 @@ fn connect_sync_actions(controls: &AccountControls) {
         let controls = controls_for_sync.clone();
         let sync = sync.clone();
         gtk::glib::MainContext::default().spawn_local(async move {
-            match sync.run_once("desktop").await {
+            let result = sync.run_once("desktop").await;
+            update_sync_state(&controls, sync.state().await);
+            match result {
                 Ok(cycle) => {
-                    update_sync_state(&controls, sync.state().await);
                     if cycle.status == SyncStatus::Idle {
                         controls.sync_status.set_text(&format!(
                             "Sync complete · {} uploaded · {} downloaded",

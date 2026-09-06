@@ -61,7 +61,105 @@ fn sticky_window_has_one_title_and_a_body_only_document_surface() {
     sticky.window.close();
 
     assert_sticky_body_uses_window_width_for_responsive_spacing(&gtk_app);
+    assert_body_starts_below_header_with_responsive_insets(&gtk_app);
     assert_rapid_always_on_top_uses_only_the_latest_intent(&gtk_app);
+}
+
+fn assert_body_starts_below_header_with_responsive_insets(app: &gtk::Application) {
+    use noor_notes::appearance::{AppearanceManager, AppearanceMode, AppearanceStore};
+    let directory = tempfile::tempdir().unwrap();
+    let manager = AppearanceManager::new(AppearanceStore::at(directory.path().join("theme.json")));
+    manager.install_styles(&gtk::gdk::Display::default().unwrap());
+    let mut note = Note::new(Utc::now());
+    note.title = "Reading space".into();
+    note.content = format!("Body starts here.\n\n{}", "long-token-".repeat(80));
+    let sticky = StickyNoteWindow::new(app, note, Arc::new(FallbackWindowController));
+    manager.register_window(&sticky.window);
+    let widgets = descendants(sticky.window.clone().upcast());
+    let surface = widgets
+        .iter()
+        .find(|w| w.has_css_class("nn-sticky-body"))
+        .unwrap();
+    let body = widgets
+        .iter()
+        .find(|w| w.has_css_class("nn-preview-body"))
+        .unwrap();
+    for theme in [AppearanceMode::Snow, AppearanceMode::Midnight] {
+        manager.set_mode(theme).unwrap();
+        let mut small_inset = 0.0;
+        for width in [320, 560, 960, 320] {
+            sticky.window.set_default_size(width, 480);
+            sticky.present();
+            for _ in 0..30 {
+                settle();
+                std::thread::sleep(std::time::Duration::from_millis(10));
+            }
+            let bounds = body.compute_bounds(surface).unwrap();
+            assert!(
+                (10.0..=28.0).contains(&bounds.y()),
+                "body must start just below header, not hidden editor chrome: {bounds:?}"
+            );
+            assert!(
+                bounds.x() >= 10.0 && bounds.x() < surface.width() as f32 * 0.15,
+                "comfortable left inset: {bounds:?}"
+            );
+            assert!(
+                bounds.x() + bounds.width() <= surface.width() as f32 - 10.0,
+                "long tokens must wrap inside body: {bounds:?}"
+            );
+            if width == 320 {
+                if small_inset > 0.0 {
+                    assert_eq!(bounds.y(), small_inset);
+                }
+                small_inset = bounds.y();
+            } else {
+                assert!(
+                    bounds.y() > small_inset,
+                    "larger window needs more breathing room"
+                );
+            }
+            assert!(
+                widgets
+                    .iter()
+                    .filter(|w| w.has_css_class("nn-preview-heading"))
+                    .all(|w| !w.is_mapped())
+            );
+            assert!(
+                widgets
+                    .iter()
+                    .filter_map(|w| w.downcast_ref::<gtk::TextView>())
+                    .all(|v| !v.is_editable())
+            );
+            if let Ok(directory) = std::env::var("NOOR_STICKY_PROOF_DIR") {
+                std::fs::create_dir_all(&directory).unwrap();
+                let paintable = gtk::WidgetPaintable::new(Some(&sticky.window));
+                sticky.window.queue_draw();
+                let mut node = None;
+                for _ in 0..30 {
+                    settle();
+                    std::thread::sleep(std::time::Duration::from_millis(10));
+                    let snapshot = gtk::Snapshot::new();
+                    paintable.snapshot(
+                        &snapshot,
+                        sticky.window.width() as f64,
+                        sticky.window.height() as f64,
+                    );
+                    node = snapshot.to_node();
+                    if node.is_some() {
+                        break;
+                    }
+                }
+                sticky
+                    .window
+                    .renderer()
+                    .unwrap()
+                    .render_texture(node.expect("real sticky render"), None)
+                    .save_to_png(format!("{directory}/{theme:?}-{width}.png"))
+                    .unwrap();
+            }
+        }
+    }
+    sticky.window.close();
 }
 
 fn assert_sticky_body_uses_window_width_for_responsive_spacing(app: &gtk::Application) {

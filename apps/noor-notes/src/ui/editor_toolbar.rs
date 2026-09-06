@@ -77,6 +77,8 @@ pub struct EditorToolbar {
     group_separators: Vec<gtk::Separator>,
     can_edit: Rc<Cell<bool>>,
     active_mode: Rc<RefCell<EditorMode>>,
+    compact: Rc<Cell<bool>>,
+    standalone_actions: Rc<Cell<bool>>,
 }
 
 impl EditorToolbar {
@@ -391,6 +393,8 @@ impl EditorToolbar {
             permanent_delete,
             groups,
             group_separators,
+            compact: Rc::new(Cell::new(false)),
+            standalone_actions: Rc::new(Cell::new(true)),
             can_edit: Rc::new(Cell::new(true)),
             active_mode: Rc::new(RefCell::new(EditorMode::Rich)),
         }
@@ -462,12 +466,23 @@ impl EditorToolbar {
         self.emoji.set_visible(mode != EditorMode::Code);
         self.emoji
             .set_sensitive(self.can_edit.get() && mode != EditorMode::Code);
-        self.find.set_visible(!rich);
+        self.find
+            .set_visible(!rich && self.standalone_actions.get());
         self.set_rich_formatting_enabled(self.can_edit.get() && rich);
+        self.set_compact(self.compact.get());
     }
 
     pub fn active_mode(&self) -> EditorMode {
         self.active_mode.borrow().clone()
+    }
+
+    /// Keep standalone-only commands unavailable across subsequent mode changes.
+    pub fn use_integrated_commands(&self) {
+        self.standalone_actions.set(false);
+        self.find.set_visible(false);
+        self.more.set_visible(false);
+        self.new_note.set_visible(false);
+        self.set_compact(self.compact.get());
     }
 
     pub fn mode_state(&self) -> Rc<RefCell<EditorMode>> {
@@ -479,12 +494,22 @@ impl EditorToolbar {
     }
 
     pub fn set_compact(&self, compact: bool) {
-        self.groups[1].widget.set_visible(!compact);
-        self.groups[3].widget.set_visible(!compact);
-        self.group_separators[0].set_visible(true);
-        self.group_separators[1].set_visible(!compact);
-        self.group_separators[2].set_visible(true);
-        self.group_separators[3].set_visible(!compact);
+        self.compact.set(compact);
+        let mut previous_visible = false;
+        for (index, group) in self.groups.iter().enumerate() {
+            let mut child = group.widget.first_child();
+            let mut has_controls = false;
+            while let Some(control) = child {
+                has_controls |= control.get_visible();
+                child = control.next_sibling();
+            }
+            let visible = has_controls && !(compact && matches!(index, 1 | 3));
+            group.widget.set_visible(visible);
+            if index > 0 {
+                self.group_separators[index - 1].set_visible(visible && previous_visible);
+            }
+            previous_visible |= visible;
+        }
     }
 
     pub fn group_visible(&self, index: usize) -> bool {

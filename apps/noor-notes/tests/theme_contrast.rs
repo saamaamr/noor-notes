@@ -24,7 +24,10 @@ fn snow_and_midnight_keep_text_readable_on_every_primary_surface() {
                 palette.popover_bg,
                 4.5,
             ),
-            ("muted/surface", palette.text_muted, palette.surface, 3.0),
+            ("muted/surface", palette.text_muted, palette.surface, 4.5),
+            ("primary action", palette.text_inverse, palette.accent, 4.5),
+            ("success/surface", palette.success, palette.surface, 4.5),
+            ("warning/surface", palette.warning, palette.surface, 4.5),
             (
                 "disabled/surface",
                 palette.text_disabled,
@@ -50,6 +53,16 @@ fn each_palette_renders_the_same_complete_semantic_gtk_contract() {
         let css = ThemePalette::for_theme(theme).gtk_css();
         for token in [
             "nn_bg",
+            "accent_bg_color",
+            "accent_fg_color",
+            "window_bg_color",
+            "window_fg_color",
+            "view_bg_color",
+            "view_fg_color",
+            "popover_bg_color",
+            "popover_fg_color",
+            "dialog_bg_color",
+            "dialog_fg_color",
             "nn_app_bg",
             "nn_sidebar_bg",
             "nn_note_list_bg",

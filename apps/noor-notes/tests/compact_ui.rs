@@ -3,7 +3,7 @@ const CSS: &str = include_str!("../resources/design-system.css");
 #[test]
 fn note_chrome_is_compact_but_keeps_accessible_hit_targets() {
     assert!(CSS.contains(".nn-control-compact { min-width: 32px; min-height: 32px"));
-    assert!(CSS.contains(".nn-editor-toolbar { min-height: 44px"));
+    assert!(CSS.contains(".nn-editor-toolbar { min-height: 32px"));
     assert!(CSS.contains(
         ".nn-editor-toolbar button, .nn-editor-toolbar menubutton > button { min-width: 32px; min-height: 32px"
     ));

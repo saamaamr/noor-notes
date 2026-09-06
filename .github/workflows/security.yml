@@ -13,7 +13,10 @@ jobs:
       - name: Install security tools
         run: cargo install --locked cargo-audit cargo-deny cargo-cyclonedx
       - name: Run security gate
-        run: xvfb-run -a scripts/security-check.sh
+        env:
+          GDK_BACKEND: x11
+          GSK_RENDERER: cairo
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' scripts/security-check.sh
       - name: Upload SBOM
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

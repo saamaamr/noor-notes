@@ -68,11 +68,23 @@ impl StickyNoteWindow {
 
         {
             let surface = surface.clone();
-            window.connect_notify_local(Some("width"), move |window, _| {
-                let width = window.width();
-                if width > 0 {
-                    surface.set_available_width(width);
+            let connected = Cell::new(false);
+            window.connect_map(move |window| {
+                surface.set_available_width(window.width());
+                if connected.replace(true) {
+                    return;
                 }
+                let Some(native_surface) = window.surface() else {
+                    connected.set(false);
+                    return;
+                };
+                let surface = surface.clone();
+                let previous_width = Cell::new(window.width());
+                native_surface.connect_layout(move |_, width, _| {
+                    if width > 0 && previous_width.replace(width) != width {
+                        surface.set_available_width(width);
+                    }
+                });
             });
         }
 

@@ -51,8 +51,9 @@ fn medium_and_narrow_allocations_prioritize_the_visible_destination() {
 #[test]
 fn width_breakpoints_choose_one_stable_library_mode() {
     assert_eq!(LibraryLayoutMode::for_width(1_536), LibraryLayoutMode::Wide);
+    assert_eq!(LibraryLayoutMode::for_width(1_200), LibraryLayoutMode::Wide);
     assert_eq!(
-        LibraryLayoutMode::for_width(1_535),
+        LibraryLayoutMode::for_width(1_199),
         LibraryLayoutMode::Medium
     );
     assert_eq!(
@@ -217,9 +218,12 @@ fn real_shell_allocation_tracks_ratios_and_gives_narrow_preview_the_window_width
         assert!(resized.navigation_visible, "{resized:?}");
         assert!(!resized.header_compact, "{resized:?}");
     } else {
-        assert_eq!(resized.window_width, 1_480, "{resized:?}");
+        // CSD shadows may occupy part of the requested native surface width.
+        // Allocation must follow the actual content width, not the outer request.
+        assert_eq!(resized.window_width, real.window.width(), "{resized:?}");
+        assert!(resized.window_width >= 1_440, "{resized:?}");
         assert!(resized.navigation_visible, "{resized:?}");
-        assert!(resized.header_compact, "{resized:?}");
+        assert!(!resized.header_compact, "{resized:?}");
     }
     assert!(
         resized.document_width > resized.collection_width,
@@ -240,11 +244,7 @@ fn real_shell_allocation_tracks_ratios_and_gives_narrow_preview_the_window_width
         .filter(|editor| editor.has_css_class("nn-preview-editor"))
         .expect("integrated editor");
 
-    assert_eq!(
-        sidebar.is_visible(),
-        real.window.is_maximized(),
-        "{resized:?}"
-    );
+    assert!(sidebar.is_visible(), "{resized:?}");
     assert!(
         editor.left_margin() <= 16,
         "margin={}",
@@ -286,7 +286,8 @@ fn real_shell_allocation_tracks_ratios_and_gives_narrow_preview_the_window_width
         assert!(!document.header_compact, "{document:?}");
         assert!(!document.preview_compact, "{document:?}");
     } else {
-        assert_eq!(document.window_width, 620, "{document:?}");
+        assert_eq!(document.window_width, narrow.window.width(), "{document:?}");
+        assert!((600..=640).contains(&document.window_width), "{document:?}");
         assert!(document.back_visible, "{document:?}");
         assert!(!document.navigation_visible, "{document:?}");
         assert!(document.document_width >= 600, "{document:?}");

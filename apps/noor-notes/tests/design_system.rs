@@ -86,16 +86,19 @@ fn document_and_compact_chrome_use_one_typography_scale() {
         ".nn-app-header { min-height: 44px;",
         ".nn-sidebar-row { min-height: 40px;",
         ".nn-card-action { min-width: 32px; min-height: 32px;",
-        ".nn-note-title { font-size: 16px; font-weight: 600; }",
+        ".nn-note-title { font-size: 14px; font-weight: 600; color: @nn_text; }",
         ".nn-preview-heading { min-height: 36px;",
-        ".nn-preview-title-entry { min-height: 36px; padding: 2px 10px; font-size: 18px;",
-        ".nn-preview-title { font-size: 18px; font-weight: 700;",
-        ".nn-preview-editor { min-height: 280px; font-size: 16px;",
+        ".nn-preview-title-entry { min-height: 36px; padding: 2px 0; font-size: 22px;",
+        ".nn-preview-title { font-size: 22px; font-weight: 700;",
+        ".nn-preview-editor { min-height: 160px; font-size: 16px;",
         ".nn-preview-metadata { font-size: 13px;",
         ".nn-statusbar { min-height: 30px;",
     ] {
         assert!(CSS.contains(rule), "missing hierarchy rule: {rule}");
     }
+    assert!(
+        rule_after(".nn-preview-editor:focus-visible").contains("outline: 1px solid @nn_focus")
+    );
 }
 
 #[test]

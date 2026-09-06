@@ -25,7 +25,7 @@ pub struct FormattingPopover {
 
 impl FormattingPopover {
     pub fn new() -> Self {
-        let content = gtk::Box::new(gtk::Orientation::Vertical, 10);
+        let content = gtk::Box::new(gtk::Orientation::Vertical, 8);
         content.add_css_class("nn-formatting-popover");
         content.set_margin_top(12);
         content.set_margin_bottom(12);
@@ -42,7 +42,7 @@ impl FormattingPopover {
         let custom_font_size = gtk::Entry::builder()
             .placeholder_text("Custom px")
             .input_purpose(gtk::InputPurpose::Digits)
-            .width_chars(8)
+            .width_chars(6)
             .tooltip_text("Custom positive whole-number font size")
             .build();
         let apply_font_size = gtk::Button::with_label("Apply");
@@ -109,7 +109,7 @@ impl FormattingPopover {
         let scroll = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never)
             .vscrollbar_policy(gtk::PolicyType::Automatic)
-            .min_content_width(360)
+            .min_content_width(312)
             .max_content_height(420)
             .propagate_natural_width(true)
             .propagate_natural_height(true)

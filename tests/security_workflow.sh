@@ -45,8 +45,11 @@ for package in (
     if package not in native:
         raise SystemExit(f"Security workflow must install {package}")
 
-if by_name.get("Run security gate", {}).get("run") != "xvfb-run -a scripts/security-check.sh":
-    raise SystemExit("Security workflow must execute the repository gate with a virtual display")
+gate = by_name.get("Run security gate", {})
+if gate.get("run") != "xvfb-run -a -s '-screen 0 1920x1080x24' scripts/security-check.sh":
+    raise SystemExit("Security workflow must provide a virtual display large enough for desktop layout tests")
+if gate.get("env", {}) != {"GDK_BACKEND": "x11", "GSK_RENDERER": "cairo"}:
+    raise SystemExit("Security workflow must use the isolated X11 software-rendered test display")
 PY
 
 fake_root=$(mktemp -d)

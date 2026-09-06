@@ -1,5 +1,18 @@
 use adw::prelude::*;
-use noor_sync::SyncStatus;
+use noor_sync::{SyncCycle, SyncStatus};
+
+pub fn cycle_message(cycle: &SyncCycle) -> String {
+    match cycle.status {
+        SyncStatus::Idle => format!(
+            "Sync complete · {} uploaded · {} downloaded",
+            cycle.uploaded, cycle.downloaded
+        ),
+        SyncStatus::Syncing => "Syncing encrypted notes…".into(),
+        SyncStatus::Offline => "Offline · Changes remain queued for sync".into(),
+        SyncStatus::AuthRequired => "Sign in again to resume sync".into(),
+        SyncStatus::Error => "Sync could not finish · Local notes remain available".into(),
+    }
+}
 
 #[derive(Clone)]
 pub struct SyncStatusView {

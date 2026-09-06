@@ -271,10 +271,23 @@ impl CloudSyncController {
         let mut cycle = worker.run_cycle(cursor, device_id, Utc::now()).await;
         let mut active_session = session;
         if cycle.status == SyncStatus::AuthRequired {
-            active_session = self
+            active_session = match self
                 .account
                 .refresh_session(&active_session.refresh_token)
-                .await?;
+                .await
+            {
+                Ok(session) => session,
+                Err(error) => {
+                    let mut runtime = self.runtime.lock().await;
+                    if runtime.state == CloudSyncState::Running {
+                        runtime.state = match &error {
+                            AccountError::Cloud(error) => state_for_client_error(error),
+                            _ => CloudSyncState::Error,
+                        };
+                    }
+                    return Err(error.into());
+                }
+            };
             let worker = SyncWorker::new(
                 self.repository.clone(),
                 self.client.clone(),
@@ -284,8 +297,17 @@ impl CloudSyncController {
             cycle = worker.run_cycle(cycle.cursor, device_id, Utc::now()).await;
         }
         if cycle.cursor != cursor {
-            self.store_cursor(&active_session.user.id, cycle.cursor)
-                .await?;
+            if let Err(error) = self
+                .store_cursor(&active_session.user.id, cycle.cursor)
+                .await
+            {
+                let mut runtime = self.runtime.lock().await;
+                if runtime.state == CloudSyncState::Running {
+                    runtime.session = Some(active_session);
+                    runtime.state = CloudSyncState::Error;
+                }
+                return Err(error);
+            }
         }
         let mut runtime = self.runtime.lock().await;
         runtime.session = Some(active_session);

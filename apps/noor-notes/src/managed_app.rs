@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::time::Duration;
@@ -24,6 +23,7 @@ use crate::ui::account_settings::AccountSettings;
 use crate::ui::appearance_settings::AppearanceSettings;
 use crate::ui::dialog_primitives;
 use crate::ui::writing_assistance_settings::WritingAssistanceSettings;
+use crate::window_lifecycle::CachedWindow;
 use crate::writing_assistance::{WritingAssistanceRuntime, WritingAssistanceStore};
 
 pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
@@ -55,7 +55,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
             startup_appearance.install_styles(&display);
         }
     });
-    let main_window: Rc<RefCell<Option<MainWindow>>> = Rc::new(RefCell::new(None));
+    let main_window = CachedWindow::<MainWindow>::new();
     let cloud_configuration = CloudConfig::load();
     let cloud_sync = cloud_configuration
         .as_ref()
@@ -71,62 +71,89 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
         )
         .ok()
     });
+    let create_main_window: Rc<dyn Fn(&adw::Application) -> MainWindow> = {
+        let sticky_session = crate::ui::library_window::StickySession::default();
+        let repository = repository.clone();
+        let autosave = autosave.clone();
+        let controller = controller.clone();
+        let writing_runtime = writing_runtime.clone();
+        Rc::new(move |app| {
+            MainWindow::new_with_sticky_session(
+                app,
+                repository.clone(),
+                autosave.clone(),
+                controller.clone(),
+                writing_runtime.clone(),
+                sticky_session.clone(),
+            )
+        })
+    };
 
     {
+        let app = app.clone();
         let main_window = main_window.clone();
+        let create_main_window = create_main_window.clone();
         add_action(&app.clone(), "new-note", move |_, _| {
-            if let Some(window) = main_window.borrow().as_ref() {
-                window.create_note();
-            }
+            main_window.present_or_create(
+                || create_main_window(&app),
+                |window| window.window.clone().upcast(),
+            );
+            main_window.with(MainWindow::create_note);
         });
     }
     {
         let app = app.clone();
-        let settings: Rc<RefCell<Option<WritingAssistanceSettings>>> = Rc::new(RefCell::new(None));
+        let settings = CachedWindow::<WritingAssistanceSettings>::new();
         let keys: Arc<dyn crate::key_store::KeyStore> = keys.clone();
         add_action(&app.clone(), "writing-assistance-settings", move |_, _| {
-            if settings.borrow().is_none() {
-                settings.replace(Some(WritingAssistanceSettings::new(
-                    &app,
-                    WritingAssistanceStore::for_current_user(),
-                    keys.clone(),
-                )));
-            }
-            if let Some(settings) = settings.borrow().as_ref() {
-                settings.present();
-            }
+            settings.present_or_create(
+                || {
+                    WritingAssistanceSettings::new(
+                        &app,
+                        WritingAssistanceStore::for_current_user(),
+                        keys.clone(),
+                    )
+                },
+                |settings| settings.window.clone().upcast(),
+            );
         });
     }
     {
+        let app = app.clone();
         let main_window = main_window.clone();
-        add_action(&app, "show-notes", move |_, _| {
-            if let Some(window) = main_window.borrow().as_ref() {
-                window.present();
-            }
+        let create_main_window = create_main_window.clone();
+        add_action(&app.clone(), "show-notes", move |_, _| {
+            main_window.present_or_create(
+                || create_main_window(&app),
+                |window| window.window.clone().upcast(),
+            );
         });
     }
     {
         let main_window = main_window.clone();
         add_action(&app, "refresh-notes", move |_, _| {
-            if let Some(window) = main_window.borrow().as_ref() {
-                window.refresh();
-            }
+            main_window.with(MainWindow::refresh);
         });
     }
     {
+        let app = app.clone();
         let main_window = main_window.clone();
-        add_action(&app, "search", move |_, _| {
-            if let Some(window) = main_window.borrow().as_ref() {
-                window.present();
+        let create_main_window = create_main_window.clone();
+        add_action(&app.clone(), "search", move |_, _| {
+            main_window.present_or_create(
+                || create_main_window(&app),
+                |window| window.window.clone().upcast(),
+            );
+            main_window.with(|window| {
                 window.focus_search();
-            }
+            });
         });
     }
     {
         let repository = repository.clone();
         let main_window = main_window.clone();
         add_action(&app, "import-xpad", move |_, _| {
-            let Some(window) = main_window.borrow().as_ref().cloned() else {
+            let Some(window) = main_window.with(Clone::clone) else {
                 return;
             };
             let source = std::env::var_os("HOME")
@@ -173,31 +200,31 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     }
     {
         let app = app.clone();
-        let settings: Rc<RefCell<Option<AccountSettings>>> = Rc::new(RefCell::new(None));
+        let settings = CachedWindow::<AccountSettings>::new();
         let keys: Arc<dyn crate::key_store::KeyStore> = keys.clone();
         let configuration = cloud_configuration.clone();
         let cloud_sync = cloud_sync.clone();
         let cloud_backup = cloud_backup.clone();
         add_action(&app.clone(), "account-settings", move |_, _| {
-            if settings.borrow().is_none() {
-                settings.replace(Some(AccountSettings::new_with_services(
-                    &app,
-                    configuration.clone(),
-                    keys.clone(),
-                    cloud_sync.clone(),
-                    cloud_backup.clone(),
-                )));
-            }
-            if let Some(settings) = settings.borrow().as_ref() {
-                settings.present();
-            }
+            settings.present_or_create(
+                || {
+                    AccountSettings::new_with_services(
+                        &app,
+                        configuration.clone(),
+                        keys.clone(),
+                        cloud_sync.clone(),
+                        cloud_backup.clone(),
+                    )
+                },
+                |settings| settings.window.clone().upcast(),
+            );
         });
     }
     {
         let main_window = main_window.clone();
         let cloud_sync = cloud_sync.clone();
         add_action(&app, "sync-now", move |_, _| {
-            let Some(window) = main_window.borrow().as_ref().cloned() else {
+            let Some(window) = main_window.with(Clone::clone) else {
                 return;
             };
             let Some(sync) = cloud_sync.clone() else {
@@ -215,10 +242,7 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
                 }
                 match sync.run_once("desktop").await {
                     Ok(cycle) => {
-                        window.set_status(&format!(
-                            "Sync complete · {} uploaded · {} downloaded",
-                            cycle.uploaded, cycle.downloaded
-                        ));
+                        window.set_status(&crate::sync_status::cycle_message(&cycle));
                         if cycle.downloaded > 0 {
                             window.refresh();
                         }
@@ -233,23 +257,21 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     {
         let main_window = main_window.clone();
         add_action(&app, "shortcuts", move |_, _| {
-            if let Some(window) = main_window.borrow().as_ref() {
+            main_window.with(|window| {
                 let dialog = shortcuts_window();
                 dialog.set_transient_for(Some(&window.window));
                 dialog.present();
-            }
+            });
         });
     }
     {
         let app = app.clone();
-        let settings: Rc<RefCell<Option<AppearanceSettings>>> = Rc::new(RefCell::new(None));
+        let settings = CachedWindow::<AppearanceSettings>::new();
         add_action(&app.clone(), "appearance-settings", move |_, _| {
-            if settings.borrow().is_none() {
-                settings.replace(Some(AppearanceSettings::new(&app, global())));
-            }
-            if let Some(settings) = settings.borrow().as_ref() {
-                settings.present();
-            }
+            settings.present_or_create(
+                || AppearanceSettings::new(&app, global()),
+                |settings| settings.window.clone().upcast(),
+            );
         });
     }
     {
@@ -263,23 +285,12 @@ pub async fn run() -> anyhow::Result<gtk::glib::ExitCode> {
     app.set_accels_for_action("app.shortcuts", &["<Primary>question"]);
     {
         let main_window = main_window.clone();
-        let repository = repository.clone();
-        let autosave = autosave.clone();
-        let controller = controller.clone();
-        let writing_runtime = writing_runtime.clone();
+        let create_main_window = create_main_window.clone();
         app.connect_activate(move |app| {
-            if main_window.borrow().is_none() {
-                main_window.replace(Some(MainWindow::new(
-                    app,
-                    repository.clone(),
-                    autosave.clone(),
-                    controller.clone(),
-                    writing_runtime.clone(),
-                )));
-            }
-            if let Some(window) = main_window.borrow().as_ref() {
-                window.present();
-            }
+            main_window.present_or_create(
+                || create_main_window(app),
+                |window| window.window.clone().upcast(),
+            );
         });
     }
     Ok(app.run())

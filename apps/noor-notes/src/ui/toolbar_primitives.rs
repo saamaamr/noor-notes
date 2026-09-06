@@ -78,6 +78,7 @@ pub fn style_menu_button(button: &gtk::MenuButton, accessible_label: &str) {
     button.add_css_class("nn-radius-6");
     button.add_css_class("nn-focus-ring");
     button.update_property(&[gtk::accessible::Property::Label(accessible_label)]);
+    button.set_valign(gtk::Align::Center);
 }
 
 pub fn bind_menu_popover(button: &gtk::MenuButton, popover: &gtk::Popover) {
@@ -101,6 +102,7 @@ pub fn bind_menu_popover(button: &gtk::MenuButton, popover: &gtk::Popover) {
 }
 
 fn style_control<W: IsA<gtk::Widget> + IsA<gtk::Accessible>>(control: &W, label: &str) {
+    control.set_valign(gtk::Align::Center);
     control.add_css_class("toolbar-button");
     control.add_css_class("nn-control-compact");
     control.add_css_class("nn-icon-button");
