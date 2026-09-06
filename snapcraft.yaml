@@ -1,5 +1,5 @@
 name: noor-notes
-version: "1.1.4"
+version: "1.1.5"
 title: Noor Notes
 summary: Private, encrypted notes with focused editing for Linux
 description: |
@@ -90,6 +90,10 @@ parts:
     rust-channel: none
     build-environment:
       - PATH: $CRAFT_STAGE/usr/bin:${PATH}
+      # Public desktop-client configuration, not a service-role/OAuth secret.
+      # RLS and each user's authentication govern access to encrypted notes.
+      - NOOR_SUPABASE_URL: https://ypwmbuvdzmjwzdgtacty.supabase.co
+      - NOOR_SUPABASE_PUBLISHABLE_KEY: sb_publishable_0kN8CpseGSddbQLhESnweg_Dt4MlB8Y
     build-packages:
       - build-essential
       - libadwaita-1-dev

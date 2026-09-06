@@ -124,11 +124,18 @@ require_equal(
 )
 if "language.name()" in spelling_source:
     raise SystemExit("Snap-compatible spelling language labels must not require libspelling 0.4 symbols")
-require_equal(
-    "parts.noor-notes.build-environment",
-    part.get("build-environment"),
-    [{"PATH": "$CRAFT_STAGE/usr/bin:${PATH}"}],
-)
+build_environment = {}
+for entry in part.get("build-environment", []):
+    build_environment.update(entry)
+require_equal("Rust build PATH", build_environment.get("PATH"), "$CRAFT_STAGE/usr/bin:${PATH}")
+# A Store build must enable the real account controller, not ship silently
+# without the public configuration that was present in the tested Dev build.
+from urllib.parse import urlparse
+cloud_url = urlparse(build_environment.get("NOOR_SUPABASE_URL", ""))
+if cloud_url.scheme != "https" or not cloud_url.hostname or cloud_url.username or cloud_url.password:
+    raise SystemExit("Snap account login requires an HTTPS public Supabase build URL")
+if not build_environment.get("NOOR_SUPABASE_PUBLISHABLE_KEY", "").startswith("sb_publishable_"):
+    raise SystemExit("Snap account login requires a public publishable key, never a privileged key")
 
 rust_deps = manifest.get("parts", {}).get("rust-deps")
 if not isinstance(rust_deps, dict):

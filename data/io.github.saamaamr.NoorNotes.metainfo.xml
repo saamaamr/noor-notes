@@ -36,6 +36,11 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.1.5" date="2026-09-06" type="stable">
+      <description>
+        <p>Fixes missing Google and email account configuration in the official Snap. Adds installed-package checks that prevent publishing a build with account login disabled by missing configuration. Local notes remain available without sign-in.</p>
+      </description>
+    </release>
     <release version="1.1.4" date="2026-09-06" type="stable">
       <description>
         <p>Refines Snow and Midnight controls, compact settings and editor margins. Read-only windows gain responsive body spacing and retain correct controls when the library is reopened. Preserves encrypted local notes, formatting and autosave.</p>

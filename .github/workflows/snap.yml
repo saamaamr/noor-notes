@@ -30,6 +30,7 @@ jobs:
         run: |
           sudo snap install --dangerous "${{ steps.build-snap.outputs.snap }}"
           snap run noor-notes --help
+          env -u NOOR_SUPABASE_URL -u NOOR_SUPABASE_PUBLISHABLE_KEY snap run noor-notes --check-cloud-config
 
       - name: Upload Snap artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

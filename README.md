@@ -2,7 +2,7 @@
 
 Noor Notes is a privacy-first, offline-first GTK4/libadwaita notes application for Linux. It combines a fast sticky-note workflow with a modern library, focused rich/source editors, encrypted local storage, recovery-aware autosave, Linux packaging, and automated verification.
 
-**Current source:** v1.1.4 · **Current release:** v1.1.4 · **Stable:** v1.1.4 (revision 23) · **Edge:** v1.1.4 (revision 23) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
+**Current source:** v1.1.5 · **Current release:** v1.1.5 (publication pending) · **Stable:** v1.1.4 (revision 23) · **Edge:** v1.1.4 (revision 23) · **GitHub release:** v1.1.1 · **Platform:** Linux · **License:** GPL-3.0-or-later
 
 ## Product overview
 
@@ -22,7 +22,9 @@ The retained reference gallery below shows the real v1.1.3 Dev build with synthe
 
 ## Recent fixes
 
-See the [1.1.4 changes and release scope](docs/releases/1.1.4.md).
+See the [1.1.5 account configuration hotfix](docs/releases/1.1.5.md) and [1.1.4 UI changes](docs/releases/1.1.4.md).
+
+- Fixed the official Snap recipe missing the public account configuration present in Dev. New installed-package checks block publishing a Snap with disabled login caused by missing configuration.
 
 - Expanded the integrated editor background, header, menu, toolbar, and writing surface across the available workspace with no automatic side gutters.
 - Refined the separate sticky Read-only window: title only in the header, top-aligned body without hidden editor gaps, and width-responsive reading insets independent of editor margins.
@@ -86,7 +88,7 @@ Install the stable Snap Store release, then launch it from the application grid 
 
 The current stable release is **Noor Notes 1.1.4, revision 23** for amd64. Use `snap info noor-notes` to confirm the latest Store revision before installation.
 
-The repository source is **1.1.4**, the patch after stable 1.1.3. On 2026-09-06, the [release workflow](https://github.com/saamaamr/noor-notes/actions/runs/34038250987) passed build, runtime, lint and Store-installed smoke-test gates, then promoted the same revision **23** from edge to stable without rebuilding. Both channels were verified independently with `snap info noor-notes`.
+The repository source is **1.1.5**; that hotfix is pending publication. On 2026-09-06, the [1.1.4 release workflow](https://github.com/saamaamr/noor-notes/actions/runs/34038250987) passed build, runtime, lint and Store-installed smoke-test gates, then promoted the same revision **23** from edge to stable without rebuilding. Both channels were verified independently with `snap info noor-notes`.
 ```bash
 sudo snap install noor-notes
 noor-notes
@@ -248,14 +250,16 @@ gnome-extensions disable noor-lockscreen-motion@saamaamr.github.io
 
 Noor Notes implements optional end-to-end encrypted synchronization while keeping SQLCipher SQLite as the local source of truth. Email sign-up/sign-in and Google account sign-in use Supabase Auth. On first setup the app creates a random vault key, wraps it with a user-supplied passphrase, and displays an independent recovery key once. Note payloads are encrypted locally with XChaCha20-Poly1305 before upload; Supabase receives ciphertext plus the identifiers and timestamps needed for ordered synchronization. Downloads use the existing revision/conflict policy, and failed network cycles keep local editing available.
 
-Development builds read these public application values at runtime or compile time:
+Official Snap builds include the public Supabase project configuration in `snapcraft.yaml` starting with 1.1.5. Account & Sync is opt-in; local notes remain usable without signing in. Source/Dev builds can read these public application values at runtime or compile time:
 
     NOOR_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
     NOOR_SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_PUBLIC_KEY
 
 Only an HTTPS project URL and a Supabase publishable/anon client key are accepted; never provide a `service_role` or `sb_secret_` key. Enable email and Google providers in the Supabase dashboard and allow `http://127.0.0.1:43817/auth/callback` plus `http://127.0.0.1:43817/auth/callback?nn_state=*` for the per-attempt callback state. Configure the Google web client's authorized redirect as `https://YOUR_PROJECT.supabase.co/auth/v1/callback`; its client secret belongs only in Supabase's provider settings, never in the desktop app. Google sign-in requests authentication only, not Google Drive access. The app opens a loopback-only listener for one callback with a five-minute timeout and then closes it.
 
-Apply the repository-owned migrations in `supabase/migrations/` before enabling a project. Their row-level-security policies bind encrypted vaults and note revisions to the authenticated user. No production Supabase URL or key is committed to this repository. Builds without them show a truthful local-only state and disable account actions. Account refresh tokens, wrapped vault material, and sync cursors are stored through GNOME Keyring; passwords, plaintext vault keys, and OAuth authorization codes are not persisted.
+Apply the repository-owned migrations in `supabase/migrations/` before enabling a project. Their row-level-security policies bind encrypted vaults and note revisions to the authenticated user. The official Snap manifest contains only a public project URL and publishable client key, never a privileged server key or OAuth client secret. Custom builds without public configuration show a local-only state and disable account actions. Account refresh tokens, wrapped vault material, and sync cursors are stored through GNOME Keyring; passwords, plaintext vault keys, and OAuth authorization codes are not persisted.
+
+Packagers can run `noor-notes --check-cloud-config` without a display or keyring. It validates the same configuration/client used by Account & Sync, prints no key, and exits unsuccessfully when configuration is missing or invalid. Snap build and Store-installed smoke gates run this check without runtime overrides to prevent another unconfigured release. This diagnostic does not sign in or prove two-device sync; live acceptance is tracked in [Supabase verification](docs/supabase-staging-verification.md).
 
 ### Google Drive and OneDrive backup
 
